@@ -1,0 +1,158 @@
+# JIRA-LIKE TASK MANAGEMENT SYSTEM PLAN
+Last updated: April 10, 2025
+
+## 1. System Architecture
+- Backend: Golang (Go)
+- Frontend: HTMX with server-side templates
+- CSS: Tailwind CSS
+- Database: PostgreSQL
+- Authentication: JWT (JSON Web Tokens)
+- API: RESTful API design
+
+## 2. Core Features & Components
+
+### A. User Management
+- User registration and authentication
+- User roles (Admin, Project Manager, Developer, Observer)
+- User profiles
+
+### B. Project Management
+- Create/Edit/Delete projects
+- Project settings and configurations
+- Project dashboard
+- Team management for projects
+
+### C. Task/Issue Tracking
+- Create/Edit/Delete tasks
+- Task types (Story, Bug, Task, Epic)
+- Priority levels
+- Status tracking
+- Assignment to users
+- Due dates/time tracking
+- Comments and attachments
+
+### D. Workflow Management
+- Customizable workflows for different project types
+- Status transitions with optional approvals
+- Automated status changes based on actions
+
+### E. Board Views
+- Kanban board view
+- List view
+- Calendar view
+- Gantt chart (for timeline visualization)
+
+### F. Reporting
+- Task statistics
+- Burndown charts
+- Velocity tracking
+- Custom reports
+
+## 3. Data Models
+
+### User
+- id
+- name
+- email
+- password (hashed)
+- role
+- avatar
+- createdAt
+
+### Project
+- id
+- name
+- key (short code)
+- description
+- lead (user reference)
+- members (user references)
+- createdAt
+- updatedAt
+
+### Task
+- id
+- title
+- description
+- type (story, bug, task, epic)
+- status
+- priority
+- reporter (user reference)
+- assignee (user reference)
+- project (project reference)
+- sprint (sprint reference)
+- comments
+- attachments
+- created_at
+- updated_at
+- due_date
+- time_estimate
+- time_spent
+
+### Sprint
+- id
+- name
+- startDate
+- endDate
+- goal
+- status (planning, active, completed)
+- project (project reference)
+
+## 4. Implementation Roadmap
+
+### Phase 1: Core Setup (2 weeks)
+- Project setup (backend/frontend structure)
+- Database connection
+- User authentication system
+- Basic API structure
+
+### Phase 2: Project Management (2 weeks)
+- Project CRUD operations
+- Team management
+- Basic project dashboard
+
+### Phase 3: Task Management (3 weeks)
+- Task CRUD operations
+- Task relationships (parent/child)
+- Comments and attachments
+- Basic Kanban view
+
+### Phase 4: Advanced Features (3 weeks)
+- Workflow customization
+- Sprint planning
+- Additional board views
+- Search and filtering
+
+### Phase 5: Reporting and Analytics (2 weeks)
+- Dashboard analytics
+- Report generation
+- Charts and visualizations
+
+### Phase 6: Testing and Optimization (2 weeks)
+- Unit and integration testing
+- Performance optimization
+- Security auditing
+
+## 5. Technology Stack Details
+
+### Backend
+- Golang (Go)
+  - Echo or Gin framework for HTTP server
+  - GORM for database ORM
+  - go-jwt for authentication
+- PostgreSQL for relational database
+  - Structured schemas with foreign key relationships
+  - Transactions for data integrity
+  - Advanced querying capabilities
+
+### Frontend
+- HTMX for dynamic frontend with minimal JavaScript
+- Server-side templating (Go templates)
+- Tailwind CSS for styling
+- Alpine.js for additional client-side interactivity (if needed)
+- Minimal custom JavaScript for specific interactions
+
+### DevOps
+- Git for version control
+- Docker for containerization
+- GitHub Actions for CI/CD
+- Go testing framework for unit/integration tests
