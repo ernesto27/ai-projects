@@ -1,0 +1,114 @@
+{{ define "dashboard.html" }}
+{{ template "layouts/base.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<div class="container mx-auto py-6">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Welcome, {{ .User.Name }}</h1>
+        <p class="text-gray-600">Here's an overview of your tasks and projects</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Tasks stats -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h2 class="font-semibold text-gray-800">Tasks</h2>
+                    <p class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects stats -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h2 class="font-semibold text-gray-800">Projects</h2>
+                    <p class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team stats -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857M15 6a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 9a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h2 class="font-semibold text-gray-800">Team Members</h2>
+                    <p class="text-2xl font-bold">1</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent tasks section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Recent Tasks</h2>
+            <button 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                hx-get="/api/tasks/new"
+                hx-target="#task-form-container"
+                hx-swap="innerHTML">
+                Add Task
+            </button>
+        </div>
+        <div id="task-form-container"></div>
+        <div class="p-6">
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Projects</h2>
+            <button 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                hx-get="/api/projects/new"
+                hx-target="#project-form-container"
+                hx-swap="innerHTML">
+                Add Project
+            </button>
+        </div>
+        <div id="project-form-container"></div>
+        <div class="p-6">
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No projects</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // HTMX event listeners for dashboard functionality
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        // Initialize any JavaScript components after HTMX swaps content
+    });
+</script>
+{{ end }}

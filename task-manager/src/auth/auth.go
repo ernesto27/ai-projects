@@ -251,6 +251,57 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// AuthMiddlewareWeb is a middleware for web pages that checks for authentication via cookie or Authorization header
+func AuthMiddlewareWeb() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var tokenString string
+
+		// Check cookie first
+		cookie, err := c.Cookie("auth_token")
+		if err == nil && cookie != "" {
+			tokenString = cookie
+		} else {
+			// Try to get token from Authorization header
+			authHeader := c.GetHeader("Authorization")
+			if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				tokenString = authHeader[7:]
+			} else {
+				// Try to get token from query parameter (for HTMX requests)
+				tokenString = c.Query("token")
+			}
+		}
+
+		// If no token found, redirect to login
+		if tokenString == "" {
+			c.Redirect(302, "/login")
+			c.Abort()
+			return
+		}
+
+		// Validate token
+		userID, err := ValidateToken(tokenString)
+		if err != nil {
+			c.Redirect(302, "/login")
+			c.Abort()
+			return
+		}
+
+		// Get user from database
+		var user models.User
+		if result := config.DB.First(&user, userID); result.Error != nil {
+			c.Redirect(302, "/login")
+			c.Abort()
+			return
+		}
+
+		// Set user in context
+		c.Set("userID", userID)
+		c.Set("user", user)
+
+		c.Next()
+	}
+}
+
 // getEnv retrieves an environment variable or returns a default value if not set
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
