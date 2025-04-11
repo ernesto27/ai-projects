@@ -1,7 +1,7 @@
 package api
 
 import (
-	"html/template"
+	"net/http"
 	"os"
 
 	"github.com/ernesto/task-manager/src/auth"
@@ -18,22 +18,14 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	// Setup template rendering with proper inheritance
-	templ := template.Must(template.ParseFiles(
-		"templates/layouts/base.html",
-		"templates/index.html",
-		"templates/dashboard.html",
-		"templates/auth/login.html",
-		"templates/auth/register.html",
-	))
-	router.SetHTMLTemplate(templ)
-
+	router.LoadHTMLGlob("templates/*.tmpl")
 	// Serve static files
 	router.Static("/static", "./static")
 
 	// Web routes (HTML)
 	router.GET("/", HomeHandler)
-	router.GET("/register", RegisterHandler)
 	router.GET("/login", LoginHandler)
+	router.GET("/register", RegisterHandler)
 	router.GET("/dashboard", auth.AuthMiddlewareWeb(), DashboardHandler)
 
 	// Public API routes (no authentication required)
@@ -59,21 +51,21 @@ func SetupRouter() *gin.Engine {
 
 // HomeHandler renders the home page
 func HomeHandler(c *gin.Context) {
-	c.HTML(200, "index.html", gin.H{
+	c.HTML(200, "index", gin.H{
 		"Title": "Home",
 	})
 }
 
 // RegisterHandler renders the registration page
 func RegisterHandler(c *gin.Context) {
-	c.HTML(200, "auth/register.html", gin.H{
+	c.HTML(http.StatusOK, "register.tmpl", gin.H{
 		"Title": "Register",
 	})
 }
 
 // LoginHandler renders the login page
 func LoginHandler(c *gin.Context) {
-	c.HTML(200, "auth/login.html", gin.H{
+	c.HTML(200, "login.tmpl", gin.H{
 		"Title": "Login",
 	})
 }

@@ -1,8 +1,6 @@
-{{ define "auth/login.html" }}
-{{ template "layouts/base.html" . }}
-{{ end }}
+{{ template "header" .}}
 
-{{ define "content" }}
+<main class="container mx-auto px-4 py-8 flex-grow">
 <div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
     <div class="py-4 px-6">
         <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">Log In</h2>
@@ -47,6 +45,7 @@
         </div>
     </div>
 </div>
+</main>
 
 <script>
     document.getElementById('login-form').addEventListener('submit', function(e) {
@@ -111,4 +110,6 @@
         });
     });
 </script>
-{{ end }}
+
+
+{{ template "footer" .}}
