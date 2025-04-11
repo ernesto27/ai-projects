@@ -61,3 +61,23 @@ func SanitizeInput(input string) string {
 
 	return sanitized
 }
+
+// FormatValidationError formats validation errors from gin's binding into a user-friendly message
+func FormatValidationError(err error) string {
+	// Convert the error to string and clean it up
+	errStr := err.Error()
+
+	// Remove the common prefix from gin validation errors
+	errStr = strings.Replace(errStr, "Key: ", "", -1)
+
+	// Replace 'Error:' with ': '
+	errStr = strings.Replace(errStr, "Error:", ":", -1)
+
+	// Replace struct field names with more readable versions
+	errStr = strings.Replace(errStr, "'ProjectInput.", "", -1)
+	errStr = strings.Replace(errStr, "'UserRegistrationInput.", "", -1)
+	errStr = strings.Replace(errStr, "'UserLoginInput.", "", -1)
+	errStr = strings.Replace(errStr, "'", "", -1)
+
+	return errStr
+}

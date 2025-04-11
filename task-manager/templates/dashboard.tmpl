@@ -1,8 +1,5 @@
-{{ define "dashboard.html" }}
-{{ template "layouts/base.html" . }}
-{{ end }}
+{{ template "header" . }}
 
-{{ define "content" }}
 <div class="container mx-auto py-6">
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Welcome, {{ .User.Name }}</h1>
@@ -111,4 +108,5 @@
         // Initialize any JavaScript components after HTMX swaps content
     });
 </script>
-{{ end }}
+
+{{ template "footer" . }}

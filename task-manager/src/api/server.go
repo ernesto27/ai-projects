@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/ernesto/task-manager/src/auth"
+	"github.com/ernesto/task-manager/src/config"
+	"github.com/ernesto/task-manager/src/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +29,10 @@ func SetupRouter() *gin.Engine {
 	router.GET("/login", LoginHandler)
 	router.GET("/register", RegisterHandler)
 	router.GET("/dashboard", auth.AuthMiddlewareWeb(), DashboardHandler)
+	router.GET("/projects", auth.AuthMiddlewareWeb(), ProjectsPageHandler)
+	router.GET("/projects/new", auth.AuthMiddlewareWeb(), NewProjectPageHandler)
+	router.GET("/projects/:id", auth.AuthMiddlewareWeb(), ProjectDetailsPageHandler)
+	router.GET("/projects/:id/edit", auth.AuthMiddlewareWeb(), EditProjectPageHandler)
 
 	// Public API routes (no authentication required)
 	public := router.Group("/api")
@@ -44,6 +50,13 @@ func SetupRouter() *gin.Engine {
 		protected.GET("/profile", GetUserProfile)
 		protected.PUT("/profile", UpdateUserProfile)
 		protected.POST("/profile/change-password", ChangePassword)
+
+		// Project routes
+		protected.GET("/projects", GetProjects)
+		protected.POST("/projects", CreateProject)
+		protected.GET("/projects/:id", GetProject)
+		protected.PUT("/projects/:id", UpdateProject)
+		protected.DELETE("/projects/:id", DeleteProject)
 	}
 
 	return router
@@ -79,8 +92,117 @@ func DashboardHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "dashboard.html", gin.H{
+	c.HTML(200, "dashboard.tmpl", gin.H{
 		"Title": "Dashboard",
 		"User":  user,
+	})
+}
+
+// ProjectsPageHandler renders the projects list page
+func ProjectsPageHandler(c *gin.Context) {
+	var projects []models.Project
+
+	// Get projects from database with owner information
+	if err := config.DB.Preload("Owner").Find(&projects).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch projects",
+		})
+		return
+	}
+
+	// Get current user
+	user, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "projects.tmpl", gin.H{
+		"Title":    "Projects",
+		"User":     user,
+		"Projects": projects,
+	})
+}
+
+// NewProjectPageHandler renders the new project form
+func NewProjectPageHandler(c *gin.Context) {
+	// Get all users to populate owner selection dropdown
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch users",
+		})
+		return
+	}
+
+	// Get current user
+	currentUser, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "project_form.tmpl", gin.H{
+		"Title":      "Create New Project",
+		"User":       currentUser,
+		"Users":      users,
+		"FormAction": "/api/projects",
+		"Method":     "POST",
+		"Project":    models.Project{}, // Empty project for new form
+	})
+}
+
+// ProjectDetailsPageHandler renders the project details page
+func ProjectDetailsPageHandler(c *gin.Context) {
+	id := c.Param("id")
+	var project models.Project
+
+	// Get project from database with owner information
+	if err := config.DB.Preload("Owner").First(&project, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get current user
+	user, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "project_details.tmpl", gin.H{
+		"Title":   project.Name,
+		"User":    user,
+		"Project": project,
+	})
+}
+
+// EditProjectPageHandler renders the edit project form
+func EditProjectPageHandler(c *gin.Context) {
+	id := c.Param("id")
+	var project models.Project
+
+	// Get project from database
+	if err := config.DB.First(&project, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get all users to populate owner selection dropdown
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch users",
+		})
+		return
+	}
+
+	// Get current user
+	currentUser, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "project_form.tmpl", gin.H{
+		"Title":      "Edit Project",
+		"User":       currentUser,
+		"Users":      users,
+		"FormAction": "/api/projects/" + id,
+		"Method":     "PUT",
+		"Project":    project,
 	})
 }

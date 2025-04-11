@@ -77,6 +77,22 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Set token as HTTP-only cookie
+	secure := false
+	if os.Getenv("GIN_MODE") == "release" {
+		secure = true
+	}
+
+	c.SetCookie(
+		"auth_token",       // name
+		token.Token,        // value
+		int(token.Expires), // max age in seconds
+		"/",                // path
+		"",                 // domain
+		secure,             // secure (HTTPS only)
+		true,               // httpOnly (prevents JavaScript access)
+	)
+
 	c.JSON(201, gin.H{
 		"message": "User registered successfully",
 		"user": gin.H{
@@ -127,6 +143,24 @@ func Login(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "Failed to generate token"})
 		return
 	}
+
+	// Set token as HTTP-only cookie
+	// Using HTTP-only prevents JavaScript from accessing the cookie (more secure)
+	// Secure should be true in production when using HTTPS
+	secure := false
+	if os.Getenv("GIN_MODE") == "release" {
+		secure = true
+	}
+
+	c.SetCookie(
+		"auth_token",       // name
+		token.Token,        // value
+		int(token.Expires), // max age in seconds
+		"/",                // path
+		"",                 // domain
+		secure,             // secure (HTTPS only)
+		true,               // httpOnly (prevents JavaScript access)
+	)
 
 	c.JSON(200, gin.H{
 		"message": "Login successful",

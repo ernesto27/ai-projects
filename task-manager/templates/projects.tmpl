@@ -1,0 +1,60 @@
+{{ template "header.tmpl" . }}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
+    <a href="/projects/new" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+      Create New Project
+    </a>
+  </div>
+
+  {{ if eq (len .Projects) 0 }}
+  <div class="bg-white shadow overflow-hidden sm:rounded-md p-6">
+    <p class="text-gray-500">No projects found. Create your first project to get started!</p>
+  </div>
+  {{ else }}
+  <div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <ul class="divide-y divide-gray-200">
+      {{ range .Projects }}
+      <li>
+        <a href="/projects/{{ .ID }}" class="block hover:bg-gray-50">
+          <div class="px-4 py-4 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-blue-600 truncate">{{ .Name }}</p>
+                  <p class="text-sm text-gray-500 truncate">Key: {{ .Key }}</p>
+                </div>
+              </div>
+              <div class="ml-2 flex-shrink-0 flex">
+                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Owner: {{ .Owner.Name }}
+                </p>
+              </div>
+            </div>
+            <div class="mt-2 sm:flex sm:justify-between">
+              <div class="sm:flex">
+                <p class="flex items-center text-sm text-gray-500">
+                  {{ if .Description }}
+                    {{ .Description }}
+                  {{ else }}
+                    No description
+                  {{ end }}
+                </p>
+              </div>
+              <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                <p>
+                  Created {{ .CreatedAt }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+  {{ end }}
+</div>
+
+{{ template "footer.tmpl" . }}

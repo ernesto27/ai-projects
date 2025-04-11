@@ -1,0 +1,120 @@
+{{ template "header.tmpl" . }}
+
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">{{ .Title }}</h1>
+    <p class="mt-1 text-sm text-gray-600">
+      {{ if eq .Method "POST" }}Create a new project{{ else }}Update project information{{ end }}
+    </p>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <form id="projectForm" class="space-y-6">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Project Name</label>
+          <div class="mt-1">
+            <input type="text" name="name" id="name" value="{{ .Project.Name }}" 
+              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              required>
+          </div>
+        </div>
+
+        <div>
+          <label for="key" class="block text-sm font-medium text-gray-700">
+            Project Key (2-10 characters, alphanumeric)
+          </label>
+          <div class="mt-1">
+            <input type="text" name="key" id="key" value="{{ .Project.Key }}" 
+              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md uppercase"
+              required minlength="2" maxlength="10" pattern="[A-Za-z0-9]+">
+            <p class="mt-1 text-xs text-gray-500">Will be converted to uppercase. Example: TASK</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+          <div class="mt-1">
+            <textarea name="description" id="description" rows="4" 
+              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">{{ .Project.Description }}</textarea>
+          </div>
+        </div>
+
+        <div>
+          <label for="ownerId" class="block text-sm font-medium text-gray-700">Project Owner</label>
+          <div class="mt-1">
+            <select id="ownerId" name="ownerId" 
+              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              required>
+              <option value="">Select a project owner</option>
+              {{ range .Users }}
+                <option value="{{ .ID }}" {{ if eq .ID $.Project.OwnerID }}selected{{ end }}>
+                  {{ .Name }} ({{ .Email }})
+                </option>
+              {{ end }}
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-4">
+          <div>
+            <a href="/projects" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+              Cancel and return to projects
+            </a>
+          </div>
+          <div>
+            <button type="submit" 
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              {{ if eq .Method "POST" }}Create Project{{ else }}Update Project{{ end }}
+            </button>
+          </div>
+        </div>
+
+        <div id="formError" class="text-red-600 text-sm hidden mt-2"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('projectForm');
+    const formError = document.getElementById('formError');
+    
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      formError.classList.add('hidden');
+      
+      const formData = {
+        name: document.getElementById('name').value,
+        key: document.getElementById('key').value.toUpperCase(),
+        description: document.getElementById('description').value,
+        ownerId: parseInt(document.getElementById('ownerId').value, 10)
+      };
+      
+      fetch('{{ .FormAction }}', {
+        method: '{{ .Method }}',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw err; });
+        }
+        return response.json();
+      })
+      .then(data => {
+        window.location.href = '/projects/' + data.data.id;
+      })
+      .catch(error => {
+        formError.textContent = error.error || 'An error occurred. Please try again.';
+        formError.classList.remove('hidden');
+      });
+    });
+  });
+</script>
+
+{{ template "footer.tmpl" . }}
