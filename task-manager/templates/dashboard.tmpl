@@ -32,7 +32,7 @@
                 </div>
                 <div class="ml-4">
                     <h2 class="font-semibold text-gray-800">Projects</h2>
-                    <p class="text-2xl font-bold">0</p>
+                    <p class="text-2xl font-bold">{{ .ProjectCount }}</p>
                 </div>
             </div>
         </div>
@@ -47,7 +47,7 @@
                 </div>
                 <div class="ml-4">
                     <h2 class="font-semibold text-gray-800">Team Members</h2>
-                    <p class="text-2xl font-bold">1</p>
+                    <p class="text-2xl font-bold">{{ .UserCount }}</p>
                 </div>
             </div>
         </div>
@@ -57,13 +57,10 @@
     <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-800">Recent Tasks</h2>
-            <button 
-                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                hx-get="/api/tasks/new"
-                hx-target="#task-form-container"
-                hx-swap="innerHTML">
+            <a href="/tasks/new" 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 inline-block">
                 Add Task
-            </button>
+            </a>
         </div>
         <div id="task-form-container"></div>
         <div class="p-6">
@@ -80,17 +77,15 @@
     <!-- Projects section -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-800">Projects</h2>
-            <button 
-                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                hx-get="/api/projects/new"
-                hx-target="#project-form-container"
-                hx-swap="innerHTML">
+            <h2 class="text-xl font-semibold text-gray-800">Recent Projects</h2>
+            <a href="/projects/new" 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 inline-block">
                 Add Project
-            </button>
+            </a>
         </div>
         <div id="project-form-container"></div>
         <div class="p-6">
+            {{ if eq (len .Projects) 0 }}
             <div class="text-center py-12">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
@@ -98,6 +93,47 @@
                 <h3 class="mt-2 text-sm font-medium text-gray-900">No projects</h3>
                 <p class="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
             </div>
+            {{ else }}
+            <div class="divide-y divide-gray-200">
+                {{ range .Projects }}
+                <div class="py-4 hover:bg-gray-50">
+                    <a href="/projects/{{ .ID }}" class="block">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-medium text-indigo-600">{{ .Name }}</h3>
+                                <div class="mt-1 flex items-center text-sm text-gray-500">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ .Key }}
+                                    </span>
+                                    <span class="ml-3 inline-flex items-center">
+                                        Owner: {{ .Owner.Name }}
+                                    </span>
+                                </div>
+                                {{ if .Description }}
+                                <p class="mt-2 text-sm text-gray-600 line-clamp-2">{{ .Description }}</p>
+                                {{ else }}
+                                <p class="mt-2 text-sm text-gray-400 italic">No description provided</p>
+                                {{ end }}
+                            </div>
+                            <div class="flex-shrink-0 ml-4 flex">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {{ end }}
+            </div>
+            <div class="mt-4 text-center">
+                <a href="/projects" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    View all projects
+                    <svg class="ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </div>
+            {{ end }}
         </div>
     </div>
 </div>

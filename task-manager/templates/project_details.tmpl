@@ -1,4 +1,4 @@
-{{ template "header.tmpl" . }}
+{{ template "header" . }}
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-6">
@@ -7,6 +7,9 @@
       <p class="text-sm text-gray-500">Key: {{ .Project.Key }}</p>
     </div>
     <div class="flex space-x-4">
+      <a href="/projects/{{ .Project.ID }}/tasks" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+        Tasks
+      </a>
       <a href="/projects/{{ .Project.ID }}/edit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
         Edit Project
       </a>
@@ -144,4 +147,4 @@
   });
 </script>
 
-{{ template "footer.tmpl" . }}
+{{ template "footer" . }}

@@ -19,5 +19,9 @@ func GetTemplateFunctions() template.FuncMap {
 		"formatDate": func(t time.Time) string {
 			return t.Format("Jan 02, 2006")
 		},
+		// Format a datetime to a human-readable string
+		"formatTime": func(t time.Time) string {
+			return t.Format("Jan 02, 2006 15:04")
+		},
 	}
 }

@@ -45,7 +45,7 @@ JWT_SECRET=your_jwt_secret_key
 ### 3. Start the PostgreSQL database using Docker
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 This will start a PostgreSQL server on port 5432.

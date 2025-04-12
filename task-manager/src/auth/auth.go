@@ -252,24 +252,32 @@ func ValidateToken(tokenString string) (uint, error) {
 	return 0, errors.New("invalid token")
 }
 
-// AuthMiddleware is a Gin middleware to validate JWT tokens
+// AuthMiddleware is a Gin middleware to validate JWT tokens from both cookies and headers
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Authorization header required"})
-			return
-		}
+		var tokenString string
 
-		// Check if header has correct format
-		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Invalid authorization format"})
-			return
-		}
+		// Check cookie first
+		cookie, err := c.Cookie("auth_token")
+		if err == nil && cookie != "" {
+			tokenString = cookie
+		} else {
+			// Try to get token from Authorization header
+			authHeader := c.GetHeader("Authorization")
+			if authHeader == "" {
+				c.AbortWithStatusJSON(401, gin.H{"error": "Authentication required. Please login again."})
+				return
+			}
 
-		// Extract token
-		tokenString := authHeader[7:]
+			// Check if header has correct format
+			if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+				c.AbortWithStatusJSON(401, gin.H{"error": "Invalid authorization format"})
+				return
+			}
+
+			// Extract token
+			tokenString = authHeader[7:]
+		}
 
 		// Validate token
 		userID, err := ValidateToken(tokenString)
@@ -280,6 +288,12 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Set user ID in context
 		c.Set("userID", userID)
+
+		// Also get full user data for APIs that need it
+		var user models.User
+		if result := config.DB.First(&user, userID); result.Error == nil {
+			c.Set("user", user)
+		}
 
 		c.Next()
 	}

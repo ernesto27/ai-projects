@@ -4,9 +4,12 @@ import (
 	"net/http"
 	"os"
 
+	"html/template"
+
 	"github.com/ernesto/task-manager/src/auth"
 	"github.com/ernesto/task-manager/src/config"
 	"github.com/ernesto/task-manager/src/models"
+	"github.com/ernesto/task-manager/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,8 +22,10 @@ func SetupRouter() *gin.Engine {
 
 	router := gin.Default()
 
-	// Setup template rendering with proper inheritance
-	router.LoadHTMLGlob("templates/*.tmpl")
+	// Set up HTML templates with custom functions
+	tmpl := template.Must(template.New("").Funcs(utils.GetTemplateFunctions()).ParseGlob("templates/*.tmpl"))
+	router.SetHTMLTemplate(tmpl)
+
 	// Serve static files
 	router.Static("/static", "./static")
 
@@ -33,6 +38,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/projects/new", auth.AuthMiddlewareWeb(), NewProjectPageHandler)
 	router.GET("/projects/:id", auth.AuthMiddlewareWeb(), ProjectDetailsPageHandler)
 	router.GET("/projects/:id/edit", auth.AuthMiddlewareWeb(), EditProjectPageHandler)
+	router.GET("/projects/:id/tasks", auth.AuthMiddlewareWeb(), ProjectTasksPageHandler)
 
 	// Public API routes (no authentication required)
 	public := router.Group("/api")
@@ -57,6 +63,13 @@ func SetupRouter() *gin.Engine {
 		protected.GET("/projects/:id", GetProject)
 		protected.PUT("/projects/:id", UpdateProject)
 		protected.DELETE("/projects/:id", DeleteProject)
+
+		// Task routes
+		protected.GET("/projects/:id/tasks", GetTasksHandler)
+		protected.POST("/projects/:id/tasks", CreateTaskHandler)
+		protected.GET("/projects/:id/tasks/:taskId", GetTaskHandler)
+		protected.PUT("/projects/:id/tasks/:taskId", UpdateTaskHandler)
+		protected.DELETE("/projects/:id/tasks/:taskId", DeleteTaskHandler)
 	}
 
 	return router
@@ -92,9 +105,30 @@ func DashboardHandler(c *gin.Context) {
 		return
 	}
 
+	// Fetch projects from the database
+	var projects []models.Project
+	if err := config.DB.Preload("Owner").Limit(5).Order("created_at DESC").Find(&projects).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch projects",
+		})
+		return
+	}
+
+	// Count total projects
+	var projectCount int64
+	config.DB.Model(&models.Project{}).Count(&projectCount)
+
+	// Count total users
+	var userCount int64
+	config.DB.Model(&models.User{}).Count(&userCount)
+
 	c.HTML(200, "dashboard.tmpl", gin.H{
-		"Title": "Dashboard",
-		"User":  user,
+		"Title":        "Dashboard",
+		"User":         user,
+		"Projects":     projects,
+		"ProjectCount": projectCount,
+		"UserCount":    userCount,
 	})
 }
 
@@ -205,4 +239,141 @@ func EditProjectPageHandler(c *gin.Context) {
 		"Method":     "PUT",
 		"Project":    project,
 	})
+}
+
+// ProjectTasksPageHandler renders the tasks page for a specific project
+func ProjectTasksPageHandler(c *gin.Context) {
+	id := c.Param("id")
+	var project models.Project
+
+	// Get project from database with owner information
+	if err := config.DB.Preload("Owner").First(&project, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get tasks for this project with all related data
+	var tasks []models.Task
+	if err := config.DB.Where("project_id = ?", id).
+		Preload("Assignee").
+		Preload("Reporter").
+		Order("id DESC").
+		Find(&tasks).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch tasks",
+		})
+		return
+	}
+
+	// Get all users for the assignee dropdown
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch users",
+		})
+		return
+	}
+
+	// Get current user
+	user, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "tasks.tmpl", gin.H{
+		"Title":   project.Name + " - Tasks",
+		"User":    user,
+		"Project": project,
+		"Tasks":   tasks,
+		"Users":   users,
+	})
+}
+
+// GetTasks handles fetching tasks for a project
+func GetTasksHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	var tasks []models.Task
+
+	if err := config.DB.Where("project_id = ?", projectID).Find(&tasks).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tasks"})
+		return
+	}
+
+	c.JSON(http.StatusOK, tasks)
+}
+
+// CreateTask handles creating a new task for a project
+func CreateTaskHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	var task models.Task
+
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	task.ProjectID = projectID
+
+	if err := config.DB.Create(&task).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, task)
+}
+
+// GetTask handles fetching a specific task
+func GetTaskHandler(c *gin.Context) {
+	taskID := c.Param("taskId")
+	var task models.Task
+
+	if err := config.DB.First(&task, taskID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}
+
+// UpdateTask handles updating a specific task
+func UpdateTaskHandler(c *gin.Context) {
+	taskID := c.Param("taskId")
+	var task models.Task
+
+	if err := config.DB.First(&task, taskID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	if err := config.DB.Save(&task).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update task"})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}
+
+// DeleteTask handles deleting a specific task
+func DeleteTaskHandler(c *gin.Context) {
+	taskID := c.Param("taskId")
+	var task models.Task
+
+	if err := config.DB.First(&task, taskID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	if err := config.DB.Delete(&task).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete task"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }

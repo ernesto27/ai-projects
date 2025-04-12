@@ -1,0 +1,674 @@
+{{template "header" .}}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Tasks for {{.Project.Name}}</h2>
+            <p class="text-gray-600">{{.Project.Description}}</p>
+        </div>
+        <button type="button" class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Task
+        </button>
+    </div>
+
+    <div class="mb-6">
+        <div class="inline-flex rounded-md shadow-sm" role="group">
+            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:text-indigo-600 active:bg-indigo-50 active:text-indigo-700" id="viewAll">All</button>
+            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-300 hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:text-indigo-600 active:bg-indigo-50 active:text-indigo-700" id="viewTodo">To Do</button>
+            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-300 hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:text-indigo-600 active:bg-indigo-50 active:text-indigo-700" id="viewInProgress">In Progress</button>
+            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-indigo-500 focus:text-indigo-600 active:bg-indigo-50 active:text-indigo-700" id="viewDone">Done</button>
+        </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="tasksTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="tasksTableBody">
+                    {{if .Tasks}}
+                        {{range .Tasks}}
+                        <tr data-status="{{.Status}}" data-id="{{.ID}}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{.ID}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.Title}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{if eq .Type "Bug"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Bug</span>
+                                {{else if eq .Type "Epic"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Epic</span>
+                                {{else if eq .Type "Story"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">Story</span>
+                                {{else}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Task</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{if eq .Status "To Do"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">To Do</span>
+                                {{else if eq .Status "In Progress"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">In Progress</span>
+                                {{else if eq .Status "Done"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Done</span>
+                                {{else}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{{.Status}}</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{if eq .Priority "Low"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Low</span>
+                                {{else if eq .Priority "Medium"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Medium</span>
+                                {{else if eq .Priority "High"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                                {{else if eq .Priority "Critical"}}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Critical</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{if .Assignee}}
+                                    {{.Assignee.Name}}
+                                {{else}}
+                                    <span class="text-gray-400 italic">Unassigned</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{formatTime .CreatedAt}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button class="text-indigo-600 hover:text-indigo-900 view-task" data-id="{{.ID}}">
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                    <button class="text-gray-600 hover:text-gray-900 edit-task" data-id="{{.ID}}">
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-900 delete-task" data-id="{{.ID}}">
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {{end}}
+                    {{else}}
+                        <tr>
+                            <td colspan="8" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No tasks found. Create your first task!</td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="fixed inset-0 overflow-y-auto hidden" aria-labelledby="createTaskModalLabel" aria-hidden="true" id="createTaskModal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="createTaskModalLabel">Create New Task</h3>
+                        <form id="createTaskForm" action="/api/projects/{{.Project.ID}}/tasks" method="POST" class="space-y-4">
+                            <input type="hidden" name="projectId" value="{{.Project.ID}}">
+                            
+                            <div>
+                                <label for="taskTitle" class="block text-sm font-medium text-gray-700">Title *</label>
+                                <input type="text" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="taskTitle" name="title" required>
+                            </div>
+                            
+                            <div>
+                                <label for="taskDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="taskDescription" name="description" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div>
+                                    <label for="taskType" class="block text-sm font-medium text-gray-700">Type</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="taskType" name="type">
+                                        <option value="Task">Task</option>
+                                        <option value="Bug">Bug</option>
+                                        <option value="Story">Story</option>
+                                        <option value="Epic">Epic</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="taskStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="taskStatus" name="status">
+                                        <option value="To Do">To Do</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Done">Done</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="taskPriority" class="block text-sm font-medium text-gray-700">Priority</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="taskPriority" name="priority">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="taskAssignee" class="block text-sm font-medium text-gray-700">Assignee</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="taskAssignee" name="assigneeId">
+                                        <option value="">-- Unassigned --</option>
+                                        {{range .Users}}
+                                        <option value="{{.ID}}">{{.Name}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="taskDueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
+                                    <input type="date" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="taskDueDate" name="dueDate">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="taskTimeEstimate" class="block text-sm font-medium text-gray-700">Time Estimate (minutes)</label>
+                                <input type="number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="taskTimeEstimate" name="timeEstimate" min="0">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" id="saveTaskBtn">Create Task</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View/Edit Task Modal -->
+<div class="fixed inset-0 overflow-y-auto hidden" aria-labelledby="taskDetailModalLabel" aria-hidden="true" id="taskDetailModal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="taskDetailModalLabel">Task Details</h3>
+                        <form id="editTaskForm" class="space-y-4">
+                            <input type="hidden" id="editTaskId" name="id">
+                            <input type="hidden" id="editProjectId" name="projectId" value="{{.Project.ID}}">
+                            
+                            <div>
+                                <label for="editTaskTitle" class="block text-sm font-medium text-gray-700">Title *</label>
+                                <input type="text" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="editTaskTitle" name="title" required>
+                            </div>
+                            
+                            <div>
+                                <label for="editTaskDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="editTaskDescription" name="description" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div>
+                                    <label for="editTaskType" class="block text-sm font-medium text-gray-700">Type</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="editTaskType" name="type">
+                                        <option value="Task">Task</option>
+                                        <option value="Bug">Bug</option>
+                                        <option value="Story">Story</option>
+                                        <option value="Epic">Epic</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="editTaskStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="editTaskStatus" name="status">
+                                        <option value="To Do">To Do</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Done">Done</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="editTaskPriority" class="block text-sm font-medium text-gray-700">Priority</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="editTaskPriority" name="priority">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="editTaskAssignee" class="block text-sm font-medium text-gray-700">Assignee</label>
+                                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" id="editTaskAssignee" name="assigneeId">
+                                        <option value="">-- Unassigned --</option>
+                                        {{range .Users}}
+                                        <option value="{{.ID}}">{{.Name}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="editTaskDueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
+                                    <input type="date" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="editTaskDueDate" name="dueDate">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="editTaskTimeEstimate" class="block text-sm font-medium text-gray-700">Time Estimate (minutes)</label>
+                                    <input type="number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="editTaskTimeEstimate" name="timeEstimate" min="0">
+                                </div>
+                                <div>
+                                    <label for="editTaskTimeSpent" class="block text-sm font-medium text-gray-700">Time Spent (minutes)</label>
+                                    <input type="number" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="editTaskTimeSpent" name="timeSpent" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Created By</label>
+                                    <p id="taskReporter" class="mt-1 text-sm text-gray-500">-</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Created At</label>
+                                    <p id="taskCreatedAt" class="mt-1 text-sm text-gray-500">-</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Last Updated</label>
+                                    <p id="taskUpdatedAt" class="mt-1 text-sm text-gray-500">-</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" id="updateTaskBtn">Save Changes</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm mr-auto" id="deleteTaskBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="fixed inset-0 overflow-y-auto hidden" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true" id="confirmDeleteModal">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="confirmDeleteModalLabel">Confirm Delete</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">Are you sure you want to delete this task? This action cannot be undone.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm" id="confirmDeleteBtn">Delete</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentTaskId = null;
+    
+    // Filter tasks based on status
+    function filterTasks(status) {
+        const rows = document.querySelectorAll('#tasksTableBody tr');
+        
+        rows.forEach(row => {
+            if (!status || row.getAttribute('data-status') === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    // Load task details
+    function loadTaskDetails(taskId) {
+        const projectId = {{.Project.ID}};
+        fetch(`/api/projects/${projectId}/tasks/${taskId}`)
+            .then(response => response.json())
+            .then(task => {
+                currentTaskId = task.id;
+                
+                // Fill the form with task details
+                document.getElementById('editTaskId').value = task.id;
+                document.getElementById('editTaskTitle').value = task.title;
+                document.getElementById('editTaskDescription').value = task.description;
+                document.getElementById('editTaskType').value = task.type;
+                document.getElementById('editTaskStatus').value = task.status;
+                document.getElementById('editTaskPriority').value = task.priority;
+                
+                if (task.assignee_id) {
+                    document.getElementById('editTaskAssignee').value = task.assignee_id;
+                } else {
+                    document.getElementById('editTaskAssignee').value = '';
+                }
+                
+                if (task.due_date) {
+                    const dueDate = new Date(task.due_date);
+                    document.getElementById('editTaskDueDate').value = dueDate.toISOString().split('T')[0];
+                } else {
+                    document.getElementById('editTaskDueDate').value = '';
+                }
+                
+                document.getElementById('editTaskTimeEstimate').value = task.time_estimate || '';
+                document.getElementById('editTaskTimeSpent').value = task.time_spent || '';
+                
+                // Display reporter and dates
+                if (task.reporter) {
+                    document.getElementById('taskReporter').textContent = task.reporter.name;
+                } else {
+                    document.getElementById('taskReporter').textContent = '-';
+                }
+                
+                const createdDate = new Date(task.created_at);
+                document.getElementById('taskCreatedAt').textContent = createdDate.toLocaleDateString() + ' ' + createdDate.toLocaleTimeString();
+                
+                const updatedDate = new Date(task.updated_at);
+                document.getElementById('taskUpdatedAt').textContent = updatedDate.toLocaleDateString() + ' ' + updatedDate.toLocaleTimeString();
+                
+                // Show the modal
+                const taskDetailModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+                taskDetailModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading task details:', error);
+                showToast('Error loading task details. Please try again.', 'danger');
+            });
+    }
+    
+    // Create new task
+    function createTask() {
+        const form = document.getElementById('createTaskForm');
+        const formData = new FormData(form);
+        const projectId = {{.Project.ID}};
+        
+        // Convert form data to JSON
+        const taskData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            type: formData.get('type'),
+            status: formData.get('status'),
+            priority: formData.get('priority'),
+            project_id: parseInt(formData.get('projectId')),
+            assignee_id: formData.get('assigneeId') ? parseInt(formData.get('assigneeId')) : null
+        };
+        
+        if (formData.get('dueDate')) {
+            taskData.due_date = new Date(formData.get('dueDate')).toISOString();
+        }
+        
+        if (formData.get('timeEstimate')) {
+            taskData.time_estimate = parseInt(formData.get('timeEstimate'));
+        }
+        
+        fetch(`/api/projects/${projectId}/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create task');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createTaskModal'));
+            modal.hide();
+            
+            // Reset the form
+            form.reset();
+            
+            // Redirect to refresh the page with the new task
+            window.location.reload();
+            
+            showToast('Task created successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error creating task:', error);
+            showToast('Error creating task. Please try again.', 'danger');
+        });
+    }
+    
+    // Update task
+    function updateTask() {
+        const form = document.getElementById('editTaskForm');
+        const formData = new FormData(form);
+        const projectId = {{.Project.ID}};
+        const taskId = parseInt(formData.get('id'));
+        
+        // Convert form data to JSON
+        const taskData = {
+            id: taskId,
+            title: formData.get('title'),
+            description: formData.get('description'),
+            type: formData.get('type'),
+            status: formData.get('status'),
+            priority: formData.get('priority'),
+            project_id: parseInt(formData.get('projectId')),
+            assignee_id: formData.get('assigneeId') ? parseInt(formData.get('assigneeId')) : null
+        };
+        
+        if (formData.get('dueDate')) {
+            taskData.due_date = new Date(formData.get('dueDate')).toISOString();
+        }
+        
+        if (formData.get('timeEstimate')) {
+            taskData.time_estimate = parseInt(formData.get('timeEstimate'));
+        }
+        
+        if (formData.get('timeSpent')) {
+            taskData.time_spent = parseInt(formData.get('timeSpent'));
+        }
+        
+        fetch(`/api/projects/${projectId}/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update task');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+            modal.hide();
+            
+            // Redirect to refresh the page with updated task
+            window.location.reload();
+            
+            showToast('Task updated successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error updating task:', error);
+            showToast('Error updating task. Please try again.', 'danger');
+        });
+    }
+    
+    // Delete task
+    function deleteTask(taskId) {
+        const projectId = {{.Project.ID}};
+        
+        fetch(`/api/projects/${projectId}/tasks/${taskId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete task');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+            modal.hide();
+            
+            // Also hide task detail modal if open
+            const detailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+            if (detailModal) {
+                detailModal.hide();
+            }
+            
+            // Redirect to refresh the page without the deleted task
+            window.location.reload();
+            
+            showToast('Task deleted successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error deleting task:', error);
+            showToast('Error deleting task. Please try again.', 'danger');
+        });
+    }
+    
+    // Show a toast notification
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        // Remove the toast from the DOM after it's hidden
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+    
+    // Create a toast container if it doesn't exist
+    function createToastContainer() {
+        const toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+        return toastContainer;
+    }
+    
+    // Document ready
+    document.addEventListener('DOMContentLoaded', () => {
+        // Add event listeners for task buttons
+        // View/Edit task
+        document.querySelectorAll('.view-task, .edit-task').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const taskId = e.target.closest('button').getAttribute('data-id');
+                loadTaskDetails(taskId);
+            });
+        });
+        
+        // Delete task
+        document.querySelectorAll('.delete-task').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const taskId = e.target.closest('button').getAttribute('data-id');
+                currentTaskId = taskId;
+                
+                // Show confirm delete modal
+                const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+                confirmDeleteModal.show();
+            });
+        });
+        
+        // Create task button
+        document.getElementById('saveTaskBtn').addEventListener('click', createTask);
+        
+        // Update task button
+        document.getElementById('updateTaskBtn').addEventListener('click', updateTask);
+        
+        // Confirm delete button
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            deleteTask(currentTaskId);
+        });
+        
+        // Delete button in task detail modal
+        document.getElementById('deleteTaskBtn').addEventListener('click', () => {
+            const detailModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+            detailModal.hide();
+            
+            // Show confirm delete modal
+            const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            confirmDeleteModal.show();
+        });
+        
+        // Filter buttons
+        document.getElementById('viewAll').addEventListener('click', (e) => {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            filterTasks('');
+        });
+        
+        document.getElementById('viewTodo').addEventListener('click', (e) => {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            filterTasks('To Do');
+        });
+        
+        document.getElementById('viewInProgress').addEventListener('click', (e) => {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            filterTasks('In Progress');
+        });
+        
+        document.getElementById('viewDone').addEventListener('click', (e) => {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            filterTasks('Done');
+        });
+    });
+</script>
+
+{{template "footer" .}}
