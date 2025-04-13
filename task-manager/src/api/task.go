@@ -112,7 +112,7 @@ func UpdateTask(c *gin.Context) {
 	}
 
 	// Preserve fields that shouldn't be changed
-	task.ID = taskID
+
 	task.CreatedAt = createdAt
 	task.ReporterID = reporterID
 	task.UpdatedAt = time.Now()

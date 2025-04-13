@@ -7,21 +7,21 @@ import (
 )
 
 type Task struct {
-	ID           string     `json:"id" gorm:"primaryKey"`
-	Title        string     `json:"title" gorm:"not null"`
-	Description  string     `json:"description"`
-	Type         string     `json:"type" gorm:"default:Task;check:type IN ('Story', 'Bug', 'Task', 'Epic')"`
-	Status       string     `json:"status" gorm:"default:'To Do'"`
-	Priority     string     `json:"priority" gorm:"default:Medium;check:priority IN ('Low', 'Medium', 'High', 'Critical')"`
-	ProjectID    string     `json:"project_id" gorm:"not null"`
-	ReporterID   string     `json:"reporter_id" gorm:"not null"`
-	AssigneeID   *string    `json:"assignee_id"`
-	SprintID     *string    `json:"sprint_id"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	DueDate      *time.Time `json:"due_date"`
-	TimeEstimate *int       `json:"time_estimate"`
-	TimeSpent    *int       `json:"time_spent"`
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	Title        string    `json:"title" gorm:"not null"`
+	Description  string    `json:"description"`
+	Type         string    `json:"type" gorm:"default:Task;check:type IN ('Story', 'Bug', 'Task', 'Epic')"`
+	Status       string    `json:"status" gorm:"default:'To Do'"`
+	Priority     string    `json:"priority" gorm:"default:Medium;check:priority IN ('Low', 'Medium', 'High', 'Critical')"`
+	ProjectID    string    `json:"project_id" gorm:"not null"`
+	ReporterID   string    `json:"reporter_id" gorm:"not null"`
+	AssigneeID   *string   `json:"assignee_id"`
+	SprintID     *string   `json:"sprint_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	DueDate      string    `json:"due_date"`
+	TimeEstimate *int      `json:"time_estimate"`
+	TimeSpent    *int      `json:"time_spent"`
 
 	// Define relationships
 	Project  Project `json:"project" gorm:"foreignKey:ProjectID"`

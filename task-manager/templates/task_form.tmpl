@@ -1,0 +1,168 @@
+{{template "header" .}}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+            <h1 class="text-xl font-semibold">{{.Title}}</h1>
+            <a href="/projects/{{.ProjectID}}/tasks" class="text-blue-300 hover:text-blue-100">
+                Back to Tasks
+            </a>
+        </div>
+        
+        <div class="p-6">
+            <form id="taskForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Title -->
+                    <div class="col-span-2">
+                        <label for="title" class="block text-sm font-medium text-gray-700">Task Title *</label>
+                        <input type="text" id="title" name="title" required 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            value="{{.Task.Title}}">
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="col-span-2">
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="description" name="description" rows="4"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{.Task.Description}}</textarea>
+                    </div>
+                    
+                    <!-- Type -->
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+                        <select id="type" name="type" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="Story" {{if eq .Task.Type "Story"}}selected{{end}}>Story</option>
+                            <option value="Bug" {{if eq .Task.Type "Bug"}}selected{{end}}>Bug</option>
+                            <option value="Task" {{if eq .Task.Type "Task"}}selected{{end}}>Task</option>
+                            <option value="Epic" {{if eq .Task.Type "Epic"}}selected{{end}}>Epic</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Priority -->
+                    <div>
+                        <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                        <select id="priority" name="priority" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="Low" {{if eq .Task.Priority "Low"}}selected{{end}}>Low</option>
+                            <option value="Medium" {{if eq .Task.Priority "Medium"}}selected{{end}}>Medium</option>
+                            <option value="High" {{if eq .Task.Priority "High"}}selected{{end}}>High</option>
+                            <option value="Critical" {{if eq .Task.Priority "Critical"}}selected{{end}}>Critical</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="To Do" {{if eq .Task.Status "To Do"}}selected{{end}}>To Do</option>
+                            <option value="In Progress" {{if eq .Task.Status "In Progress"}}selected{{end}}>In Progress</option>
+                            <option value="Done" {{if eq .Task.Status "Done"}}selected{{end}}>Done</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Assignee -->
+                    <div>
+                        <label for="assigneeID" class="block text-sm font-medium text-gray-700">Assignee</label>
+                        <select id="assigneeID" name="assigneeID" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">Unassigned</option>
+                            {{range .Users}}
+                                <option value="{{.ID}}" {{if and $.Task.AssigneeID (eq $.Task.AssigneeID (print .ID))}}selected{{end}}>{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    
+                    <!-- Due Date -->
+                    <div>
+                        <label for="dueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
+                        <input type="date" id="dueDate" name="dueDate"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            value="{{if .Task.DueDate}}{{formatDate .Task.DueDate "2006-01-02"}}{{end}}">
+                    </div>
+                    
+                    <!-- Time Estimate (hours) -->
+                    <div>
+                        <label for="timeEstimate" class="block text-sm font-medium text-gray-700">Time Estimate (hours)</label>
+                        <input type="number" id="timeEstimate" name="timeEstimate" min="0"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            value="{{.Task.TimeEstimate}}">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <a href="/projects/{{.Project.ID}}/tasks" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Save Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const projectId = '{{.ProjectID}}';
+    
+    // Collect form data
+    const formData = {
+        title: form.title.value,
+        description: form.description.value,
+        type: form.type.value,
+        priority: form.priority.value,
+        status: form.status.value,
+        project_id: projectId
+    };
+    
+    // Add optional fields if they have values
+    if (form.assigneeID.value) {
+        formData.assignee_id = form.assigneeID.value;
+    }
+    
+    // Format date as ISO string if provided
+    if (form.dueDate.value) {
+        console.log(form.dueDate.value)
+        formData.due_date = form.dueDate.value;
+    }
+    
+    if (form.timeEstimate.value) {
+        formData.time_estimate = parseInt(form.timeEstimate.value);
+    }
+    
+    console.log('Sending task data:', formData);
+    
+    // Submit the data via API
+    fetch('{{.FormAction}}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error('Failed to create task: ' + (err.error || 'Unknown error'));
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Redirect back to the tasks list
+        window.location.href = `/projects/${projectId}/tasks`;
+    })
+    .catch(error => {
+        console.error('Error creating task:', error);
+        alert('Error: ' + error.message);
+    });
+});
+</script>
+
+{{template "footer" .}}

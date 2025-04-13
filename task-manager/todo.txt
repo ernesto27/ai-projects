@@ -1,9 +1,9 @@
 # JIRA-LIKE TASK MANAGEMENT SYSTEM PLAN
-Last updated: April 10, 2025
+Last updated: April 12, 2025
 
 ## 1. System Architecture
 - Backend: Golang (Go)
-- Frontend: HTMX with server-side templates
+- Frontend: Server-side templates with vanilla JavaScript
 - CSS: Tailwind CSS
 - Database: PostgreSQL
 - Authentication: JWT (JSON Web Tokens)
@@ -145,8 +145,7 @@ Last updated: April 10, 2025
   - Advanced querying capabilities
 
 ### Frontend
-- HTMX for dynamic frontend with minimal JavaScript
-- Server-side templating (Go templates)
+- Server-side templating (Go templates) with vanilla JavaScript
 - Tailwind CSS for styling
 - Alpine.js for additional client-side interactivity (if needed)
 - Minimal custom JavaScript for specific interactions

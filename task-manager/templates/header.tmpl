@@ -7,20 +7,15 @@
     <title>{{ .Title }} - Task Manager</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <!-- Custom styles -->
     <style>
         body {
             background-color: #f9fafb;
         }
-        .htmx-indicator {
+        .loading-indicator {
             display: none;
         }
-        .htmx-request .htmx-indicator {
-            display: flex;
-        }
-        .htmx-request.htmx-indicator {
+        .is-loading .loading-indicator {
             display: flex;
         }
     </style>

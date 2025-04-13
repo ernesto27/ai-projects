@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"html/template"
 
@@ -39,6 +41,8 @@ func SetupRouter() *gin.Engine {
 	router.GET("/projects/:id", auth.AuthMiddlewareWeb(), ProjectDetailsPageHandler)
 	router.GET("/projects/:id/edit", auth.AuthMiddlewareWeb(), EditProjectPageHandler)
 	router.GET("/projects/:id/tasks", auth.AuthMiddlewareWeb(), ProjectTasksPageHandler)
+	router.GET("/projects/:id/tasks/new", auth.AuthMiddlewareWeb(), NewTaskPageHandler)         // New route for task form
+	router.GET("/projects/:id/tasks/:taskId", auth.AuthMiddlewareWeb(), TaskDetailsPageHandler) // Task details page
 
 	// Public API routes (no authentication required)
 	public := router.Group("/api")
@@ -291,6 +295,84 @@ func ProjectTasksPageHandler(c *gin.Context) {
 	})
 }
 
+// NewTaskPageHandler renders the new task form
+func NewTaskPageHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	var project models.Project
+
+	// Get project from database
+	if err := config.DB.First(&project, projectID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get all users to populate assignee selection dropdown
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch users",
+		})
+		return
+	}
+
+	// Get current user
+	currentUser, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "task_form.tmpl", gin.H{
+		"Title":      "Create New Task",
+		"User":       currentUser,
+		"Users":      users,
+		"FormAction": "/api/projects/" + projectID + "/tasks",
+		"ProjectID":  projectID,
+		"Method":     "POST",
+		"Task":       models.Task{}, // Empty task for new form
+	})
+}
+
+// TaskDetailsPageHandler renders the task details page
+func TaskDetailsPageHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	taskID := c.Param("taskId")
+	var project models.Project
+	var task models.Task
+
+	// Get project from database
+	if err := config.DB.First(&project, projectID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get task with related entities
+	if err := config.DB.Where("id = ? AND project_id = ?", taskID, projectID).
+		Preload("Reporter").
+		Preload("Assignee").
+		First(&task).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Task not found",
+		})
+		return
+	}
+
+	// Get current user
+	currentUser, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "task_details.tmpl", gin.H{
+		"Title":       task.Title,
+		"User":        currentUser,
+		"Project":     project,
+		"Task":        task,
+		"CurrentUser": currentUser,
+	})
+}
+
 // GetTasks handles fetching tasks for a project
 func GetTasksHandler(c *gin.Context) {
 	projectID := c.Param("id")
@@ -304,20 +386,43 @@ func GetTasksHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, tasks)
 }
 
-// CreateTask handles creating a new task for a project
+// CreateTaskHandler handles creating a new task for a project
 func CreateTaskHandler(c *gin.Context) {
 	projectID := c.Param("id")
 	var task models.Task
 
 	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
 		return
 	}
 
+	// Get current user from context
+	currentUser, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	user := currentUser.(models.User)
+
+	// Set task properties
 	task.ProjectID = projectID
+	task.ReporterID = strconv.FormatUint(uint64(user.ID), 10) // Convert uint ID to string
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = time.Now()
+
+	// Set default values if not provided
+	if task.Status == "" {
+		task.Status = "To Do"
+	}
+	if task.Type == "" {
+		task.Type = "Task"
+	}
+	if task.Priority == "" {
+		task.Priority = "Medium"
+	}
 
 	if err := config.DB.Create(&task).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task: " + err.Error()})
 		return
 	}
 
