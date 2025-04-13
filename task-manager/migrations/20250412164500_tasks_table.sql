@@ -13,7 +13,7 @@ CREATE TABLE tasks (
     sprint_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    due_date TIMESTAMP,
+    due_date DATE,
     time_estimate INTEGER, -- in minutes
     time_spent INTEGER, -- in minutes
     CONSTRAINT fk_project FOREIGN KEY(project_id) REFERENCES projects(id),

@@ -1,106 +1,226 @@
 {{template "header" .}}
 
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-            <h1 class="text-xl font-semibold">{{.Title}}</h1>
-            <a href="/projects/{{.ProjectID}}/tasks" class="text-blue-300 hover:text-blue-100">
-                Back to Tasks
-            </a>
+<div class="max-w-full mx-auto px-6 sm:px-8 lg:px-12 py-10">
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <a href="/projects/{{.ProjectID}}/tasks" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-indigo-600 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to tasks
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900">{{ if eq .Method "POST" }}Create New Task{{ else }}Edit Task{{ end }}</h1>
+                <p class="mt-1 text-gray-600">{{ if eq .Method "POST" }}Add a new task to {{.Project.Name}}{{ else }}Update task details{{ end }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-indigo-50 to-white px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Task Information</h2>
+            <p class="mt-1 text-sm text-gray-500">Fill out the details below to {{ if eq .Method "POST" }}create a new task{{ else }}update this task{{ end }}</p>
         </div>
         
-        <div class="p-6">
-            <form id="taskForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form id="taskForm" class="px-6 py-5">
+            <!-- Basic Information Section -->
+            <div class="mb-8">
+                <h3 class="text-md font-medium text-gray-700 mb-4 pb-2 border-b border-gray-100">Basic Information</h3>
+                
+                <div class="space-y-6">
                     <!-- Title -->
-                    <div class="col-span-2">
-                        <label for="title" class="block text-sm font-medium text-gray-700">Task Title *</label>
-                        <input type="text" id="title" name="title" required 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            value="{{.Task.Title}}">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Task Title <span class="text-red-500">*</span></label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="title" name="title" required 
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                value="{{.Task.Title}}" placeholder="Enter task title">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Use a clear, descriptive title that summarizes the task</p>
                     </div>
                     
                     <!-- Description -->
-                    <div class="col-span-2">
+                    <div>
                         <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea id="description" name="description" rows="4"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{.Task.Description}}</textarea>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 pt-3 flex items-start pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                                </svg>
+                            </div>
+                            <textarea id="description" name="description" rows="5"
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                placeholder="Describe the task in detail">{{.Task.Description}}</textarea>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Include all relevant details that will help complete the task</p>
                     </div>
-                    
+                </div>
+            </div>
+            
+            <!-- Classification Section -->
+            <div class="mb-8">
+                <h3 class="text-md font-medium text-gray-700 mb-4 pb-2 border-b border-gray-100">Task Classification</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Type -->
                     <div>
                         <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
-                        <select id="type" name="type" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            <option value="Story" {{if eq .Task.Type "Story"}}selected{{end}}>Story</option>
-                            <option value="Bug" {{if eq .Task.Type "Bug"}}selected{{end}}>Bug</option>
-                            <option value="Task" {{if eq .Task.Type "Task"}}selected{{end}}>Task</option>
-                            <option value="Epic" {{if eq .Task.Type "Epic"}}selected{{end}}>Epic</option>
-                        </select>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <select id="type" name="type" 
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md appearance-none">
+                                <option value="Story" {{if eq .Task.Type "Story"}}selected{{end}}>Story</option>
+                                <option value="Bug" {{if eq .Task.Type "Bug"}}selected{{end}}>Bug</option>
+                                <option value="Task" {{if eq .Task.Type "Task"}}selected{{end}}>Task</option>
+                                <option value="Epic" {{if eq .Task.Type "Epic"}}selected{{end}}>Epic</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Categorize the task appropriately</p>
                     </div>
                     
                     <!-- Priority -->
                     <div>
                         <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
-                        <select id="priority" name="priority" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            <option value="Low" {{if eq .Task.Priority "Low"}}selected{{end}}>Low</option>
-                            <option value="Medium" {{if eq .Task.Priority "Medium"}}selected{{end}}>Medium</option>
-                            <option value="High" {{if eq .Task.Priority "High"}}selected{{end}}>High</option>
-                            <option value="Critical" {{if eq .Task.Priority "Critical"}}selected{{end}}>Critical</option>
-                        </select>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                </svg>
+                            </div>
+                            <select id="priority" name="priority" 
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md appearance-none">
+                                <option value="Low" {{if eq .Task.Priority "Low"}}selected{{end}}>Low</option>
+                                <option value="Medium" {{if eq .Task.Priority "Medium"}}selected{{end}}>Medium</option>
+                                <option value="High" {{if eq .Task.Priority "High"}}selected{{end}}>High</option>
+                                <option value="Critical" {{if eq .Task.Priority "Critical"}}selected{{end}}>Critical</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Set the importance level of this task</p>
                     </div>
                     
                     <!-- Status -->
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                        <select id="status" name="status" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            <option value="To Do" {{if eq .Task.Status "To Do"}}selected{{end}}>To Do</option>
-                            <option value="In Progress" {{if eq .Task.Status "In Progress"}}selected{{end}}>In Progress</option>
-                            <option value="Done" {{if eq .Task.Status "Done"}}selected{{end}}>Done</option>
-                        </select>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <select id="status" name="status" 
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md appearance-none">
+                                <option value="To Do" {{if eq .Task.Status "To Do"}}selected{{end}}>To Do</option>
+                                <option value="In Progress" {{if eq .Task.Status "In Progress"}}selected{{end}}>In Progress</option>
+                                <option value="Done" {{if eq .Task.Status "Done"}}selected{{end}}>Done</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Current progress of the task</p>
                     </div>
-                    
+                </div>
+            </div>
+            
+            <!-- Assignment & Planning Section -->
+            <div>
+                <h3 class="text-md font-medium text-gray-700 mb-4 pb-2 border-b border-gray-100">Assignment & Planning</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Assignee -->
                     <div>
                         <label for="assigneeID" class="block text-sm font-medium text-gray-700">Assignee</label>
-                        <select id="assigneeID" name="assigneeID" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            <option value="">Unassigned</option>
-                            {{range .Users}}
-                                <option value="{{.ID}}" {{if and $.Task.AssigneeID (eq $.Task.AssigneeID (print .ID))}}selected{{end}}>{{.Name}}</option>
-                            {{end}}
-                        </select>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <select id="assigneeID" name="assigneeID" 
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md appearance-none">
+                                <option value="">Unassigned</option>
+                                {{range .Users}}
+                                    <option value="{{.ID}}" {{if and $.Task.AssigneeID (eq (print $.Task.AssigneeID) (print .ID))}}selected{{end}}>{{.Name}}</option>
+                                {{end}}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Person responsible for this task</p>
                     </div>
                     
                     <!-- Due Date -->
                     <div>
                         <label for="dueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
-                        <input type="date" id="dueDate" name="dueDate"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            value="{{if .Task.DueDate}}{{formatDate .Task.DueDate "2006-01-02"}}{{end}}">
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input type="date" id="dueDate" name="dueDate"
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                value="{{if .Task.DueDate}}{{.Task.DueDate}}{{end}}">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">When this task needs to be completed</p>
                     </div>
                     
                     <!-- Time Estimate (hours) -->
                     <div>
                         <label for="timeEstimate" class="block text-sm font-medium text-gray-700">Time Estimate (hours)</label>
-                        <input type="number" id="timeEstimate" name="timeEstimate" min="0"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            value="{{.Task.TimeEstimate}}">
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <input type="number" id="timeEstimate" name="timeEstimate" min="0" step="0.5"
+                                class="pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                value="{{.Task.TimeEstimate}}" placeholder="0">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Estimated time needed to complete this task</p>
                     </div>
                 </div>
-                
-                <div class="flex justify-end space-x-3">
-                    <a href="/projects/{{.Project.ID}}/tasks" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+            </div>
+            
+            <div class="mt-10 pt-5 border-t border-gray-200 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                    <span class="text-red-500">*</span> Required fields
+                </div>
+                <div class="flex gap-3">
+                    <a href="/projects/{{.ProjectID}}/tasks" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Cancel
                     </a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Save Task
+                    <button type="submit" id="submitTaskButton" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ if eq .Method "POST" }}Create Task{{ else }}Update Task{{ end }}
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -110,6 +230,7 @@ document.getElementById('taskForm').addEventListener('submit', function(e) {
     
     const form = e.target;
     const projectId = '{{.ProjectID}}';
+    const method = '{{.Method}}';
     
     // Collect form data
     const formData = {
@@ -128,19 +249,28 @@ document.getElementById('taskForm').addEventListener('submit', function(e) {
     
     // Format date as ISO string if provided
     if (form.dueDate.value) {
-        console.log(form.dueDate.value)
         formData.due_date = form.dueDate.value;
     }
     
     if (form.timeEstimate.value) {
-        formData.time_estimate = parseInt(form.timeEstimate.value);
+        formData.time_estimate = parseFloat(form.timeEstimate.value);
     }
     
-    console.log('Sending task data:', formData);
+    // Show loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        ${method === 'POST' ? 'Creating...' : 'Updating...'}
+    `;
     
     // Submit the data via API
     fetch('{{.FormAction}}', {
-        method: 'POST',
+        method: method,
         headers: {
             'Content-Type': 'application/json',
         },
@@ -149,18 +279,22 @@ document.getElementById('taskForm').addEventListener('submit', function(e) {
     .then(response => {
         if (!response.ok) {
             return response.json().then(err => {
-                throw new Error('Failed to create task: ' + (err.error || 'Unknown error'));
+                throw new Error('Failed to ' + (method === 'POST' ? 'create' : 'update') + ' task: ' + (err.error || 'Unknown error'));
             });
         }
         return response.json();
     })
     .then(data => {
-        // Redirect back to the tasks list
-        window.location.href = `/projects/${projectId}/tasks`;
+        // Redirect back to the tasks list with success parameter
+        window.location.href = `/projects/${projectId}/tasks?success=true&action=${method === 'POST' ? 'created' : 'updated'}`;
     })
     .catch(error => {
-        console.error('Error creating task:', error);
+        console.error('Error ' + (method === 'POST' ? 'creating' : 'updating') + ' task:', error);
         alert('Error: ' + error.message);
+        
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
     });
 });
 </script>

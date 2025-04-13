@@ -19,7 +19,7 @@ type Task struct {
 	SprintID     *string   `json:"sprint_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
-	DueDate      string    `json:"due_date"`
+	DueDate      string    `json:"due_date" gorm:"type:date"`
 	TimeEstimate *int      `json:"time_estimate"`
 	TimeSpent    *int      `json:"time_spent"`
 

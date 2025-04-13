@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -41,8 +42,9 @@ func SetupRouter() *gin.Engine {
 	router.GET("/projects/:id", auth.AuthMiddlewareWeb(), ProjectDetailsPageHandler)
 	router.GET("/projects/:id/edit", auth.AuthMiddlewareWeb(), EditProjectPageHandler)
 	router.GET("/projects/:id/tasks", auth.AuthMiddlewareWeb(), ProjectTasksPageHandler)
-	router.GET("/projects/:id/tasks/new", auth.AuthMiddlewareWeb(), NewTaskPageHandler)         // New route for task form
-	router.GET("/projects/:id/tasks/:taskId", auth.AuthMiddlewareWeb(), TaskDetailsPageHandler) // Task details page
+	router.GET("/projects/:id/tasks/new", auth.AuthMiddlewareWeb(), NewTaskPageHandler)           // New route for task form
+	router.GET("/projects/:id/tasks/:taskId", auth.AuthMiddlewareWeb(), TaskDetailsPageHandler)   // Task details page
+	router.GET("/projects/:id/tasks/:taskId/edit", auth.AuthMiddlewareWeb(), EditTaskPageHandler) // Edit task form
 
 	// Public API routes (no authentication required)
 	public := router.Group("/api")
@@ -370,6 +372,70 @@ func TaskDetailsPageHandler(c *gin.Context) {
 		"Project":     project,
 		"Task":        task,
 		"CurrentUser": currentUser,
+	})
+}
+
+// EditTaskPageHandler renders the edit task form
+func EditTaskPageHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	taskID := c.Param("taskId")
+	var project models.Project
+	var task models.Task
+
+	// Get project from database
+	if err := config.DB.First(&project, projectID).Error; err != nil {
+		fmt.Println(err)
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Project not found",
+		})
+		return
+	}
+
+	// Get task with related entities
+	if err := config.DB.Where("id = ? AND project_id = ?", taskID, projectID).First(&task).Error; err != nil {
+		fmt.Println(err)
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Task not found",
+		})
+		return
+	}
+
+	t, err := time.Parse(time.RFC3339, task.DueDate)
+	if err != nil {
+		fmt.Println(err)
+		c.HTML(http.StatusNotFound, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Task not found",
+		})
+		return
+	}
+
+	output := t.Format("2006-01-02")
+	task.DueDate = output
+
+	// Get all users to populate assignee selection dropdown
+	var users []models.User
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"Title":   "Error",
+			"Message": "Failed to fetch users",
+		})
+		return
+	}
+
+	// Get current user
+	currentUser, _ := c.Get("user")
+
+	c.HTML(http.StatusOK, "task_form.tmpl", gin.H{
+		"Title":      "Edit Task",
+		"User":       currentUser,
+		"Users":      users,
+		"FormAction": "/api/projects/" + projectID + "/tasks/" + taskID,
+		"ProjectID":  projectID,
+		"Method":     "PUT",
+		"Task":       task,
 	})
 }
 
