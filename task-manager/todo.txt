@@ -21,6 +21,7 @@ Last updated: April 12, 2025
 - Project settings and configurations
 - Project dashboard
 - Team management for projects
+- add people to projects.
 
 ### C. Task/Issue Tracking
 - Create/Edit/Delete tasks
