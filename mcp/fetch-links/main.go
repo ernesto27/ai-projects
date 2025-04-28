@@ -27,8 +27,13 @@ func main() {
 		),
 	)
 
+	tool2 := mcp.NewTool("590_get-infobae-links",
+		mcp.WithDescription("Get Links from Infobae"),
+	)
+
 	// Add tool handler
 	s.AddTool(tool, HackerNewsHandler)
+	s.AddTool(tool2, InfobaeHandler)
 
 	// Start the stdio server
 	if err := server.ServeStdio(s); err != nil {
@@ -47,12 +52,24 @@ func HackerNewsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 		return nil, errors.New("failed to fetch links")
 	}
 
-	// Convert the response to a JSON string
 	jsonBytes, err := json.Marshal(response)
 	if err != nil {
 		return nil, errors.New("failed to marshal response to JSON")
 	}
 
-	// Return the JSON string
+	return mcp.NewToolResultText(string(jsonBytes)), nil
+}
+
+func InfobaeHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	response, err := fetch.GetInfobaeLinks()
+	if err != nil {
+		return nil, errors.New("failed to fetch links")
+	}
+
+	jsonBytes, err := json.Marshal(response)
+	if err != nil {
+		return nil, errors.New("failed to marshal response to JSON")
+	}
+
 	return mcp.NewToolResultText(string(jsonBytes)), nil
 }

@@ -6,10 +6,17 @@ import (
 )
 
 func main() {
-	typeValue := "top"
-	resp, err := fetch.GetHackerNewsLinks(fetch.StoryType(typeValue))
+	// typeValue := "top"
+	// resp, err := fetch.GetHackerNewsLinks(fetch.StoryType(typeValue))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(resp)
+
+	resp, err := fetch.GetInfobaeLinks()
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println(resp)
 }
