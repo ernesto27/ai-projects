@@ -1,0 +1,10 @@
+# Environment variables
+.env
+
+# OAuth token file (if generated locally for CLI testing)
+token.json
+
+# Backup files
+*.bak
+
+credentials.json
