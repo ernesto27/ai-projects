@@ -1,4 +1,5 @@
-- Connect to google drive and list files
-- Create a folder in google drive
-- Copy a file from one folder to another 
-- Execute and app script in that new file
+TODO 
+
+Create a new folder with template files
+show select to create a type of template
+add tags to complete the template
