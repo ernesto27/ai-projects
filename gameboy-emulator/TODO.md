@@ -22,8 +22,8 @@ This document outlines the development roadmap for building a Game Boy emulator 
 ### High Priority
 - [ ] **Implement CPU (Sharp LR35902) instruction set and registers**
   - ✅ Create CPU struct with all registers (A, B, C, D, E, F, H, L, SP, PC)
-  - Implement register operations using Go's type system
-  - Add flag register handling (Zero, Subtract, Half-carry, Carry)
+  - ✅ Implement register operations using Go's type system
+  - ✅ Add flag register handling (Zero, Subtract, Half-carry, Carry)
   - Implement all 256 base instructions with Go methods
   - Implement CB-prefixed instructions (256 additional)
   - Add instruction timing and cycle counting
