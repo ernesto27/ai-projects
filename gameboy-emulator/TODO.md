@@ -24,10 +24,20 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ Create CPU struct with all registers (A, B, C, D, E, F, H, L, SP, PC)
   - ✅ Implement register operations using Go's type system
   - ✅ Add flag register handling (Zero, Subtract, Half-carry, Carry)
-  - Implement all 256 base instructions with Go methods
-  - Implement CB-prefixed instructions (256 additional)
-  - Add instruction timing and cycle counting
-  - Use Go interfaces for instruction abstraction
+  - 🔄 **CURRENT**: Implement all 256 base instructions with Go methods (~30/256 complete - 12%)
+    - ✅ Basic register-to-register LD instructions
+    - ✅ INC/DEC register instructions 
+    - ✅ NOP instruction
+    - ⏳ **NEXT**: Need MMU interface for memory operations (see Phase 3)
+    - ⏳ Memory load/store instructions (LD A,(HL), LD (HL),A, etc.)
+    - ⏳ 16-bit load instructions (LD BC,nn, LD DE,nn, etc.)
+    - ⏳ Arithmetic instructions (ADD, SUB, AND, OR, XOR)
+    - ⏳ Jump instructions (JP, JR, CALL, RET)
+    - ⏳ Stack operations (PUSH/POP)
+  - [ ] Implement CB-prefixed instructions (256 additional)
+  - [ ] Add instruction timing and cycle counting
+  - [ ] Create instruction dispatch table (opcode lookup)
+  - [ ] Use Go interfaces for instruction abstraction
 
 ### Medium Priority
 - [ ] **Implement timers and interrupt handling**
@@ -41,17 +51,21 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ## 🧮 Phase 3: Memory Management
 **Goal**: Implement complete memory system with banking support
+**STATUS**: 🚨 **URGENT** - Required for CPU instruction continuation
 
 ### High Priority
-- [ ] **Implement memory management unit (MMU) and memory mapping**
-  - Create memory map using Go slices/arrays (0x0000-0xFFFF)
-  - Implement ROM areas (0x0000-0x7FFF)
-  - Add VRAM (0x8000-0x9FFF)
-  - Implement WRAM (0xC000-0xDFFF)
-  - Add OAM (0xFE00-0xFE9F)
-  - Implement I/O registers (0xFF00-0xFF7F)
-  - Add HRAM (0xFF80-0xFFFE)
-  - Use Go's memory safety features
+- [ ] **Implement memory management unit (MMU) and memory mapping** ⚡ **BLOCKING CPU PROGRESS**
+  - [ ] Create basic MMU interface/struct with ReadByte/WriteByte methods
+  - [ ] Implement simple memory array (0x0000-0xFFFF) using Go slices
+  - [ ] Add basic memory regions:
+    - [ ] ROM areas (0x0000-0x7FFF) - for game cartridge
+    - [ ] VRAM (0x8000-0x9FFF) - for graphics data
+    - [ ] WRAM (0xC000-0xDFFF) - for working RAM
+    - [ ] OAM (0xFE00-0xFE9F) - for sprite data
+    - [ ] I/O registers (0xFF00-0xFF7F) - for hardware control
+    - [ ] HRAM (0xFF80-0xFFFE) - for high-speed RAM
+  - [ ] **IMMEDIATE**: Create minimal MMU for CPU instruction testing
+  - [ ] Use Go's memory safety features and proper bounds checking
 
 ### Medium Priority
 - [ ] **Add ROM loading and cartridge support**
@@ -203,8 +217,8 @@ gameboy-emulator/
 
 ## 📊 Progress Tracking
 - [x] **Phase 1**: Foundation & Setup (1/1) ✅
-- [ ] **Phase 2**: Core CPU Implementation (1/2) 🔄
-- [ ] **Phase 3**: Memory Management (0/2)
+- [ ] **Phase 2**: Core CPU Implementation (1/2) 🔄 - 30/256 instructions complete (12%)
+- [ ] **Phase 3**: Memory Management (0/2) 🚨 **BLOCKING**
 - [ ] **Phase 4**: Graphics (PPU) (0/1)
 - [ ] **Phase 5**: Input & Control (0/1)
 - [ ] **Phase 6**: Audio (Optional) (0/1)
@@ -213,10 +227,12 @@ gameboy-emulator/
 
 **Overall Progress**: 1.5/11 major milestones completed
 
+**Instruction Progress**: 30/256 base instructions (12%) + 0/256 CB-prefixed (0%)
+
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Complete CPU instruction set implementation
+**Next Task**: Implement basic MMU interface to unblock CPU instruction progress
 
 **Completed Tasks**: 
 - ✅ Go module initialized successfully
@@ -224,9 +240,17 @@ gameboy-emulator/
 - ✅ CPU struct with all registers implemented
 - ✅ Register pair operations (GetAF, SetAF, GetBC, SetBC, GetDE, SetDE, GetHL, SetHL)
 - ✅ Flag register operations (GetFlag, SetFlag)
+- ✅ Basic CPU instructions: register LD, INC/DEC, NOP (~30/256 instructions)
 - ✅ Comprehensive unit tests written and passing
 
-**Next Steps**:
-- Implement all 256 base CPU instructions
-- Implement CB-prefixed instructions (256 additional)
-- Add instruction timing and cycle counting
+**Next Steps** (Priority Order):
+1. **IMMEDIATE**: Create basic MMU with ReadByte/WriteByte methods
+   - Add `internal/memory/mmu.go` with simple memory array
+   - Create MMU interface for CPU to use
+   - Update CPU methods to accept MMU parameter
+2. **Week 1**: Implement memory-dependent instructions (LD A,(HL), etc.)
+3. **Week 2**: Add 16-bit load instructions (LD BC,nn, etc.)
+4. **Week 3**: Implement arithmetic instructions (ADD, SUB, etc.)
+5. **Week 4**: Add jump and control flow instructions
+
+**Critical Path**: MMU → Memory Instructions → Arithmetic → Control Flow → Stack Operations
