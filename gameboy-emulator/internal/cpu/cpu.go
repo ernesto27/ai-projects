@@ -225,6 +225,64 @@ func (cpu *CPU) LD_B_A() uint8 {
 	return 4       // Takes 4 CPU cycles (faster than immediate load)
 }
 
+// LD_C_A - Copy register A to register C (0x4F)
+// Like photocopying what's in drawer A and putting copy in drawer C
+func (cpu *CPU) LD_C_A() uint8 {
+	cpu.C = cpu.A  // Copy A's value to C
+	return 4       // Takes 4 CPU cycles
+}
+
+// LD_A_C - Copy register C to register A (0x79)
+// Like photocopying what's in drawer C and putting copy in drawer A
+func (cpu *CPU) LD_A_C() uint8 {
+	cpu.A = cpu.C  // Copy C's value to A
+	return 4       // Takes 4 CPU cycles
+}
+
+// LD_C_n - Load immediate 8-bit value into register C (0x0E)
+// Like writing a specific number on a sticky note and putting it in drawer C
+func (cpu *CPU) LD_C_n(value uint8) uint8 {
+	cpu.C = value
+	return 8 // Takes 8 CPU cycles (fetch opcode + fetch immediate value)
+}
+
+// INC_C - Increment register C by 1 (0x0C)
+// Like counting up by 1 in drawer C, but turn on warning lights if needed
+func (cpu *CPU) INC_C() uint8 {
+	// Check for half-carry (carry from bit 3 to bit 4)
+	halfCarry := (cpu.C & 0x0F) == 0x0F
+	
+	// Increment the value
+	cpu.C++
+	
+	// Set flags based on result
+	cpu.SetFlag(FlagZ, cpu.C == 0)    // Zero flag: result is zero
+	cpu.SetFlag(FlagN, false)         // Subtract flag: always clear for addition
+	cpu.SetFlag(FlagH, halfCarry)     // Half-carry flag: carry from bit 3 to 4
+	// Note: Carry flag (FlagC) is not affected by INC
+	
+	return 4 // Takes 4 CPU cycles
+}
+
+// DEC_C - Decrement register C by 1 (0x0D)
+// Like counting down by 1 in drawer C, but turn on warning lights if needed
+func (cpu *CPU) DEC_C() uint8 {
+	// Check for half-carry (borrow from bit 4 to bit 3)
+	// For subtraction, half-carry is set when there's no borrow from bit 4
+	halfCarry := (cpu.C & 0x0F) == 0x00
+	
+	// Decrement the value
+	cpu.C--
+	
+	// Set flags based on result
+	cpu.SetFlag(FlagZ, cpu.C == 0)    // Zero flag: result is zero
+	cpu.SetFlag(FlagN, true)          // Subtract flag: always set for subtraction
+	cpu.SetFlag(FlagH, halfCarry)     // Half-carry flag: borrow from bit 4 to 3
+	// Note: Carry flag (FlagC) is not affected by DEC
+	
+	return 4 // Takes 4 CPU cycles
+}
+
 // === Utility Methods ===
 
 // Reset resets the CPU to initial state

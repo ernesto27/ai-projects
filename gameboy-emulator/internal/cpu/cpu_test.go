@@ -760,3 +760,259 @@ func TestLD_B_A(t *testing.T) {
 		}
 	}
 }
+
+// TestLD_C_A tests the LD C,A instruction
+func TestLD_C_A(t *testing.T) {
+	cpu := NewCPU()
+	
+	// Test copying different values from A to C
+	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+	
+	for _, value := range testValues {
+		// Set up initial state
+		cpu.A = value
+		cpu.C = 0x99  // Different value in C
+		cpu.F = 0x50  // Set some flags
+		
+		// Store initial state (other registers and flags should be unchanged)
+		initialA := cpu.A
+		initialB := cpu.B
+		initialD := cpu.D
+		initialE := cpu.E
+		initialH := cpu.H
+		initialL := cpu.L
+		initialF := cpu.F
+		initialSP := cpu.SP
+		initialPC := cpu.PC
+		
+		// Execute LD C,A instruction
+		cycles := cpu.LD_C_A()
+		
+		// Should take 4 cycles
+		assert.Equal(t, uint8(4), cycles, "LD C,A should take 4 cycles")
+		
+		// C register should now contain A's value
+		assert.Equal(t, value, cpu.C, "C register should contain A's value")
+		
+		// A register should be unchanged (source remains intact)
+		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+		
+		// All other registers and flags should be unchanged
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
+		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
+		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
+	}
+}
+
+// TestLD_A_C tests the LD A,C instruction
+func TestLD_A_C(t *testing.T) {
+	cpu := NewCPU()
+	
+	// Test copying different values from C to A
+	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+	
+	for _, value := range testValues {
+		// Set up initial state
+		cpu.C = value
+		cpu.A = 0x99  // Different value in A
+		cpu.F = 0x50  // Set some flags
+		
+		// Store initial state (other registers and flags should be unchanged)
+		initialC := cpu.C
+		initialB := cpu.B
+		initialD := cpu.D
+		initialE := cpu.E
+		initialH := cpu.H
+		initialL := cpu.L
+		initialF := cpu.F
+		initialSP := cpu.SP
+		initialPC := cpu.PC
+		
+		// Execute LD A,C instruction
+		cycles := cpu.LD_A_C()
+		
+		// Should take 4 cycles
+		assert.Equal(t, uint8(4), cycles, "LD A,C should take 4 cycles")
+		
+		// A register should now contain C's value
+		assert.Equal(t, value, cpu.A, "A register should contain C's value")
+		
+		// C register should be unchanged (source remains intact)
+		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
+		
+		// All other registers and flags should be unchanged
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
+		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
+		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
+	}
+}
+// TestLD_C_n tests the LD C,n instruction
+func TestLD_C_n(t *testing.T) {
+	cpu := NewCPU()
+	
+	// Test loading different values into C
+	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+	
+	for _, value := range testValues {
+		// Store initial state (other registers should be unchanged)
+		initialA := cpu.A
+		initialB := cpu.B
+		initialD := cpu.D
+		initialE := cpu.E
+		initialH := cpu.H
+		initialL := cpu.L
+		initialF := cpu.F
+		initialSP := cpu.SP
+		initialPC := cpu.PC
+		
+		// Execute LD C,n instruction
+		cycles := cpu.LD_C_n(value)
+		
+		// Should take 8 cycles
+		assert.Equal(t, uint8(8), cycles, "LD C,n should take 8 cycles")
+		
+		// C register should contain the loaded value
+		assert.Equal(t, value, cpu.C, "C register should contain the loaded value")
+		
+		// Other registers should be unchanged
+		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
+		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
+		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
+	}
+}
+
+// TestINC_C tests the INC C instruction with various flag conditions
+func TestINC_C(t *testing.T) {
+	cpu := NewCPU()
+	
+	// Test case 1: Normal increment (no flags set)
+	cpu.C = 0x42
+	cpu.F = 0x00 // Clear all flags
+	cycles := cpu.INC_C()
+	
+	assert.Equal(t, uint8(4), cycles, "INC C should take 4 cycles")
+	assert.Equal(t, uint8(0x43), cpu.C, "C should be incremented to 0x43")
+	assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be clear")
+	assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be clear")
+	assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be clear")
+	
+	// Test case 2: Zero flag set (0xFF -> 0x00)
+	cpu.C = 0xFF
+	cpu.F = 0x00 // Clear all flags
+	cpu.INC_C()
+	
+	assert.Equal(t, uint8(0x00), cpu.C, "C should wrap to 0x00 after 0xFF increment")
+	assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set after overflow")
+	assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be clear")
+	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set after overflow")
+	
+	// Test case 3: Half-carry flag set (0x0F -> 0x10)
+	cpu.C = 0x0F
+	cpu.F = 0x00 // Clear all flags
+	cpu.INC_C()
+	
+	assert.Equal(t, uint8(0x10), cpu.C, "C should increment from 0x0F to 0x10")
+	assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be clear")
+	assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be clear")
+	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set on 0x0F->0x10")
+	
+	// Test case 4: Carry flag preservation (INC C does not affect carry)
+	cpu.C = 0x42
+	cpu.SetFlag(FlagC, true) // Set carry flag
+	cpu.INC_C()
+	
+	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be preserved after INC C")
+	
+	// Test case 5: Other registers unchanged
+	cpu.A = 0x99
+	cpu.B = 0x88
+	cpu.C = 0x42
+	initialA := cpu.A
+	initialB := cpu.B
+	
+	cpu.INC_C()
+	
+	assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+	assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+}
+
+// TestDEC_C tests the DEC C instruction with various flag conditions
+func TestDEC_C(t *testing.T) {
+	cpu := NewCPU()
+	
+	// Test case 1: Normal decrement (subtract flag set)
+	cpu.C = 0x42
+	cpu.F = 0x00 // Clear all flags
+	cycles := cpu.DEC_C()
+	
+	assert.Equal(t, uint8(4), cycles, "DEC C should take 4 cycles")
+	assert.Equal(t, uint8(0x41), cpu.C, "C should be decremented to 0x41")
+	assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be clear")
+	assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be set")
+	assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be clear")
+	
+	// Test case 2: Zero flag set (0x01 -> 0x00)
+	cpu.C = 0x01
+	cpu.F = 0x00 // Clear all flags
+	cpu.DEC_C()
+	
+	assert.Equal(t, uint8(0x00), cpu.C, "C should become 0x00 after 0x01 decrement")
+	assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set after 0x01->0x00 decrement")
+	assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be set")
+	assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be clear")
+	
+	// Test case 3: Half-carry flag set (0x00 -> 0xFF)
+	cpu.C = 0x00
+	cpu.F = 0x00 // Clear all flags
+	cpu.DEC_C()
+	
+	assert.Equal(t, uint8(0xFF), cpu.C, "C should wrap to 0xFF after 0x00 decrement")
+	assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be clear")
+	assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be set")
+	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set after 0x00->0xFF decrement")
+	
+	// Test case 4: Half-carry flag set (0x10 -> 0x0F)
+	cpu.C = 0x10
+	cpu.F = 0x00 // Clear all flags
+	cpu.DEC_C()
+	
+	assert.Equal(t, uint8(0x0F), cpu.C, "C should become 0x0F after 0x10 decrement")
+	assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be clear")
+	assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be set")
+	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set after 0x10->0x0F decrement")
+	
+	// Test case 5: Carry flag preservation (DEC C does not affect carry)
+	cpu.C = 0x42
+	cpu.SetFlag(FlagC, true) // Set carry flag
+	cpu.DEC_C()
+	
+	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be preserved after DEC C")
+	
+	// Test case 6: Other registers unchanged
+	cpu.A = 0x99
+	cpu.B = 0x88
+	cpu.C = 0x42
+	initialA := cpu.A
+	initialB := cpu.B
+	
+	cpu.DEC_C()
+	
+	assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+	assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+}
