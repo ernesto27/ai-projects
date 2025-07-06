@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -84,6 +85,47 @@ func init() {
 
 	// Parse all templates
 	tpls = template.Must(template.ParseGlob("templates/*.html"))
+}
+
+// --- Middleware ---
+
+// authMiddleware checks if the user is authenticated before proceeding to the handler.
+func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, err := store.Get(r, sessionName)
+		if err != nil {
+			log.Printf("authMiddleware: Error getting session: %v", err)
+			http.Error(w, "Session error", http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("authMiddleware: Checking session ID: %s for path: %s", session.ID, r.URL.Path)
+
+		tokenVal, tokenExists := session.Values[tokenKey]
+		if !tokenExists {
+			log.Printf("authMiddleware: Token not found in session for path: %s", r.URL.Path)
+			http.Error(w, "Unauthorized: Please log in.", http.StatusUnauthorized)
+			return
+		}
+
+		token, ok := tokenVal.(*oauth2.Token)
+		if !ok || !token.Valid() {
+			log.Printf("authMiddleware: Token invalid or assertion failed for path: %s. Valid: %t, OK: %t", r.URL.Path, token != nil && token.Valid(), ok)
+			delete(session.Values, tokenKey) // Clear invalid token
+			saveErr := session.Save(r, w)
+			if saveErr != nil {
+				log.Printf("authMiddleware: Error saving session after clearing invalid token: %v", saveErr)
+			}
+			http.Error(w, "Session expired or token invalid. Please log in again.", http.StatusUnauthorized)
+			return
+		}
+
+		log.Printf("authMiddleware: Token VERIFIED for session ID: %s, path: %s", session.ID, r.URL.Path)
+		// If token is valid, serve the next handler
+		// We can pass the token or other user info down via context if needed by handlers
+		ctx := context.WithValue(r.Context(), "userToken", token)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
 }
 
 // --- HTTP Handlers ---
@@ -221,24 +263,25 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func processSlidesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("processSlidesHandler: ENTER")
+
+	// Retrieve the token from the context set by the middleware
+	token, ok := r.Context().Value("userToken").(*oauth2.Token)
+	if !ok || token == nil {
+		// This should ideally not happen if middleware is working correctly
+		log.Println("processSlidesHandler: Token not found in context or type assertion failed.")
+		http.Error(w, "Authentication error", http.StatusInternalServerError)
+		return
+	}
+
+	// Session for flashing messages
+	session, _ := store.Get(r, sessionName) // Still need session for flashes
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	log.Println("processSlidesHandler: Received POST request")
-
-	session, err := store.Get(r, sessionName)
-	if err != nil {
-		http.Error(w, "Session error", http.StatusInternalServerError)
-		return
-	}
-
-	token, ok := session.Values[tokenKey].(*oauth2.Token)
-	if !ok || !token.Valid() {
-		log.Println("processSlidesHandler: No valid token, redirecting to login")
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
 
 	client := googleOauthConfig.Client(context.Background(), token)
 	slidesService, err := slides.NewService(context.Background(), option.WithHTTPClient(client))
@@ -390,27 +433,18 @@ func processSlidesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadPdfHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, sessionName)
-	log.Printf("downloadPdfHandler: ENTER. Session ID: %s", session.ID)
+	log.Printf("downloadPdfHandler: ENTER")
 
-	tokenVal, tokenOk := session.Values[tokenKey]
-	if !tokenOk {
-		log.Println("downloadPdfHandler: Token not found in session, redirecting to login.")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	// Retrieve the token from the context set by the middleware
+	token, ok := r.Context().Value("userToken").(*oauth2.Token)
+	if !ok || token == nil {
+		log.Println("downloadPdfHandler: Token not found in context or type assertion failed.")
+		http.Error(w, "Authentication error", http.StatusInternalServerError)
 		return
 	}
-	token, assertionOk := tokenVal.(*oauth2.Token)
-	if !assertionOk || !token.Valid() {
-		log.Println("downloadPdfHandler: Token invalid or type assertion failed, redirecting to login.")
-		delete(session.Values, tokenKey)
-		delete(session.Values, oauthSessionStateKey)
-		session.AddFlash("Your session expired or was invalid. Please log in again.", "error")
-		if err := session.Save(r, w); err != nil {
-			log.Printf("downloadPdfHandler: Error saving session: %v", err)
-		}
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
+
+	// Session for potential error messages, though less likely here
+	// session, _ := store.Get(r, sessionName)
 
 	presentationID := r.URL.Query().Get("id")
 	if presentationID == "" {
@@ -458,6 +492,83 @@ func downloadPdfHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("downloadPdfHandler: Successfully served PDF for presentation ID '%s'.", presentationID)
+}
+
+func latestFilesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("latestFilesHandler: ENTER")
+
+	// Retrieve the token from the context set by the middleware
+	token, ok := r.Context().Value("userToken").(*oauth2.Token)
+	if !ok || token == nil {
+		log.Println("latestFilesHandler: Token not found in context or type assertion failed.")
+		http.Error(w, "Authentication error", http.StatusInternalServerError)
+		return
+	}
+
+	// Session for potential flashing, though not strictly needed if auth is handled
+	// session, _ := store.Get(r, sessionName)
+
+	client := googleOauthConfig.Client(context.Background(), token)
+	driveService, err := drive.NewService(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		log.Printf("latestFilesHandler: Unable to create Drive service: %v", err)
+		http.Error(w, fmt.Sprintf("Unable to create Drive service: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("latestFilesHandler: Drive service created.")
+
+	targetFolderID := os.Getenv("GOOGLE_DRIVE_TARGET_FOLDER_ID")
+	log.Printf("latestFilesHandler: Read GOOGLE_DRIVE_TARGET_FOLDER_ID from env: '%s'", targetFolderID) // Log the value read
+
+	var query string
+	if targetFolderID != "" {
+		query = fmt.Sprintf("'%s' in parents and trashed = false", targetFolderID) // Also ensure not to list trashed files
+		log.Printf("latestFilesHandler: Targeting folder ID: '%s'. Query: \"%s\"", targetFolderID, query)
+	} else {
+		log.Println("latestFilesHandler: GOOGLE_DRIVE_TARGET_FOLDER_ID not set or empty. Listing from root (modifiedTime desc). Query will be empty.")
+		// No specific query, default ordering by modifiedTime will apply to the root or accessible files.
+	}
+
+	filesCall := driveService.Files.List().
+		PageSize(10).
+		OrderBy("modifiedTime desc").
+		Fields("nextPageToken, files(id, name, modifiedTime, webViewLink, iconLink, size)")
+
+	if query != "" {
+		log.Printf("latestFilesHandler: Applying query to filesCall: \"%s\"", query)
+		filesCall.Q(query)
+	} else {
+		log.Println("latestFilesHandler: No query string to apply. Default listing (likely 'My Drive' or all accessible, sorted by modifiedTime).")
+	}
+
+	// IMPORTANT: If '1KDVnjUvs3JG8mOGDngq3i0B5cDM9k03o' is a SHARED DRIVE ID (not a folder ID within a Shared Drive or My Drive),
+	// or a folder WITHIN a Shared Drive, you NEED to include SupportsAllDrives(true).
+	// Ask user to confirm if it's a Shared Drive or a folder within one.
+	// Example for Shared Drives / items within them:
+	// filesCall.SupportsAllDrives(true)
+	// filesCall.IncludeItemsFromAllDrives(true)
+	// If targetFolderID is the ID of the Shared Drive itself, also set:
+	// filesCall.DriveId(targetFolderID) // if targetFolderID is the Shared Drive ID
+	// filesCall.Corpora("drive")      // when DriveId is specified
+
+	fileList, err := filesCall.Do()
+	if err != nil {
+		log.Printf("latestFilesHandler: Unable to retrieve files with query ('%s'): %v", query, err)
+		http.Error(w, fmt.Sprintf("Unable to retrieve files: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if len(fileList.Files) == 0 {
+		log.Printf("latestFilesHandler: Successfully retrieved 0 files. Query was: \"%s\"", query)
+	} else {
+		log.Printf("latestFilesHandler: Successfully retrieved %d files. Query was: \"%s\"", len(fileList.Files), query)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(fileList.Files); err != nil {
+		log.Printf("latestFilesHandler: Failed to encode files to JSON: %v", err)
+	}
 }
 
 // --- Helper Functions ---
@@ -602,16 +713,13 @@ func uploadImageToDriveAndGetURL(driveService *drive.Service, file io.Reader, fi
 // --- Main Server ---
 
 func main() {
-	// Ensure go.mod and go.sum are present, and packages are downloaded
-	// You might need to run: go mod tidy
-	// And: go get github.com/gorilla/sessions
-
 	http.HandleFunc("/", mainHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/oauth2callback", oauth2CallbackHandler)
 	http.HandleFunc("/logout", logoutHandler)
-	http.HandleFunc("/process_slides", processSlidesHandler) // New combined handler
-	http.HandleFunc("/download-pdf", downloadPdfHandler)
+	http.HandleFunc("/process_slides", authMiddleware(processSlidesHandler))
+	http.HandleFunc("/download-pdf", authMiddleware(downloadPdfHandler))
+	http.HandleFunc("/latest-files", authMiddleware(latestFilesHandler))
 
 	fmt.Println("Server starting on http://localhost:8080 ...")
 	fmt.Println("Make sure you have updated credentials.json and added http://localhost:8080/oauth2callback to your Google Cloud Console.")
