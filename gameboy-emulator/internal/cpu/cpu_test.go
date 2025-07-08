@@ -3,6 +3,8 @@ package cpu
 import (
 	"testing"
 
+	"gameboy-emulator/internal/memory"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1552,6 +1554,7 @@ func TestDEC_E(t *testing.T) {
 	assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be clear")
 
 	// Test case 3: Half-carry flag set (0x00 -> 0xFF)
+
 	cpu.E = 0x00
 	cpu.F = 0x00 // Clear all flags
 	cpu.DEC_E()
@@ -1949,517 +1952,738 @@ func TestDEC_H(t *testing.T) {
 	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be preserved after DEC H")
 }
 
-// TestLD_A_H tests the LD A,H instruction
-func TestLD_A_H(t *testing.T) {
-	cpu := NewCPU()
+// TestLD_A_H tests the LD A,(HL) instruction
+func TestLD_A_HL(t *testing.T) {
+	// Test loading A from memory at address stored in HL
+	t.Run("Basic Memory Load", func(t *testing.T) {
+		cpu := NewCPU()
+		mmu := memory.NewMMU()
 
-	// Test copying different values from H to A
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		// Set up test scenario
+		testAddress := uint16(0x8000) // VRAM address
+		testValue := uint8(0x42)      // Value to load
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.H = value
-		cpu.A = 0x99 // Different value in A
-		cpu.F = 0x50 // Set some flags
+		// Set HL to point to test address
+		cpu.SetHL(testAddress)
 
-		// Store initial state (other registers and flags should be unchanged)
-		initialH := cpu.H
+		// Write test value to memory
+		mmu.WriteByte(testAddress, testValue)
+
+		// Set A to different value to verify the load
+		cpu.A = 0x00
+
+		// Execute LD A,(HL) instruction
+		cycles := cpu.LD_A_HL(mmu)
+
+		// Verify the result
+		assert.Equal(t, testValue, cpu.A, "A should contain the value loaded from memory")
+		assert.Equal(t, uint8(8), cycles, "LD A,(HL) should take 8 cycles")
+	})
+
+	t.Run("Load from Different Memory Regions", func(t *testing.T) {
+		cpu := NewCPU()
+		mmu := memory.NewMMU()
+
+		// Test loading from different memory regions
+		testCases := []struct {
+			name     string
+			address  uint16
+			value    uint8
+			expected uint8
+		}{
+			{"VRAM", 0x8000, 0x12, 0x12},
+			{"WRAM", 0xC000, 0x34, 0x34},
+			{"HRAM", 0xFF80, 0x56, 0x56},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Set up test
+				cpu.SetHL(tc.address)
+				mmu.WriteByte(tc.address, tc.value)
+				cpu.A = 0x00 // Clear A register
+
+				// Execute instruction
+				cycles := cpu.LD_A_HL(mmu)
+
+				// Verify result
+				assert.Equal(t, tc.expected, cpu.A, "A should contain the loaded value")
+				assert.Equal(t, uint8(8), cycles, "Should take 8 cycles")
+			})
+		}
+	})
+
+	t.Run("Flags Unaffected", func(t *testing.T) {
+		cpu := NewCPU()
+		mmu := memory.NewMMU()
+
+		// Set up test
+		testAddress := uint16(0x8000)
+		testValue := uint8(0x00) // Load zero to test flag behavior
+
+		cpu.SetHL(testAddress)
+		mmu.WriteByte(testAddress, testValue)
+
+		// Set flags to known state
+		cpu.SetFlag(FlagZ, true)
+		cpu.SetFlag(FlagN, true)
+		cpu.SetFlag(FlagH, true)
+		cpu.SetFlag(FlagC, true)
+
+		// Store the F register value AFTER setting flags
+		originalF := cpu.F
+
+		// Execute instruction
+		cpu.LD_A_HL(mmu)
+
+		// Verify flags are unchanged (LD instructions do not affect flags)
+		assert.Equal(t, originalF, cpu.F, "F register should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagN), "N flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagH), "H flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagC), "C flag should be unchanged")
+	})
+
+	t.Run("Register Preservation", func(t *testing.T) {
+		cpu := NewCPU()
+		mmu := memory.NewMMU()
+
+		// Set up test
+		testAddress := uint16(0x8000)
+		testValue := uint8(0x99)
+
+		cpu.SetHL(testAddress)
+		mmu.WriteByte(testAddress, testValue)
+
+		// Store initial register values
 		initialB := cpu.B
 		initialC := cpu.C
 		initialD := cpu.D
 		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
+		initialH := cpu.H
 		initialSP := cpu.SP
 		initialPC := cpu.PC
 
-		// Execute LD A,H instruction
-		cycles := cpu.LD_A_H()
+		// Execute instruction
+		cpu.LD_A_HL(mmu)
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD A,H should take 4 cycles")
-
-		// A register should now contain H's value
-		assert.Equal(t, value, cpu.A, "A register should contain H's value")
-
-		// H register should be unchanged (source remains intact)
-		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
-
-		// All other registers and flags should be unchanged
+		// Verify only A changed
+		assert.Equal(t, testValue, cpu.A, "A should contain the loaded value")
 		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
 		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
 		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
 		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
 		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
 		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
 }
 
-// TestLD_H_A tests the LD H,A instruction
-func TestLD_H_A(t *testing.T) {
-	cpu := NewCPU()
+// TestLD_L_n tests the LD_L_n instruction (0x2E)
+func TestLD_L_n(t *testing.T) {
+	t.Run("Load immediate value into L register", func(t *testing.T) {
+		cpu := NewCPU()
 
-	// Test copying different values from A to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		// Test various immediate values
+		testCases := []struct {
+			name           string
+			value          uint8
+			expectedL      uint8
+			expectedCycles uint8
+		}{
+			{"Load 0x00", 0x00, 0x00, 8},
+			{"Load 0x42", 0x42, 0x42, 8},
+			{"Load 0xFF", 0xFF, 0xFF, 8},
+			{"Load 0x80", 0x80, 0x80, 8},
+			{"Load 0x7F", 0x7F, 0x7F, 8},
+		}
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.A = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Set L to different value first
+				cpu.L = ^tc.value // Bitwise NOT to ensure it changes
 
-		// Store initial state (other registers and flags should be unchanged)
+				// Execute instruction
+				cycles := cpu.LD_L_n(tc.value)
+
+				// Verify results
+				assert.Equal(t, tc.expectedL, cpu.L, "L register should contain the immediate value")
+				assert.Equal(t, tc.expectedCycles, cycles, "Should take 8 cycles")
+			})
+		}
+	})
+
+	t.Run("Flags unaffected", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Set all flags to test they remain unchanged
+		cpu.SetFlag(FlagZ, true)
+		cpu.SetFlag(FlagN, true)
+		cpu.SetFlag(FlagH, true)
+		cpu.SetFlag(FlagC, true)
+		originalF := cpu.F
+
+		// Execute instruction
+		cpu.LD_L_n(0x55)
+
+		// Verify flags are unchanged (LD instructions do not affect flags)
+		assert.Equal(t, originalF, cpu.F, "F register should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagN), "N flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagH), "H flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagC), "C flag should be unchanged")
+	})
+	t.Run("Register preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Store initial values
 		initialA := cpu.A
 		initialB := cpu.B
 		initialC := cpu.C
 		initialD := cpu.D
 		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
+		initialH := cpu.H
 		initialSP := cpu.SP
 		initialPC := cpu.PC
 
-		// Execute LD H,A instruction
-		cycles := cpu.LD_H_A()
+		// Execute instruction
+		cpu.LD_L_n(0x99)
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,A should take 4 cycles")
-
-		// H register should now contain A's value
-		assert.Equal(t, value, cpu.H, "H register should contain A's value")
-
-		// A register should be unchanged (source remains intact)
+		// Verify only L changed
+		assert.Equal(t, uint8(0x99), cpu.L, "L should contain the loaded value")
 		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
-
-		// All other registers and flags should be unchanged
 		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
 		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
 		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
 		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
 		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
 		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
 }
 
-// TestLD_B_H tests the LD B,H instruction
-func TestLD_B_H(t *testing.T) {
-	cpu := NewCPU()
+// TestINC_L tests the INC_L instruction (0x2C)
+func TestINC_L(t *testing.T) {
+	t.Run("Basic increment operations", func(t *testing.T) {
+		cpu := NewCPU()
 
-	// Test copying different values from H to B
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		testCases := []struct {
+			name           string
+			initialL       uint8
+			expectedL      uint8
+			expectedZ      bool
+			expectedN      bool
+			expectedH      bool
+			expectedCycles uint8
+		}{
+			{"Increment 0x00", 0x00, 0x01, false, false, false, 4},
+			{"Increment 0x0F (half-carry)", 0x0F, 0x10, false, false, true, 4},
+			{"Increment 0x7F", 0x7F, 0x80, false, false, true, 4},
+			{"Increment 0xFF (wrap to zero)", 0xFF, 0x00, true, false, true, 4},
+			{"Increment 0x42", 0x42, 0x43, false, false, false, 4},
+		}
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.H = value
-		cpu.B = 0x99 // Different value in B
-		cpu.F = 0x50 // Set some flags
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Set up initial state
+				cpu.L = tc.initialL
+				cpu.F = 0x00 // Clear all flags
 
-		// Store initial state (other registers and flags should be unchanged)
-		initialH := cpu.H
-		initialC := cpu.C
-		initialD := cpu.D
-		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
+				// Execute instruction
+				cycles := cpu.INC_L()
 
-		// Execute LD B,H instruction
-		cycles := cpu.LD_B_H()
+				// Verify results
+				assert.Equal(t, tc.expectedL, cpu.L, "L register should be incremented correctly")
+				assert.Equal(t, tc.expectedCycles, cycles, "Should take 4 cycles")
+				assert.Equal(t, tc.expectedZ, cpu.GetFlag(FlagZ), "Z flag should be set correctly")
+				assert.Equal(t, tc.expectedN, cpu.GetFlag(FlagN), "N flag should be clear (addition)")
+				assert.Equal(t, tc.expectedH, cpu.GetFlag(FlagH), "H flag should be set correctly")
+			})
+		}
+	})
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD B,H should take 4 cycles")
+	t.Run("Carry flag preservation", func(t *testing.T) {
+		cpu := NewCPU()
 
-		// B register should now contain H's value
-		assert.Equal(t, value, cpu.B, "B register should contain H's value")
+		// Test with C flag set
+		cpu.L = 0x42
+		cpu.SetFlag(FlagC, true)
 
-		// H register should be unchanged (source remains intact)
-		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+		cycles := cpu.INC_L()
 
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
-}
+		// Verify C flag is preserved
+		assert.True(t, cpu.GetFlag(FlagC), "C flag should be preserved")
+		assert.Equal(t, uint8(0x43), cpu.L, "L should be incremented")
+		assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
 
-// TestLD_H_B tests the LD H,B instruction
-func TestLD_H_B(t *testing.T) {
-	cpu := NewCPU()
+		// Test with C flag clear
+		cpu.L = 0x42
+		cpu.SetFlag(FlagC, false)
 
-	// Test copying different values from B to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		cpu.INC_L()
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.B = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
+		// Verify C flag remains clear
+		assert.False(t, cpu.GetFlag(FlagC), "C flag should remain clear")
+	})
 
-		// Store initial state (other registers and flags should be unchanged)
+	t.Run("Register preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Store initial values
+		initialA := cpu.A
 		initialB := cpu.B
 		initialC := cpu.C
-		initialD := cpu.D
-		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
-
-		// Execute LD H,B instruction
-		cycles := cpu.LD_H_B()
-
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,B should take 4 cycles")
-
-		// H register should now contain B's value
-		assert.Equal(t, value, cpu.H, "H register should contain B's value")
-
-		// B register should be unchanged (source remains intact)
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
-}
-
-// TestLD_C_H tests the LD C,H instruction
-func TestLD_C_H(t *testing.T) {
-	cpu := NewCPU()
-
-	// Test copying different values from H to C
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
-
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.H = value
-		cpu.C = 0x99 // Different value in C
-		cpu.F = 0x50 // Set some flags
-
-		// Store initial state (other registers and flags should be unchanged)
-		initialB := cpu.B
 		initialD := cpu.D
 		initialE := cpu.E
 		initialH := cpu.H
-		initialL := cpu.L
-		initialF := cpu.F
 		initialSP := cpu.SP
 		initialPC := cpu.PC
 
-		// Execute LD C,H instruction
-		cycles := cpu.LD_C_H()
+		// Execute instruction
+		cpu.INC_L()
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD C,H should take 4 cycles")
-
-		// C register should now contain H's value
-		assert.Equal(t, value, cpu.C, "C register should contain H's value")
-
-		// H register should be unchanged (source remains intact)
+		// Verify other registers unchanged
+		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
 		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
-
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
 		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
 		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
 }
 
-// TestLD_H_C tests the LD H,C instruction
-func TestLD_H_C(t *testing.T) {
-	cpu := NewCPU()
+// TestDEC_L tests the DEC_L instruction (0x2D)
+func TestDEC_L(t *testing.T) {
+	t.Run("Basic decrement operations", func(t *testing.T) {
+		cpu := NewCPU()
 
-	// Test copying different values from C to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		testCases := []struct {
+			name           string
+			initialL       uint8
+			expectedL      uint8
+			expectedZ      bool
+			expectedN      bool
+			expectedH      bool
+			expectedCycles uint8
+		}{
+			{"Decrement 0x01", 0x01, 0x00, true, true, false, 4},
+			{"Decrement 0x00 (wrap to 0xFF)", 0x00, 0xFF, false, true, true, 4},
+			{"Decrement 0x10 (half-carry)", 0x10, 0x0F, false, true, true, 4},
+			{"Decrement 0x80", 0x80, 0x7F, false, true, true, 4},
+			{"Decrement 0x42", 0x42, 0x41, false, true, false, 4},
+		}
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.C = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Set up initial state
+				cpu.L = tc.initialL
+				cpu.F = 0x00 // Clear all flags
 
-		// Store initial state (other registers and flags should be unchanged)
-		initialC := cpu.C
-		initialB := cpu.B
-		initialD := cpu.D
-		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
+				// Execute instruction
+				cycles := cpu.DEC_L()
 
-		// Execute LD H,C instruction
-		cycles := cpu.LD_H_C()
+				// Verify results
+				assert.Equal(t, tc.expectedL, cpu.L, "L register should be decremented correctly")
+				assert.Equal(t, tc.expectedCycles, cycles, "Should take 4 cycles")
+				assert.Equal(t, tc.expectedZ, cpu.GetFlag(FlagZ), "Z flag should be set correctly")
+				assert.Equal(t, tc.expectedN, cpu.GetFlag(FlagN), "N flag should be set (subtraction)")
+				assert.Equal(t, tc.expectedH, cpu.GetFlag(FlagH), "H flag should be set correctly")
+			})
+		}
+	})
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,C should take 4 cycles")
+	t.Run("Carry flag preservation", func(t *testing.T) {
+		cpu := NewCPU()
 
-		// H register should now contain C's value
-		assert.Equal(t, value, cpu.H, "H register should contain C's value")
+		// Test with C flag set
+		cpu.L = 0x42
+		cpu.SetFlag(FlagC, true)
 
-		// C register should be unchanged (source remains intact)
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
+		cycles := cpu.DEC_L()
 
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
-}
+		// Verify C flag is preserved
+		assert.True(t, cpu.GetFlag(FlagC), "C flag should be preserved")
+		assert.Equal(t, uint8(0x41), cpu.L, "L should be decremented")
+		assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
 
-// TestLD_H_D tests the LD H,D instruction
-func TestLD_H_D(t *testing.T) {
-	cpu := NewCPU()
+		// Test with C flag clear
+		cpu.L = 0x42
+		cpu.SetFlag(FlagC, false)
 
-	// Test copying different values from D to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		cpu.DEC_L()
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.D = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
+		// Verify C flag remains clear
+		assert.False(t, cpu.GetFlag(FlagC), "C flag should remain clear")
+	})
 
-		// Store initial state (other registers and flags should be unchanged)
-		initialD := cpu.D
-		initialB := cpu.B
-		initialC := cpu.C
-		initialE := cpu.E
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
+	t.Run("Register preservation", func(t *testing.T) {
+		cpu := NewCPU()
 
-		// Execute LD H,D instruction
-		cycles := cpu.LD_H_D()
-
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,D should take 4 cycles")
-
-		// H register should now contain D's value
-		assert.Equal(t, value, cpu.H, "H register should contain D's value")
-
-		// D register should be unchanged (source remains intact)
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
-}
-
-// TestLD_H_E tests the LD H,E instruction
-func TestLD_H_E(t *testing.T) {
-	cpu := NewCPU()
-
-	// Test copying different values from E to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
-
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.E = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
-
-		// Store initial state (other registers and flags should be unchanged)
-		initialE := cpu.E
-		initialB := cpu.B
-		initialC := cpu.C
-		initialD := cpu.D
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
-
-		// Execute LD H,E instruction
-		cycles := cpu.LD_H_E()
-
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,E should take 4 cycles")
-
-		// H register should now contain E's value
-		assert.Equal(t, value, cpu.H, "H register should contain E's value")
-
-		// E register should be unchanged (source remains intact)
-		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-
-		// All other registers and flags should be unchanged
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
-		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
-}
-
-// TestLD_H_L tests the LD H,L instruction
-func TestLD_H_L(t *testing.T) {
-	cpu := NewCPU()
-
-	// Test copying different values from L to H
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
-
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.L = value
-		cpu.H = 0x99 // Different value in H
-		cpu.F = 0x50 // Set some flags
-
-		// Store initial state (other registers and flags should be unchanged)
-		initialL := cpu.L
+		// Store initial values
+		initialA := cpu.A
 		initialB := cpu.B
 		initialC := cpu.C
 		initialD := cpu.D
 		initialE := cpu.E
-		initialF := cpu.F
+		initialH := cpu.H
 		initialSP := cpu.SP
 		initialPC := cpu.PC
 
-		// Execute LD H,L instruction
-		cycles := cpu.LD_H_L()
+		// Execute instruction
+		cpu.DEC_L()
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD H,L should take 4 cycles")
-
-		// H register should now contain L's value
-		assert.Equal(t, value, cpu.H, "H register should contain L's value")
-
-		// L register should be unchanged (source remains intact)
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-
-		// All other registers and flags should be unchanged
+		// Verify other registers unchanged
+		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
 		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
 		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
 		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
 		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
 		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
 		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
 }
 
-// TestLD_B_C tests the LD B,C instruction
-func TestLD_B_C(t *testing.T) {
-	cpu := NewCPU()
+// TestLD_A_L tests the LD_A_L instruction (0x7D)
+func TestLD_A_L(t *testing.T) {
+	t.Run("Copy L to A register", func(t *testing.T) {
+		cpu := NewCPU()
 
-	// Test copying different values from C to B
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		testCases := []struct {
+			name           string
+			initialL       uint8
+			expectedA      uint8
+			expectedCycles uint8
+		}{
+			{"Copy 0x00", 0x00, 0x00, 4},
+			{"Copy 0x42", 0x42, 0x42, 4},
+			{"Copy 0xFF", 0xFF, 0xFF, 4},
+			{"Copy 0x80", 0x80, 0x80, 4},
+			{"Copy 0x7F", 0x7F, 0x7F, 4},
+		}
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.C = value
-		cpu.B = 0x99 // Different value in B
-		cpu.F = 0x50 // Set some flags
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				// Set up initial state
+				cpu.L = tc.initialL
+				cpu.A = ^tc.initialL // Set A to different value
 
-		// Store initial state (other registers and flags should be unchanged)
+				// Execute instruction
+				cycles := cpu.LD_A_L()
+
+				// Verify results
+				assert.Equal(t, tc.expectedA, cpu.A, "A register should contain L's value")
+				assert.Equal(t, tc.expectedCycles, cycles, "Should take 4 cycles")
+				assert.Equal(t, tc.initialL, cpu.L, "L register should be unchanged (source)")
+			})
+		}
+	})
+
+	t.Run("Flags unaffected", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Set all flags and test they remain unchanged
+		cpu.SetFlag(FlagZ, true)
+		cpu.SetFlag(FlagN, true)
+		cpu.SetFlag(FlagH, true)
+		cpu.SetFlag(FlagC, true)
+		originalF := cpu.F
+
+		cpu.L = 0x55
+		cpu.LD_A_L()
+
+		assert.Equal(t, originalF, cpu.F, "F register should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagN), "N flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagH), "H flag should be unchanged")
+		assert.True(t, cpu.GetFlag(FlagC), "C flag should be unchanged")
+	})
+
+	t.Run("Register preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Store initial values
+		initialB := cpu.B
+		initialC := cpu.C
+		initialD := cpu.D
+		initialE := cpu.E
+		initialH := cpu.H
+		initialSP := cpu.SP
+		initialPC := cpu.PC
+
+		cpu.L = 0x99
+		cpu.LD_A_L()
+
+		// Verify other registers unchanged
+		assert.Equal(t, uint8(0x99), cpu.A, "A should contain L's value")
+		assert.Equal(t, uint8(0x99), cpu.L, "L should be unchanged")
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
+		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
+	})
+}
+
+// TestLD_B_L tests the LD_B_L instruction (0x45)
+func TestLD_B_L(t *testing.T) {
+	t.Run("Copy L to B register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.L = value
+			cpu.B = ^value // Set B to different value
+
+			cycles := cpu.LD_B_L()
+
+			assert.Equal(t, value, cpu.B, "B register should contain L's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.L, "L register should be unchanged (source)")
+		}
+	})
+
+	t.Run("Flags and other registers preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Set flags and store initial values
+		cpu.SetFlag(FlagZ, true)
+		cpu.SetFlag(FlagC, true)
+		initialF := cpu.F
 		initialA := cpu.A
 		initialC := cpu.C
 		initialD := cpu.D
 		initialE := cpu.E
 		initialH := cpu.H
-		initialL := cpu.L
-		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
 
-		// Execute LD B,C instruction
-		cycles := cpu.LD_B_C()
+		cpu.L = 0x77
+		cpu.LD_B_L()
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD B,C should take 4 cycles")
-
-		// B register should now contain C's value
-		assert.Equal(t, value, cpu.B, "B register should contain C's value")
-
-		// C register should be unchanged (source remains intact)
-		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
-
-		// All other registers and flags should be unchanged
+		// Verify results
+		assert.Equal(t, uint8(0x77), cpu.B, "B should contain L's value")
+		assert.Equal(t, initialF, cpu.F, "Flags should be unchanged")
 		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
 		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
 		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
 		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
-		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
 }
 
-// TestLD_C_B tests the LD C,B instruction
-func TestLD_C_B(t *testing.T) {
-	cpu := NewCPU()
+// TestLD_C_L tests the LD_C_L instruction (0x4D)
+func TestLD_C_L(t *testing.T) {
+	t.Run("Copy L to C register", func(t *testing.T) {
+		cpu := NewCPU()
 
-	// Test copying different values from B to C
-	testValues := []uint8{0x00, 0x42, 0xFF, 0x01, 0x80, 0x55, 0xAA}
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
 
-	for _, value := range testValues {
-		// Set up initial state
-		cpu.B = value
-		cpu.C = 0x99 // Different value in C
-		cpu.F = 0x50 // Set some flags
+		for _, value := range testValues {
+			cpu.L = value
+			cpu.C = ^value // Set C to different value
 
-		// Store initial state (other registers and flags should be unchanged)
+			cycles := cpu.LD_C_L()
+
+			assert.Equal(t, value, cpu.C, "C register should contain L's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.L, "L register should be unchanged (source)")
+		}
+	})
+
+	t.Run("Comprehensive register preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Store all initial values
 		initialA := cpu.A
 		initialB := cpu.B
 		initialD := cpu.D
 		initialE := cpu.E
 		initialH := cpu.H
-		initialL := cpu.L
 		initialF := cpu.F
-		initialSP := cpu.SP
-		initialPC := cpu.PC
 
-		// Execute LD C,B instruction
-		cycles := cpu.LD_C_B()
+		cpu.L = 0x88
+		cpu.LD_C_L()
 
-		// Should take 4 cycles
-		assert.Equal(t, uint8(4), cycles, "LD C,B should take 4 cycles")
-
-		// C register should now contain B's value
-		assert.Equal(t, value, cpu.C, "C register should contain B's value")
-
-		// B register should be unchanged (source remains intact)
-		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
-
-		// All other registers and flags should be unchanged
+		// Verify only C changed
+		assert.Equal(t, uint8(0x88), cpu.C, "C should contain L's value")
+		assert.Equal(t, uint8(0x88), cpu.L, "L should be unchanged")
 		assert.Equal(t, initialA, cpu.A, "A register should be unchanged")
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
 		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
 		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
 		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
-		assert.Equal(t, initialL, cpu.L, "L register should be unchanged")
 		assert.Equal(t, initialF, cpu.F, "F register should be unchanged")
-		assert.Equal(t, initialSP, cpu.SP, "SP should be unchanged")
-		assert.Equal(t, initialPC, cpu.PC, "PC should be unchanged")
-	}
+	})
+}
+
+// TestLD_L_A tests the LD_L_A instruction (0x6F)
+func TestLD_L_A(t *testing.T) {
+	t.Run("Copy A to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.A = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_A()
+
+			assert.Equal(t, value, cpu.L, "L register should contain A's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.A, "A register should be unchanged (source)")
+		}
+	})
+
+	t.Run("Flag and register preservation", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Set flags and store initial values
+		cpu.SetFlag(FlagZ, true)
+		cpu.SetFlag(FlagN, true)
+		initialF := cpu.F
+		initialB := cpu.B
+		initialC := cpu.C
+		initialD := cpu.D
+		initialE := cpu.E
+		initialH := cpu.H
+
+		cpu.A = 0x33
+		cpu.LD_L_A()
+
+		// Verify results
+		assert.Equal(t, uint8(0x33), cpu.L, "L should contain A's value")
+		assert.Equal(t, uint8(0x33), cpu.A, "A should be unchanged")
+		assert.Equal(t, initialF, cpu.F, "Flags should be unchanged")
+		assert.Equal(t, initialB, cpu.B, "B register should be unchanged")
+		assert.Equal(t, initialC, cpu.C, "C register should be unchanged")
+		assert.Equal(t, initialD, cpu.D, "D register should be unchanged")
+		assert.Equal(t, initialE, cpu.E, "E register should be unchanged")
+		assert.Equal(t, initialH, cpu.H, "H register should be unchanged")
+	})
+}
+
+// TestLD_L_B tests the LD_L_B instruction (0x68)
+func TestLD_L_B(t *testing.T) {
+	t.Run("Copy B to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.B = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_B()
+
+			assert.Equal(t, value, cpu.L, "L register should contain B's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.B, "B register should be unchanged (source)")
+		}
+	})
+}
+
+// TestLD_L_C tests the LD_L_C instruction (0x69)
+func TestLD_L_C(t *testing.T) {
+	t.Run("Copy C to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.C = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_C()
+
+			assert.Equal(t, value, cpu.L, "L register should contain C's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.C, "C register should be unchanged (source)")
+		}
+	})
+}
+
+// TestLD_L_D tests the LD_L_D instruction (0x6A)
+func TestLD_L_D(t *testing.T) {
+	t.Run("Copy D to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.D = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_D()
+
+			assert.Equal(t, value, cpu.L, "L register should contain D's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.D, "D register should be unchanged (source)")
+		}
+	})
+}
+
+// TestLD_L_E tests the LD_L_E instruction (0x6B)
+func TestLD_L_E(t *testing.T) {
+	t.Run("Copy E to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.E = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_E()
+
+			assert.Equal(t, value, cpu.L, "L register should contain E's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.E, "E register should be unchanged (source)")
+		}
+	})
+}
+
+// TestLD_L_H tests the LD_L_H instruction (0x6C)
+func TestLD_L_H(t *testing.T) {
+	t.Run("Copy H to L register", func(t *testing.T) {
+		cpu := NewCPU()
+
+		testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F, 0x55, 0xAA}
+
+		for _, value := range testValues {
+			cpu.H = value
+			cpu.L = ^value // Set L to different value
+
+			cycles := cpu.LD_L_H()
+
+			assert.Equal(t, value, cpu.L, "L register should contain H's value")
+			assert.Equal(t, uint8(4), cycles, "Should take 4 cycles")
+			assert.Equal(t, value, cpu.H, "H register should be unchanged (source)")
+		}
+	})
+
+	t.Run("HL register pair interaction", func(t *testing.T) {
+		cpu := NewCPU()
+
+		// Test that LD_L_H works correctly for HL register pair
+		cpu.H = 0x12
+		cpu.L = 0x34
+
+		// Initial HL should be 0x1234
+		assert.Equal(t, uint16(0x1234), cpu.GetHL(), "Initial HL should be 0x1234")
+
+		// Execute LD_L_H (copy H to L)
+		cpu.LD_L_H()
+
+		// Now L should be 0x12, H should still be 0x12
+		assert.Equal(t, uint8(0x12), cpu.L, "L should contain H's value")
+		assert.Equal(t, uint8(0x12), cpu.H, "H should be unchanged")
+
+		// HL should now be 0x1212
+		assert.Equal(t, uint16(0x1212), cpu.GetHL(), "HL should be 0x1212 after LD_L_H")
+	})
 }

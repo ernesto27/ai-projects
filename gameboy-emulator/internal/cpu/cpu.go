@@ -1,5 +1,9 @@
 package cpu
 
+import (
+	"gameboy-emulator/internal/memory"
+)
+
 // CPU represents the Sharp LR35902 CPU used in the Game Boy
 // Think of this as our office worker with all their desk drawers (registers)
 type CPU struct {
@@ -628,6 +632,132 @@ func (cpu *CPU) LD_H_E() uint8 {
 func (cpu *CPU) LD_H_L() uint8 {
 	cpu.H = cpu.L // Copy L's value to H
 	return 4      // Takes 4 CPU cycles
+}
+
+// === L Register Operations ===
+
+// LD_L_n - Load immediate 8-bit value into register L (0x2E)
+// Like writing a specific number on a sticky note and putting it in drawer L
+func (cpu *CPU) LD_L_n(value uint8) uint8 {
+	cpu.L = value
+	return 8 // Takes 8 CPU cycles (fetch opcode + fetch immediate value)
+}
+
+// INC_L - Increment register L by 1 (0x2C)
+// Like counting up by 1 in drawer L, but turn on warning lights if needed
+func (cpu *CPU) INC_L() uint8 {
+	// Check for half-carry (carry from bit 3 to bit 4)
+	halfCarry := (cpu.L & 0x0F) == 0x0F
+
+	// Increment the value
+	cpu.L++
+
+	// Set flags based on result
+	cpu.SetFlag(FlagZ, cpu.L == 0) // Zero flag: result is zero
+	cpu.SetFlag(FlagN, false)      // Subtract flag: always clear for addition
+	cpu.SetFlag(FlagH, halfCarry)  // Half-carry flag: carry from bit 3 to 4
+	// Note: Carry flag (FlagC) is not affected by INC
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// DEC_L - Decrement register L by 1 (0x2D)
+// Like counting down by 1 in drawer L, but turn on warning lights if needed
+func (cpu *CPU) DEC_L() uint8 {
+	// Check for half-carry (borrow from bit 4 to bit 3)
+	// For subtraction, half-carry is set when there's no borrow from bit 4
+	halfCarry := (cpu.L & 0x0F) == 0x00
+
+	// Decrement the value
+	cpu.L--
+
+	// Set flags based on result
+	cpu.SetFlag(FlagZ, cpu.L == 0) // Zero flag: result is zero
+	cpu.SetFlag(FlagN, true)       // Subtract flag: always set for subtraction
+	cpu.SetFlag(FlagH, halfCarry)  // Half-carry flag: borrow from bit 4 to 3
+	// Note: Carry flag (FlagC) is not affected by DEC
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// === L Register Load Operations ===
+
+// LD_A_L - Copy register L to register A (0x7D)
+// Like photocopying what's in drawer L and putting copy in drawer A
+func (cpu *CPU) LD_A_L() uint8 {
+	cpu.A = cpu.L // Copy L's value to A
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_B_L - Copy register L to register B (0x45)
+// Like photocopying what's in drawer L and putting copy in drawer B
+func (cpu *CPU) LD_B_L() uint8 {
+	cpu.B = cpu.L // Copy L's value to B
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_C_L - Copy register L to register C (0x4D)
+// Like photocopying what's in drawer L and putting copy in drawer C
+func (cpu *CPU) LD_C_L() uint8 {
+	cpu.C = cpu.L // Copy L's value to C
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_A - Copy register A to register L (0x6F)
+// Like photocopying what's in drawer A and putting copy in drawer L
+func (cpu *CPU) LD_L_A() uint8 {
+	cpu.L = cpu.A // Copy A's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_B - Copy register B to register L (0x68)
+// Like photocopying what's in drawer B and putting copy in drawer L
+func (cpu *CPU) LD_L_B() uint8 {
+	cpu.L = cpu.B // Copy B's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_C - Copy register C to register L (0x69)
+// Like photocopying what's in drawer C and putting copy in drawer L
+func (cpu *CPU) LD_L_C() uint8 {
+	cpu.L = cpu.C // Copy C's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_D - Copy register D to register L (0x6A)
+// Like photocopying what's in drawer D and putting copy in drawer L
+func (cpu *CPU) LD_L_D() uint8 {
+	cpu.L = cpu.D // Copy D's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_E - Copy register E to register L (0x6B)
+// Like photocopying what's in drawer E and putting copy in drawer L
+func (cpu *CPU) LD_L_E() uint8 {
+	cpu.L = cpu.E // Copy E's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// LD_L_H - Copy register H to register L (0x6C)
+// Like photocopying what's in drawer H and putting copy in drawer L
+func (cpu *CPU) LD_L_H() uint8 {
+	cpu.L = cpu.H // Copy H's value to L
+	return 4      // Takes 4 CPU cycles
+}
+
+// === Memory Load Instructions ===
+
+// LD_A_HL - Load A from memory at HL (opcode 0x7E)
+// Loads the value from memory at the address stored in HL register pair into register A
+// This instruction reads from memory, so it needs the MMU interface
+// Flags affected: None
+// Cycles: 8 (memory access takes longer than register operations)
+// Example: If HL=0x8000 and memory[0x8000]=0x42, then A becomes 0x42
+func (cpu *CPU) LD_A_HL(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()         // Get 16-bit address from HL register pair
+	value := mmu.ReadByte(address) // Read byte from memory at that address
+	cpu.A = value                  // Store the value in register A
+	return 8                       // Memory access takes 8 CPU cycles
 }
 
 // === Utility Methods ===
