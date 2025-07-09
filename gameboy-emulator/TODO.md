@@ -136,12 +136,12 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ### Medium Priority - TODO 🔄
 
-#### [ ] **Phase 3.4: CPU-MMU Integration**
-- [ ] Update CPU instructions to use MemoryInterface
-  - [ ] Implement LD_A_HL (Load A from memory at HL)
-  - [ ] Implement LD_HL_A (Store A to memory at HL)
-  - [ ] Add MMU parameter to memory-dependent instructions
-  - [ ] Update CPU instruction signatures for memory operations
+#### ✅ **Phase 3.4: CPU-MMU Integration** - **COMPLETED** ✅
+- ✅ Update CPU instructions to use MemoryInterface
+  - ✅ Implement LD_A_HL (Load A from memory at HL)
+  - ✅ Implement LD_HL_A (Store A to memory at HL)
+  - ✅ Add MMU parameter to memory-dependent instructions
+  - ✅ Update CPU instruction signatures for memory operations
 
 #### [ ] **Phase 3.5: Advanced MMU Features**
 - [ ] Implement memory banking (MBC1, MBC2, MBC3)
@@ -168,7 +168,76 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ---
 
-## 🎮 Phase 4: Graphics (PPU)
+## 🎯 Phase 4: Opcode Dispatch System
+**Goal**: Create a complete instruction dispatch system for the Game Boy CPU
+
+### **Current Status**: 
+- ✅ **80+ CPU instructions implemented** with proper MMU integration
+- ✅ **All memory operations** (LD_A_HL, LD_HL_A, LD_A_BC, LD_A_DE, LD_BC_A, LD_DE_A)
+- ✅ **All 16-bit load instructions** (LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn)
+- ✅ **Complete arithmetic operations** (ADD_A_r variants)
+- ✅ **All register operations** (INC/DEC, register-to-register loads)
+
+### High Priority - TODO 🔄
+
+#### [ ] **Phase 4.1: Opcode Lookup Table Creation**
+- [ ] **Task 4.1.1**: Create Base Opcode Table Structure
+  - File: `internal/cpu/opcodes.go`
+  - Create main 256-entry opcode dispatch table
+  - Define `InstructionFunc` type for function signatures
+  - Handle both memory and non-memory instructions
+- [ ] **Task 4.1.2**: Map Implemented Instructions to Opcodes
+  - Map all 80+ implemented instructions to their opcodes
+  - Include NOP, LD immediate, INC/DEC, register loads, memory ops, 16-bit loads, arithmetic
+- [ ] **Task 4.1.3**: Create CB-Prefixed Opcode Table
+  - Structure for future bit manipulation instructions
+
+#### [ ] **Phase 4.2: Instruction Execution Engine**
+- [ ] **Task 4.2.1**: Create Instruction Decoder
+  - File: `internal/cpu/decoder.go`
+  - Implement fetch and decode logic
+  - Handle CB-prefixed instructions
+  - Fetch immediate operands when needed
+- [ ] **Task 4.2.2**: Create CPU Execution Loop
+  - File: `internal/cpu/cpu.go`
+  - Implement main CPU execution cycle
+  - Add `func (cpu *CPU) Step(mmu *MMU) (uint8, error)`
+  - Handle instruction timing and error conditions
+- [ ] **Task 4.2.3**: Create Instruction Parameter Handling
+  - File: `internal/cpu/parameters.go`
+  - Handle different instruction parameter types
+  - Support immediate values, registers, memory addresses
+
+#### [ ] **Phase 4.3: Opcode Coverage and Validation**
+- [ ] **Task 4.3.1**: Create Opcode Coverage Report
+  - Generate report of implemented vs missing opcodes
+  - Show implementation progress percentage
+- [ ] **Task 4.3.2**: Add Opcode Validation
+  - Validate opcode table completeness
+  - Check for duplicate mappings
+- [ ] **Task 4.3.3**: Create Opcode Documentation
+  - Generate comprehensive opcode documentation
+
+#### [ ] **Phase 4.4: Testing and Integration**
+- [ ] **Task 4.4.1**: Create Opcode Dispatch Tests
+  - Test all implemented opcodes dispatch correctly
+  - Test invalid opcode handling
+- [ ] **Task 4.4.2**: Create CPU Step Tests
+  - Test complete fetch-decode-execute cycle
+  - Test PC increment behavior
+- [ ] **Task 4.4.3**: Create Integration Tests
+  - Test CPU with real instruction sequences
+  - Test memory operations with MMU
+
+### Success Criteria
+- ✅ All 80+ implemented instructions callable via opcode
+- ✅ CPU.Step() method works for all instruction types
+- ✅ Complete test coverage for dispatch system
+- ✅ Opcode coverage report shows current progress
+
+---
+
+## 🎮 Phase 5: Graphics (PPU)
 **Goal**: Implement Picture Processing Unit for rendering
 
 ### Medium Priority
@@ -185,7 +254,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ---
 
-## 🎯 Phase 5: Input & Control
+## 🎯 Phase 6: Input & Control
 **Goal**: Implement joypad input handling
 
 ### Medium Priority
@@ -199,7 +268,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ---
 
-## 🔊 Phase 6: Audio (Optional)
+## 🔊 Phase 7: Audio (Optional)
 **Goal**: Implement sound processing unit
 
 ### Low Priority
@@ -215,7 +284,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ---
 
-## 🧪 Phase 7: Testing & Validation
+## 🧪 Phase 8: Testing & Validation
 **Goal**: Ensure emulator accuracy and compatibility
 
 ### High Priority
@@ -231,7 +300,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 
 ---
 
-## 🔧 Phase 8: Optimization & Polish
+## 🔧 Phase 9: Optimization & Polish
 **Goal**: Improve performance and user experience
 
 ### Medium Priority
@@ -306,22 +375,22 @@ gameboy-emulator/
 
 ## 📊 Progress Tracking
 - [x] **Phase 1**: Foundation & Setup (1/1) ✅
-- [ ] **Phase 2**: Core CPU Implementation (1/2) 🔄 - 30/256 instructions complete (12%)
-- [x] **Phase 3**: Memory Management (3/5) ✅ - Core MMU Implementation Complete
-  - [x] **Phase 3.1-3.3**: Basic MMU, Core Operations, Memory Regions ✅
-  - [ ] **Phase 3.4**: CPU-MMU Integration 🔄 **NEXT**
+- [x] **Phase 2**: Core CPU Implementation (2/2) ✅ - 80+ instructions complete
+- [x] **Phase 3**: Memory Management (4/5) ✅ - Core MMU + CPU-MMU Integration Complete
+  - [x] **Phase 3.1-3.4**: Basic MMU, Core Operations, Memory Regions, CPU-MMU Integration ✅
   - [ ] **Phase 3.5**: Advanced MMU Features (Banking, I/O) 🔮
-- [ ] **Phase 4**: Graphics (PPU) (0/1)
-- [ ] **Phase 5**: Input & Control (0/1)
-- [ ] **Phase 6**: Audio (Optional) (0/1)
-- [ ] **Phase 7**: Testing & Validation (0/1)
-- [ ] **Phase 8**: Optimization & Polish (0/2)
+- [ ] **Phase 4**: Opcode Dispatch System (0/4) 🔄 **CURRENT PRIORITY**
+- [ ] **Phase 5**: Graphics (PPU) (0/1)
+- [ ] **Phase 6**: Input & Control (0/1)
+- [ ] **Phase 7**: Audio (Optional) (0/1)
+- [ ] **Phase 8**: Testing & Validation (0/1)
+- [ ] **Phase 9**: Optimization & Polish (0/2)
 
-**Overall Progress**: 4.5/13 major milestones completed
+**Overall Progress**: 6/14 major milestones completed
 
-**Instruction Progress**: 30/256 base instructions (12%) + 0/256 CB-prefixed (0%)
+**Instruction Progress**: 80+/256 base instructions (31%+) + 0/256 CB-prefixed (0%)
 
-**MMU Progress**: ✅ COMPLETE - Full interface implemented with 100+ tests
+**MMU Progress**: ✅ COMPLETE - Full interface + CPU integration implemented with 100+ tests
 
 ---
 
