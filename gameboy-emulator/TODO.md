@@ -24,15 +24,15 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ Create CPU struct with all registers (A, B, C, D, E, F, H, L, SP, PC)
   - ✅ Implement register operations using Go's type system
   - ✅ Add flag register handling (Zero, Subtract, Half-carry, Carry)
-  - 🔄 **CURRENT**: Implement all 256 base instructions with Go methods (~56/256 complete - 22%)
+  - 🔄 **CURRENT**: Implement all 256 base instructions with Go methods (~60/256 complete - 23%)
     - ✅ Basic register-to-register LD instructions (A,B,C,D,E,H,L ↔ A,B,C,D,E,H,L)
     - ✅ Immediate load instructions (LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n)
     - ✅ INC/DEC register instructions (INC_A, DEC_A, INC_B, DEC_B, INC_C, DEC_C, INC_D, DEC_D, INC_E, DEC_E, INC_H, DEC_H, INC_L, DEC_L)
     - ✅ NOP instruction
     - ✅ Basic memory operations (LD_A_HL, LD_HL_A, LD_A_BC, LD_A_DE, LD_BC_A, LD_DE_A) - **COMPLETED ALL REGISTER PAIR MEMORY OPS!**
-    - ⏳ **NEXT**: Complete L register operations (LD_A_L, LD_L_A, etc.)
-    - ⏳ 16-bit load instructions (LD BC,nn, LD DE,nn, etc.)
-    - ⏳ Arithmetic instructions (ADD, SUB, AND, OR, XOR)
+    - ✅ Complete L register operations (LD_A_L, LD_L_A, etc.) - **ALREADY IMPLEMENTED**
+    - ✅ **ALL 16-bit load instructions** (LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn) - **COMPLETED ALL 16-BIT LOAD INSTRUCTIONS!**
+    - ⏳ **NEXT**: Arithmetic instructions (ADD, SUB, AND, OR, XOR)
     - ⏳ Jump instructions (JP, JR, CALL, RET)
     - ⏳ Stack operations (PUSH/POP)
   - [ ] Implement CB-prefixed instructions (256 additional)
