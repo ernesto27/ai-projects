@@ -746,18 +746,81 @@ func (cpu *CPU) LD_L_H() uint8 {
 }
 
 // === Memory Load Instructions ===
+// These instructions read values from memory using the MMU interface
 
-// LD_A_HL - Load A from memory at HL (opcode 0x7E)
-// Loads the value from memory at the address stored in HL register pair into register A
-// This instruction reads from memory, so it needs the MMU interface
-// Flags affected: None
-// Cycles: 8 (memory access takes longer than register operations)
-// Example: If HL=0x8000 and memory[0x8000]=0x42, then A becomes 0x42
+// LD_A_HL - Load A from memory at HL (0x7E)
+// This instruction loads the 8-bit value stored in memory at the address
+// pointed to by the HL register pair into the A register.
+// Think of it as: "Go to the address written in HL, read what's there, put it in A"
+//
+// Game Boy Specification:
+// - Opcode: 0x7E
+// - Cycles: 8 (memory access takes extra time)
+// - Flags affected: None
+// - Operation: A = (HL)
+// - Example: If HL=0x8000 and memory[0x8000]=0x42, then A becomes 0x42
 func (cpu *CPU) LD_A_HL(mmu memory.MemoryInterface) uint8 {
-	address := cpu.GetHL()         // Get 16-bit address from HL register pair
-	value := mmu.ReadByte(address) // Read byte from memory at that address
-	cpu.A = value                  // Store the value in register A
-	return 8                       // Memory access takes 8 CPU cycles
+	// Get the 16-bit address from HL register pair
+	address := cpu.GetHL()
+
+	// Read the 8-bit value from memory at that address
+	value := mmu.ReadByte(address)
+
+	// Store the value in the A register
+	cpu.A = value
+
+	// Return the number of cycles this instruction takes
+	return 8
+}
+
+// LD_HL_A - Store A to memory at HL (0x77)
+// Stores the value in register A to memory address HL
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_HL_A(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.A)
+	return 8
+}
+
+// LD_A_BC - Load A from memory at BC (0x0A)
+// Loads the value from memory address BC into register A
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_A_BC(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetBC()
+	cpu.A = mmu.ReadByte(address)
+	return 8
+}
+
+// LD_A_DE - Load A from memory at DE (0x1A)
+// Loads the value from memory address DE into register A
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_A_DE(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetDE()
+	cpu.A = mmu.ReadByte(address)
+	return 8
+}
+
+// LD_BC_A - Store A to memory at BC (0x02)
+// Stores the value in register A to memory address BC
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_BC_A(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetBC()
+	mmu.WriteByte(address, cpu.A)
+	return 8
+}
+
+// LD_DE_A - Store A to memory at DE (0x12)
+// Stores the value in register A to memory address DE
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_DE_A(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetDE()
+	mmu.WriteByte(address, cpu.A)
+	return 8
 }
 
 // === Utility Methods ===
