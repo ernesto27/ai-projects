@@ -680,6 +680,92 @@ func (cpu *CPU) DEC_L() uint8 {
 	return 4 // Takes 4 CPU cycles
 }
 
+// === Missing L Register Load Operations ===
+// These are the missing register-to-register load operations involving the L register
+// The L register is the low byte of the HL register pair, often used for addressing
+
+// LD_A_L - Copy register L to register A (0x7D)
+// Think: "Copy the value from drawer L and put it in the main workspace A"
+// This is commonly used when you need to work with the low byte of an address
+func (cpu *CPU) LD_A_L() uint8 {
+	cpu.A = cpu.L // Simple copy operation - no arithmetic, no side effects
+	return 4      // Takes 4 CPU cycles - all register-to-register loads are 4 cycles
+	// Note: No flags are affected - this is a pure data movement operation
+}
+
+// LD_B_L - Copy register L to register B (0x45)
+// Think: "Copy the value from drawer L and put it in drawer B"
+// Useful for preserving the low byte of HL while using B for other operations
+func (cpu *CPU) LD_B_L() uint8 {
+	cpu.B = cpu.L // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_C_L - Copy register L to register C (0x4D)
+// Think: "Copy the value from drawer L and put it in drawer C"
+// Often used when you need the low byte in register C for I/O operations
+func (cpu *CPU) LD_C_L() uint8 {
+	cpu.C = cpu.L // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_A - Copy register A to register L (0x6F)
+// Think: "Copy the value from main workspace A and put it in drawer L"
+// This is very common - setting the low byte of HL from a calculated value in A
+func (cpu *CPU) LD_L_A() uint8 {
+	cpu.L = cpu.A // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_B - Copy register B to register L (0x68)
+// Think: "Copy the value from drawer B and put it in drawer L"
+// Used when constructing addresses or moving data between register pairs
+func (cpu *CPU) LD_L_B() uint8 {
+	cpu.L = cpu.B // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_C - Copy register C to register L (0x69)
+// Think: "Copy the value from drawer C and put it in drawer L"
+// Common when using C for I/O and then transferring result to address calculation
+func (cpu *CPU) LD_L_C() uint8 {
+	cpu.L = cpu.C // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_D - Copy register D to register L (0x6A)
+// Think: "Copy the value from drawer D and put it in drawer L"
+// Used in address manipulation when combining DE and HL register pairs
+func (cpu *CPU) LD_L_D() uint8 {
+	cpu.L = cpu.D // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_E - Copy register E to register L (0x6B)
+// Think: "Copy the value from drawer E and put it in drawer L"
+// Often used to transfer low bytes between DE and HL register pairs
+func (cpu *CPU) LD_L_E() uint8 {
+	cpu.L = cpu.E // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
+// LD_L_H - Copy register H to register L (0x6C)
+// Think: "Copy the value from drawer H and put it in drawer L"
+// This swaps high and low bytes within the HL register pair
+// Example: if HL=0x1234, after this instruction HL becomes 0x1212
+func (cpu *CPU) LD_L_H() uint8 {
+	cpu.L = cpu.H // Simple copy operation
+	return 4      // Takes 4 CPU cycles
+	// Note: No flags are affected
+}
+
 // === Memory Load Instructions ===
 // These instructions read values from memory using the MMU interface
 

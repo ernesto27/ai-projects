@@ -24,8 +24,8 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ Create CPU struct with all registers (A, B, C, D, E, F, H, L, SP, PC)
   - ✅ Implement register operations using Go's type system
   - ✅ Add flag register handling (Zero, Subtract, Half-carry, Carry)
-  - ✅ **COMPLETED**: Implement core instruction set with opcode dispatch (~40/256 complete - 15.6%)
-    - ✅ Basic register-to-register LD instructions (A,B,C,D,E,H,L ↔ A,B,C,D,E,H,L)
+  - ✅ **COMPLETED**: Implement core instruction set with opcode dispatch (~66/256 complete - 25.8%)
+    - ✅ **ALL register-to-register LD instructions COMPLETED** (A,B,C,D,E,H,L ↔ A,B,C,D,E,H,L) - **49 total register load operations**
     - ✅ Immediate load instructions (LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n)
     - ✅ INC/DEC register instructions (INC_A, DEC_A, INC_B, DEC_B, INC_C, DEC_C, INC_D, DEC_D, INC_E, DEC_E, INC_H, DEC_H, INC_L, DEC_L)
     - ✅ NOP instruction
@@ -174,12 +174,12 @@ This document outlines the development roadmap for building a Game Boy emulator 
 **STATUS**: ✅ **COMPLETED STEP 1** - Core dispatch system fully implemented and tested
 
 ### **Current Status**: 
-- ✅ **40+ CPU instructions implemented** with proper MMU integration (~15.6% of Game Boy instruction set)
+- ✅ **66+ CPU instructions implemented** with proper MMU integration (~25.8% of Game Boy instruction set)
 - ✅ **Complete opcode dispatch infrastructure** with 256-entry lookup table
 - ✅ **All memory operations** (LD_A_HL, LD_HL_A, LD_A_BC, LD_A_DE, LD_BC_A, LD_DE_A)
 - ✅ **All 16-bit load instructions** (LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn)
 - ✅ **Complete arithmetic operations** (ADD_A_r variants)
-- ✅ **All register operations** (INC/DEC, register-to-register loads)
+- ✅ **All register operations** (INC/DEC, ALL register-to-register loads including L register)
 - ✅ **Wrapper functions for all instruction categories** (easy, immediate, 16-bit, memory/MMU)
 - ✅ **ExecuteInstruction method** for single-point instruction execution
 - ✅ **Comprehensive testing** with 100% test coverage for dispatch system
@@ -251,10 +251,10 @@ This document outlines the development roadmap for building a Game Boy emulator 
 ### Next Steps - Phase 4.5: Expand Instruction Coverage 🔄
 **Goal**: Increase compatibility by implementing more CPU instructions
 
-#### [ ] **Phase 4.5.1: Missing Register-to-Register Loads**
-- [ ] Implement missing L register operations: `LD A,L` (0x7D), `LD B,L` (0x45), `LD C,L` (0x4D), `LD L,B/C/D/E/H/A` (0x68-0x6F range)
-- [ ] Add wrapper functions and update opcode table
-- [ ] Create comprehensive tests
+#### ✅ **Phase 4.5.1: Missing Register-to-Register Loads** - **COMPLETED**
+- ✅ Implement missing L register operations: `LD A,L` (0x7D), `LD B,L` (0x45), `LD C,L` (0x4D), `LD L,B/C/D/E/H/A` (0x68-0x6F range)
+- ✅ Add wrapper functions and update opcode table
+- ✅ Create comprehensive tests
 
 #### [ ] **Phase 4.5.2: 16-bit Increment/Decrement**
 - [ ] Implement `INC BC/DE/HL/SP` (0x03, 0x13, 0x23, 0x33)
@@ -271,7 +271,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 - [ ] Implement logical operations: `AND/XOR/OR` for all registers and immediate
 - [ ] Implement compare operations: `CP` for all registers and immediate
 
-**Target**: Reach 60-80 implemented instructions (~25-30% coverage) by end of Phase 4.5
+**Target**: Reach 80-100 implemented instructions (~30-40% coverage) by end of Phase 4.5
 
 ---
 
@@ -457,19 +457,19 @@ gameboy-emulator/
 - **CPU State**: Reset function for initialization
 
 #### ⏳ **Next Priority Instructions** (Recommended order):
-1. **Complete L Register Operations**: LD_A_L, LD_L_A, LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H (7 instructions)
-2. **Memory Store Operations**: LD_HL_A, LD_BC_A, LD_DE_A (3 instructions)
-3. **16-bit Load Instructions**: LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn (4 instructions)
-4. **Basic Arithmetic**: ADD_A_r, SUB_A_r, AND_A_r, OR_A_r, XOR_A_r (40 instructions)
+1. ✅ **Complete L Register Operations**: LD_A_L, LD_L_A, LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H (7 instructions) - **COMPLETED**
+2. ✅ **Memory Store Operations**: LD_HL_A, LD_BC_A, LD_DE_A (3 instructions) - **COMPLETED**
+3. ✅ **16-bit Load Instructions**: LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn (4 instructions) - **COMPLETED**
+4. **Basic Arithmetic Expansion**: SUB_A_r, AND_A_r, OR_A_r, XOR_A_r, CP_A_r (35+ instructions) - **NEXT UP**
 5. **Jump Instructions**: JP_nn, JR_n, CALL_nn, RET (20+ instructions)
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 57/256 (22.3%)
-- **Load Instructions**: 39/80 (48.8%)
+- **Total Instructions**: 66/256 (25.8%) - **Updated after L register completion**
+- **Load Instructions**: 48/80 (60%) - **All register-to-register loads complete**
 - **Arithmetic Instructions**: 14/60 (23.3%)
 - **Control Instructions**: 1/50 (2%)
 - **Test Coverage**: 100% for implemented instructions
-- **Memory Integration**: ✅ LD_A_HL implemented and tested
+- **Memory Integration**: ✅ All memory operations implemented and tested
 
 ---
 
@@ -512,7 +512,7 @@ gameboy-emulator/
 
 ### 🎉 **Recent Accomplishments** (Latest Session)
 
-#### ✅ **L Register Operations** - **JUST COMPLETED**
+#### ✅ **L Register Operations** - **COMPLETED**
 - **LD_L_n** (0x2E): Load immediate 8-bit value into register L
   - ✅ Implementation with proper cycle timing (8 cycles)
   - ✅ Comprehensive test coverage (edge cases, flag preservation, register preservation)
@@ -527,6 +527,20 @@ gameboy-emulator/
   - ✅ Implementation with proper flag handling (Z, N, H flags, C preserved)
   - ✅ Comprehensive test coverage (half-carry detection, wrap-around, edge cases)
   - ✅ Proper cycle timing (4 cycles)
+
+- **All L Register Load Operations** (NEW - JUST COMPLETED):
+  - ✅ **LD_A_L** (0x7D): Load register L into register A
+  - ✅ **LD_B_L** (0x45): Load register L into register B
+  - ✅ **LD_C_L** (0x4D): Load register L into register C
+  - ✅ **LD_L_A** (0x7F): Load register A into register L
+  - ✅ **LD_L_B** (0x68): Load register B into register L
+  - ✅ **LD_L_C** (0x69): Load register C into register L
+  - ✅ **LD_L_D** (0x6A): Load register D into register L
+  - ✅ **LD_L_E** (0x6B): Load register E into register L
+  - ✅ **LD_L_H** (0x6C): Load register H into register L
+  - ✅ All implemented with proper 4-cycle timing and comprehensive tests
+  - ✅ Complete wrapper functions and opcode table integration
+  - ✅ Full test coverage including unit tests and dispatch integration tests
 
 #### 🔧 **Code Quality Improvements**
 - ✅ Fixed test compilation errors in existing instruction tests

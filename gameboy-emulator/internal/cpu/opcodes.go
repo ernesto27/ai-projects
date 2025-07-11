@@ -380,6 +380,84 @@ func wrapLD_H_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, e
 	return cycles, nil
 }
 
+// === L Register Load Operations ===
+// These wrapper functions handle all missing L register load operations
+// L is the low byte of the HL register pair, crucial for address calculations
+
+// wrapLD_A_L wraps the LD A,L instruction (0x7D)
+// Copy register L to register A
+// Usage: Getting the low byte of an address into the accumulator for processing
+func wrapLD_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_A_L()
+	return cycles, nil
+}
+
+// wrapLD_B_L wraps the LD B,L instruction (0x45)
+// Copy register L to register B
+// Usage: Preserving the low byte of HL while using B for other operations
+func wrapLD_B_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_B_L()
+	return cycles, nil
+}
+
+// wrapLD_C_L wraps the LD C,L instruction (0x4D)
+// Copy register L to register C
+// Usage: Moving low byte to C register for I/O port operations
+func wrapLD_C_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_C_L()
+	return cycles, nil
+}
+
+// wrapLD_L_A wraps the LD L,A instruction (0x6F)
+// Copy register A to register L
+// Usage: Setting the low byte of HL from a calculated value in A
+// This is one of the most common L register operations in Game Boy programming
+func wrapLD_L_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_A()
+	return cycles, nil
+}
+
+// wrapLD_L_B wraps the LD L,B instruction (0x68)
+// Copy register B to register L
+// Usage: Constructing 16-bit addresses by combining registers
+func wrapLD_L_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_B()
+	return cycles, nil
+}
+
+// wrapLD_L_C wraps the LD L,C instruction (0x69)
+// Copy register C to register L
+// Usage: Transferring I/O results to address calculations
+func wrapLD_L_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_C()
+	return cycles, nil
+}
+
+// wrapLD_L_D wraps the LD L,D instruction (0x6A)
+// Copy register D to register L
+// Usage: Moving data between DE and HL register pairs
+func wrapLD_L_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_D()
+	return cycles, nil
+}
+
+// wrapLD_L_E wraps the LD L,E instruction (0x6B)
+// Copy register E to register L
+// Usage: Transferring low bytes between DE and HL register pairs
+func wrapLD_L_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_E()
+	return cycles, nil
+}
+
+// wrapLD_L_H wraps the LD L,H instruction (0x6C)
+// Copy register H to register L
+// Usage: Duplicating high byte to low byte within HL register pair
+// Creates patterns like 0x1234 -> 0x1212
+func wrapLD_L_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_H()
+	return cycles, nil
+}
+
 // === Arithmetic Instructions (7 functions) ===
 // These are just like the register loads but do math
 
@@ -689,7 +767,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x42: wrapLD_B_D, // LD B,D
 	0x43: wrapLD_B_E, // LD B,E
 	0x44: wrapLD_B_H, // LD B,H
-	0x45: nil,        // LD B,L (not implemented)
+	0x45: wrapLD_B_L, // LD B,L
 	0x46: nil,        // LD B,(HL) (not yet implemented)
 	0x47: wrapLD_B_A, // LD B,A
 	0x48: wrapLD_C_B, // LD C,B
@@ -697,7 +775,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x4A: wrapLD_C_D, // LD C,D
 	0x4B: wrapLD_C_E, // LD C,E
 	0x4C: wrapLD_C_H, // LD C,H
-	0x4D: nil,        // LD C,L (not implemented)
+	0x4D: wrapLD_C_L, // LD C,L
 	0x4E: nil,        // LD C,(HL) (not yet implemented)
 	0x4F: wrapLD_C_A, // LD C,A
 
@@ -728,14 +806,14 @@ var opcodeTable = [256]InstructionFunc{
 	0x65: wrapLD_H_L, // LD H,L
 	0x66: nil,        // LD H,(HL) (not yet implemented)
 	0x67: wrapLD_H_A, // LD H,A
-	0x68: nil,        // LD L,B (not implemented)
-	0x69: nil,        // LD L,C (not implemented)
-	0x6A: nil,        // LD L,D (not implemented)
-	0x6B: nil,        // LD L,E (not implemented)
-	0x6C: nil,        // LD L,H (not implemented)
+	0x68: wrapLD_L_B, // LD L,B
+	0x69: wrapLD_L_C, // LD L,C
+	0x6A: wrapLD_L_D, // LD L,D
+	0x6B: wrapLD_L_E, // LD L,E
+	0x6C: wrapLD_L_H, // LD L,H
 	0x6D: nil,        // LD L,L (effectively NOP, not implemented)
 	0x6E: nil,        // LD L,(HL) (not yet implemented)
-	0x6F: nil,        // LD L,A (not implemented)
+	0x6F: wrapLD_L_A, // LD L,A
 
 	// 0x70-0x7F: Memory operations and A register loads
 	0x70: nil,         // LD (HL),B (not yet implemented)
@@ -751,7 +829,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x7A: wrapLD_A_D,  // LD A,D
 	0x7B: wrapLD_A_E,  // LD A,E
 	0x7C: wrapLD_A_H,  // LD A,H
-	0x7D: nil,         // LD A,L (not implemented)
+	0x7D: wrapLD_A_L,  // LD A,L
 	0x7E: wrapLD_A_HL, // LD A,(HL)
 	0x7F: nil,         // LD A,A (effectively NOP, not implemented)
 
