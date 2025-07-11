@@ -754,6 +754,76 @@ func wrapLD_DE_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	return cycles, nil
 }
 
+// === OR Operations Wrappers ===
+// These wrapper functions handle bitwise OR operations
+// They follow the "easy" pattern - no MMU needed for register operations, MMU needed for memory operations
+
+// wrapOR_A_A wraps the OR A,A instruction (0xB7)
+// Bitwise OR register A with itself (effectively tests if A is zero)
+func wrapOR_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_A()
+	return cycles, nil
+}
+
+// wrapOR_A_B wraps the OR A,B instruction (0xB0)
+// Bitwise OR register A with register B
+func wrapOR_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_B()
+	return cycles, nil
+}
+
+// wrapOR_A_C wraps the OR A,C instruction (0xB1)
+// Bitwise OR register A with register C
+func wrapOR_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_C()
+	return cycles, nil
+}
+
+// wrapOR_A_D wraps the OR A,D instruction (0xB2)
+// Bitwise OR register A with register D
+func wrapOR_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_D()
+	return cycles, nil
+}
+
+// wrapOR_A_E wraps the OR A,E instruction (0xB3)
+// Bitwise OR register A with register E
+func wrapOR_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_E()
+	return cycles, nil
+}
+
+// wrapOR_A_H wraps the OR A,H instruction (0xB4)
+// Bitwise OR register A with register H
+func wrapOR_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_H()
+	return cycles, nil
+}
+
+// wrapOR_A_L wraps the OR A,L instruction (0xB5)
+// Bitwise OR register A with register L
+func wrapOR_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_L()
+	return cycles, nil
+}
+
+// wrapOR_A_HL wraps the OR A,(HL) instruction (0xB6)
+// Bitwise OR register A with memory value at address HL
+func wrapOR_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.OR_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapOR_A_n wraps the OR A,n instruction (0xF6)
+// Bitwise OR register A with immediate 8-bit value
+func wrapOR_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("OR A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.OR_A_n(params[0])
+	return cycles, nil
+}
+
 // === Step 3: Opcode Dispatch Table ===
 // This is the heart of the CPU - it maps each opcode byte to its wrapper function
 
@@ -863,7 +933,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x58: wrapLD_E_B, // LD E,B
 	0x59: wrapLD_E_C, // LD E,C
 	0x5A: wrapLD_E_D, // LD E,D
-	0x5B: nil,        // LD E,E (effectively NOP, not yet implemented)
+	0x5B: nil,        // LD E,E (effectively NOP, not implemented)
 	0x5C: wrapLD_E_H, // LD E,H
 	0x5D: wrapLD_E_L, // LD E,L
 	0x5E: nil,        // LD E,(HL) (not yet implemented)
@@ -960,22 +1030,22 @@ var opcodeTable = [256]InstructionFunc{
 	0xAF: nil, // XOR A (not yet implemented)
 
 	// 0xB0-0xBF: OR operations
-	0xB0: nil, // OR B (not yet implemented)
-	0xB1: nil, // OR C (not yet implemented)
-	0xB2: nil, // OR D (not yet implemented)
-	0xB3: nil, // OR E (not yet implemented)
-	0xB4: nil, // OR H (not yet implemented)
-	0xB5: nil, // OR L (not yet implemented)
-	0xB6: nil, // OR (HL) (not yet implemented)
-	0xB7: nil, // OR A (not yet implemented)
-	0xB8: nil, // CP B (not yet implemented)
-	0xB9: nil, // CP C (not yet implemented)
-	0xBA: nil, // CP D (not yet implemented)
-	0xBB: nil, // CP E (not yet implemented)
-	0xBC: nil, // CP H (not yet implemented)
-	0xBD: nil, // CP L (not yet implemented)
-	0xBE: nil, // CP (HL) (not yet implemented)
-	0xBF: nil, // CP A (not yet implemented)
+	0xB0: wrapOR_A_B,  // OR A,B
+	0xB1: wrapOR_A_C,  // OR A,C
+	0xB2: wrapOR_A_D,  // OR A,D
+	0xB3: wrapOR_A_E,  // OR A,E
+	0xB4: wrapOR_A_H,  // OR A,H
+	0xB5: wrapOR_A_L,  // OR A,L
+	0xB6: wrapOR_A_HL, // OR A,(HL)
+	0xB7: wrapOR_A_A,  // OR A,A
+	0xB8: nil,         // CP B (not yet implemented)
+	0xB9: nil,         // CP C (not yet implemented)
+	0xBA: nil,         // CP D (not yet implemented)
+	0xBB: nil,         // CP E (not yet implemented)
+	0xBC: nil,         // CP H (not yet implemented)
+	0xBD: nil,         // CP L (not yet implemented)
+	0xBE: nil,         // CP (HL) (not yet implemented)
+	0xBF: nil,         // CP A (not yet implemented)
 
 	// 0xC0-0xCF: Conditional operations and immediate values
 	0xC0: nil,         // RET NZ (not yet implemented)
@@ -1032,22 +1102,22 @@ var opcodeTable = [256]InstructionFunc{
 	0xEF: nil, // RST 28H (not yet implemented)
 
 	// 0xF0-0xFF: More I/O and operations
-	0xF0: nil, // LDH A,(n) (not yet implemented)
-	0xF1: nil, // POP AF (not yet implemented)
-	0xF2: nil, // LD A,(C) (not yet implemented)
-	0xF3: nil, // DI (not yet implemented)
-	0xF4: nil, // Invalid opcode
-	0xF5: nil, // PUSH AF (not yet implemented)
-	0xF6: nil, // OR n (not yet implemented)
-	0xF7: nil, // RST 30H (not yet implemented)
-	0xF8: nil, // LD HL,SP+n (not yet implemented)
-	0xF9: nil, // LD SP,HL (not yet implemented)
-	0xFA: nil, // LD A,(nn) (not yet implemented)
-	0xFB: nil, // EI (not yet implemented)
-	0xFC: nil, // Invalid opcode
-	0xFD: nil, // Invalid opcode
-	0xFE: nil, // CP n (not yet implemented)
-	0xFF: nil, // RST 38H (not yet implemented)
+	0xF0: nil,        // LDH A,(n) (not yet implemented)
+	0xF1: nil,        // POP AF (not yet implemented)
+	0xF2: nil,        // LD A,(C) (not yet implemented)
+	0xF3: nil,        // DI (not yet implemented)
+	0xF4: nil,        // Invalid opcode
+	0xF5: nil,        // PUSH AF (not yet implemented)
+	0xF6: wrapOR_A_n, // OR A,n
+	0xF7: nil,        // RST 30H (not yet implemented)
+	0xF8: nil,        // LD HL,SP+n (not yet implemented)
+	0xF9: nil,        // LD SP,HL (not yet implemented)
+	0xFA: nil,        // LD A,(nn) (not yet implemented)
+	0xFB: nil,        // EI (not yet implemented)
+	0xFC: nil,        // Invalid opcode
+	0xFD: nil,        // Invalid opcode
+	0xFE: nil,        // CP n (not yet implemented)
+	0xFF: nil,        // RST 38H (not yet implemented)
 }
 
 // === Step 4: ExecuteInstruction Method ===

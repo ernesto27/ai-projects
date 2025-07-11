@@ -326,3 +326,233 @@ func TestOpcodeDispatchWithRealInstructions(t *testing.T) {
 	memValue := mmu.ReadByte(0x8000)
 	assert.Equal(t, uint8(0x50), memValue, "Memory at 0x8000 should contain 0x50")
 }
+
+// TestORInstructionDispatch tests OR instruction execution through opcode dispatch
+func TestORInstructionDispatch(t *testing.T) {
+	tests := []struct {
+		name        string
+		opcode      uint8
+		params      []uint8
+		setupCPU    func(*CPU)
+		setupMMU    func(*memory.MMU)
+		checkResult func(*testing.T, *CPU, *memory.MMU, uint8)
+		wantErr     bool
+	}{
+		{
+			name:   "OR A,B instruction (0xB0)",
+			opcode: 0xB0,
+			params: []uint8{},
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0x0F // Binary: 00001111
+				cpu.B = 0xF0 // Binary: 11110000
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				// Register OR doesn't require MMU setup
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0xFF), cpu.A, "A should be 0xFF (0x0F | 0xF0)")
+				assert.Equal(t, uint8(0xF0), cpu.B, "B should remain unchanged")
+				assert.Equal(t, uint8(4), cycles, "OR A,B should take 4 cycles")
+
+				// Check flags: Z=0, N=0, H=0, C=0
+				assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+		{
+			name:   "OR A,C instruction (0xB1)",
+			opcode: 0xB1,
+			params: []uint8{},
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0x33 // Binary: 00110011
+				cpu.C = 0x55 // Binary: 01010101
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				// Register OR doesn't require MMU setup
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0x77), cpu.A, "A should be 0x77 (0x33 | 0x55)")
+				assert.Equal(t, uint8(0x55), cpu.C, "C should remain unchanged")
+				assert.Equal(t, uint8(4), cycles, "OR A,C should take 4 cycles")
+
+				// Check flags: Z=0, N=0, H=0, C=0
+				assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+		{
+			name:   "OR A,A instruction (0xB7) - Zero test",
+			opcode: 0xB7,
+			params: []uint8{},
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0x00 // Test zero case
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				// Register OR doesn't require MMU setup
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0x00), cpu.A, "A should remain 0x00")
+				assert.Equal(t, uint8(4), cycles, "OR A,A should take 4 cycles")
+
+				// Check flags: Z=1, N=0, H=0, C=0
+				assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+		{
+			name:   "OR A,(HL) instruction (0xB6)",
+			opcode: 0xB6,
+			params: []uint8{},
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0xAA      // Binary: 10101010
+				cpu.SetHL(0x8000) // Point HL to memory address
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				mmu.WriteByte(0x8000, 0x55) // Binary: 01010101
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0xFF), cpu.A, "A should be 0xFF (0xAA | 0x55)")
+				assert.Equal(t, uint8(8), cycles, "OR A,(HL) should take 8 cycles")
+				assert.Equal(t, uint8(0x55), mmu.ReadByte(0x8000), "Memory should remain unchanged")
+
+				// Check flags: Z=0, N=0, H=0, C=0
+				assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+		{
+			name:   "OR A,n instruction (0xF6)",
+			opcode: 0xF6,
+			params: []uint8{0x80}, // Immediate value: 10000000
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0x08 // Binary: 00001000
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				// Immediate OR doesn't require MMU setup
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0x88), cpu.A, "A should be 0x88 (0x08 | 0x80)")
+				assert.Equal(t, uint8(8), cycles, "OR A,n should take 8 cycles")
+
+				// Check flags: Z=0, N=0, H=0, C=0
+				assert.False(t, cpu.GetFlag(FlagZ), "Zero flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+		{
+			name:   "OR A,n instruction (0xF6) - Zero result",
+			opcode: 0xF6,
+			params: []uint8{0x00}, // Immediate value: 00000000
+			setupCPU: func(cpu *CPU) {
+				cpu.A = 0x00 // Binary: 00000000
+			},
+			setupMMU: func(mmu *memory.MMU) {
+				// Immediate OR doesn't require MMU setup
+			},
+			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
+				assert.Equal(t, uint8(0x00), cpu.A, "A should be 0x00 (0x00 | 0x00)")
+				assert.Equal(t, uint8(8), cycles, "OR A,n should take 8 cycles")
+
+				// Check flags: Z=1, N=0, H=0, C=0
+				assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cpu := NewCPU()
+			mmu := memory.NewMMU()
+
+			// Setup test conditions
+			tt.setupCPU(cpu)
+			tt.setupMMU(mmu)
+
+			// Execute instruction
+			cycles, err := cpu.ExecuteInstruction(mmu, tt.opcode, tt.params...)
+
+			// Check error expectation
+			if tt.wantErr {
+				assert.Error(t, err, "Expected an error")
+			} else {
+				assert.NoError(t, err, "Expected no error")
+				// Check results only if no error expected
+				tt.checkResult(t, cpu, mmu, cycles)
+			}
+		})
+	}
+}
+
+// TestORInstructionBitPatterns tests OR instructions with various bit patterns
+func TestORInstructionBitPatterns(t *testing.T) {
+	t.Run("OR instruction bit pattern tests", func(t *testing.T) {
+		testCases := []struct {
+			opcode   uint8
+			regValue uint8
+			aValue   uint8
+			expected uint8
+			desc     string
+		}{
+			// OR A,B (0xB0) tests
+			{0xB0, 0x01, 0x02, 0x03, "OR A,B: Set bit 0 and 1"},
+			{0xB0, 0x80, 0x01, 0x81, "OR A,B: Set bit 7 and 0"},
+			{0xB0, 0xFF, 0x00, 0xFF, "OR A,B: All bits with zero"},
+
+			// OR A,C (0xB1) tests
+			{0xB1, 0x0F, 0xF0, 0xFF, "OR A,C: Combine nibbles"},
+			{0xB1, 0x55, 0xAA, 0xFF, "OR A,C: Alternating bits"},
+
+			// OR A,A (0xB7) tests
+			{0xB7, 0x00, 0x42, 0x42, "OR A,A: Non-zero value"},
+			{0xB7, 0x00, 0x00, 0x00, "OR A,A: Zero value"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.desc, func(t *testing.T) {
+				cpu := NewCPU()
+				mmu := memory.NewMMU()
+
+				cpu.A = tc.aValue
+				switch tc.opcode {
+				case 0xB0:
+					cpu.B = tc.regValue
+				case 0xB1:
+					cpu.C = tc.regValue
+				case 0xB7:
+					// OR A,A doesn't need another register
+				}
+
+				cycles, err := cpu.ExecuteInstruction(mmu, tc.opcode)
+
+				assert.NoError(t, err, "Instruction should execute without error")
+				assert.Equal(t, tc.expected, cpu.A, "Result should match expected value")
+				assert.Equal(t, uint8(4), cycles, "Register OR operations should take 4 cycles")
+
+				// Verify flag behavior
+				assert.Equal(t, tc.expected == 0, cpu.GetFlag(FlagZ), "Zero flag should match result")
+				assert.False(t, cpu.GetFlag(FlagN), "Subtract flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be reset")
+				assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be reset")
+			})
+		}
+	})
+}

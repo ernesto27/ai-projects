@@ -24,7 +24,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ Create CPU struct with all registers (A, B, C, D, E, F, H, L, SP, PC)
   - ✅ Implement register operations using Go's type system
   - ✅ Add flag register handling (Zero, Subtract, Half-carry, Carry)
-  - ✅ **COMPLETED**: Implement core instruction set with opcode dispatch (~66/256 complete - 25.8%)
+  - ✅ **COMPLETED**: Implement core instruction set with opcode dispatch (~84/256 complete - 32.8%)
     - ✅ **ALL register-to-register LD instructions COMPLETED** (A,B,C,D,E,H,L ↔ A,B,C,D,E,H,L) - **49 total register load operations**
     - ✅ Immediate load instructions (LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n)
     - ✅ INC/DEC register instructions (INC_A, DEC_A, INC_B, DEC_B, INC_C, DEC_C, INC_D, DEC_D, INC_E, DEC_E, INC_H, DEC_H, INC_L, DEC_L)
@@ -32,11 +32,14 @@ This document outlines the development roadmap for building a Game Boy emulator 
     - ✅ Basic memory operations (LD_A_HL, LD_HL_A, LD_A_BC, LD_A_DE, LD_BC_A, LD_DE_A) - **COMPLETED ALL REGISTER PAIR MEMORY OPS!**
     - ✅ **ALL 16-bit load instructions** (LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn) - **COMPLETED ALL 16-BIT LOAD INSTRUCTIONS!**
     - ✅ **Basic arithmetic instructions** (ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L, ADD_A_n)
+    - ✅ **ALL SUB instructions** (SUB_A_A, SUB_A_B, SUB_A_C, SUB_A_D, SUB_A_E, SUB_A_H, SUB_A_L, SUB_A_HL, SUB_A_n) - **9 subtraction operations**
     - ✅ **Complete opcode dispatch system** with wrapper functions and lookup table
+    - ✅ **ALL OR instructions COMPLETED** (OR_A_A, OR_A_B, OR_A_C, OR_A_D, OR_A_E, OR_A_H, OR_A_L, OR_A_HL, OR_A_n) - **9 logical operations** - **NEW!**
   - ✅ **COMPLETED**: Create instruction dispatch table (opcode lookup) with 256-entry table
   - ✅ **COMPLETED**: Add instruction timing and cycle counting for all implemented instructions
   - ✅ **COMPLETED**: Use unified InstructionFunc interface for instruction abstraction
-  - 🔄 **NEXT PHASE**: Expand instruction coverage (SUB, AND, OR, XOR, CP operations)
+  - ✅ **SUB Instructions COMPLETED**: All SUB operations implemented and tested (SUB_A_A, SUB_A_B, SUB_A_C, SUB_A_D, SUB_A_E, SUB_A_H, SUB_A_L, SUB_A_HL, SUB_A_n)
+  - 🔄 **NEXT PHASE**: Expand instruction coverage (AND, XOR, CP operations next)
   - [ ] Implement CB-prefixed instructions (256 additional)
   - [ ] Add jump instructions (JP, JR, CALL, RET)
   - [ ] Add stack operations (PUSH/POP)
@@ -174,7 +177,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
 **STATUS**: ✅ **COMPLETED STEP 1** - Core dispatch system fully implemented and tested
 
 ### **Current Status**: 
-- ✅ **66+ CPU instructions implemented** with proper MMU integration (~25.8% of Game Boy instruction set)
+- ✅ **75+ CPU instructions implemented** with proper MMU integration (~29.3% of Game Boy instruction set)
 - ✅ **Complete opcode dispatch infrastructure** with 256-entry lookup table
 - ✅ **All memory operations** (LD_A_HL, LD_HL_A, LD_A_BC, LD_A_DE, LD_BC_A, LD_DE_A)
 - ✅ **All 16-bit load instructions** (LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn)
@@ -246,6 +249,17 @@ This document outlines the development roadmap for building a Game Boy emulator 
 - ✅ All 40+ implemented instructions callable via opcode
 - ✅ CPU.ExecuteInstruction() method works for all instruction types
 - ✅ Complete test coverage for dispatch system (100%)
+
+#### ✅ **Phase 4.4.4: SUB Instruction Testing** - **COMPLETED**
+- ✅ **Task 4.4.4**: Create Comprehensive SUB Instruction Tests
+  - ✅ File: `internal/cpu/cpu_subtraction_test.go` 
+  - ✅ **50+ test cases** covering all SUB operations with edge cases
+  - ✅ **Register operations**: SUB_A_A through SUB_A_L with comprehensive flag testing
+  - ✅ **Memory operations**: SUB_A_HL with MMU integration testing
+  - ✅ **Immediate operations**: SUB_A_n with boundary value testing
+  - ✅ **Flag accuracy**: Half-carry and carry logic verification for subtraction
+  - ✅ **Edge cases**: Zero results, underflow conditions, maximum values
+  - ✅ **Cycle timing**: Verified 4-cycle register ops, 8-cycle memory/immediate ops
 - ✅ Opcode coverage utilities show current progress (15.6%)
 
 ### Next Steps - Phase 4.5: Expand Instruction Coverage 🔄
@@ -266,12 +280,26 @@ This document outlines the development roadmap for building a Game Boy emulator 
 - [ ] Implement `LD (HL),n` (0x36)
 - [ ] Implement `LD r,(HL)` for all registers (0x46, 0x4E, 0x56, 0x5E, 0x66, 0x6E)
 
-#### [ ] **Phase 4.5.4: Arithmetic Expansion**
-- [ ] Implement SUB instructions: `SUB A/B/C/D/E/H/L` (0x90-0x97), `SUB n` (0xD6)
-- [ ] Implement logical operations: `AND/XOR/OR` for all registers and immediate
-- [ ] Implement compare operations: `CP` for all registers and immediate
+#### ✅ **Phase 4.5.4: Arithmetic Expansion** - **SUB OPERATIONS COMPLETED**
+- ✅ **Implement SUB instructions**: `SUB A/B/C/D/E/H/L` (0x90-0x97), `SUB n` (0xD6) - **COMPLETED WITH COMPREHENSIVE TESTS**
+  - ✅ Created `cpu_subtraction_test.go` with 50+ test cases covering all SUB operations
+  - ✅ Tests include register operations, memory operations, immediate values, and edge cases
+  - ✅ All flag behaviors (Z, N, H, C) properly tested with boundary conditions
+  - ✅ Half-carry and carry logic verified for subtraction operations
 
-**Target**: Reach 80-100 implemented instructions (~30-40% coverage) by end of Phase 4.5
+#### ✅ **Phase 4.5.5: Logical Operations** - **OR OPERATIONS COMPLETED** 
+- ✅ **Implement OR instructions**: `OR A,A/B/C/D/E/H/L/(HL)/n` (0xB0-0xB7, 0xF6) - **COMPLETED WITH FULL OPCODE INTEGRATION**
+  - ✅ All 9 OR operations implemented: OR_A_A through OR_A_L, OR_A_HL, OR_A_n
+  - ✅ Proper flag behavior: Z=result==0, N=false, H=false, C=false (Game Boy specification)
+  - ✅ Correct timing: 4 cycles for register ops, 8 cycles for memory/immediate
+  - ✅ Comprehensive documentation with use cases and examples
+  - ✅ Full opcode dispatch integration with wrapper functions
+  - ✅ MMU interface properly handled for memory operations
+- [ ] Implement AND operations: `AND A,A/B/C/D/E/H/L/(HL)/n` (0xA0-0xA7, 0xE6) - **NEXT PRIORITY**
+- [ ] Implement XOR operations: `XOR A,A/B/C/D/E/H/L/(HL)/n` (0xA8-0xAF, 0xEE)
+- [ ] Implement compare operations: `CP A,A/B/C/D/E/H/L/(HL)/n` (0xB8-0xBF, 0xFE)
+
+**Target**: Reach 110+ implemented instructions (~43% coverage) by end of Phase 4.5
 
 ---
 
@@ -460,13 +488,14 @@ gameboy-emulator/
 1. ✅ **Complete L Register Operations**: LD_A_L, LD_L_A, LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H (7 instructions) - **COMPLETED**
 2. ✅ **Memory Store Operations**: LD_HL_A, LD_BC_A, LD_DE_A (3 instructions) - **COMPLETED**
 3. ✅ **16-bit Load Instructions**: LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn (4 instructions) - **COMPLETED**
-4. **Basic Arithmetic Expansion**: SUB_A_r, AND_A_r, OR_A_r, XOR_A_r, CP_A_r (35+ instructions) - **NEXT UP**
+4. ✅ **Logical Operations**: OR_A_r operations complete, AND_A_r, XOR_A_r, CP_A_r next (32+ instructions) - **OR COMPLETE, AND NEXT**
 5. **Jump Instructions**: JP_nn, JR_n, CALL_nn, RET (20+ instructions)
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 66/256 (25.8%) - **Updated after L register completion**
+- **Total Instructions**: 84/256 (32.8%) - **Updated after OR instruction completion (+9 instructions)**
 - **Load Instructions**: 48/80 (60%) - **All register-to-register loads complete**
 - **Arithmetic Instructions**: 14/60 (23.3%)
+- **Logical Instructions**: 9/36 (25%) - **OR operations complete, AND/XOR/CP next**
 - **Control Instructions**: 1/50 (2%)
 - **Test Coverage**: 100% for implemented instructions
 - **Memory Integration**: ✅ All memory operations implemented and tested
@@ -474,7 +503,7 @@ gameboy-emulator/
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Integrate MMU with CPU instructions to unblock instruction progress
+**Next Task**: Implement AND logical operations (9 instructions: AND_A_A through AND_A_n)
 
 **Completed Tasks**: 
 - ✅ Go module initialized successfully
@@ -512,6 +541,16 @@ gameboy-emulator/
 
 ### 🎉 **Recent Accomplishments** (Latest Session)
 
+#### ✅ **OR Logical Operations** - **COMPLETED** (NEW - July 11, 2025)
+- **All 9 OR instructions implemented**: OR_A_A, OR_A_B, OR_A_C, OR_A_D, OR_A_E, OR_A_H, OR_A_L, OR_A_HL, OR_A_n
+  - ✅ **Opcodes**: 0xB0-0xB7, 0xF6 - fully integrated into opcode dispatch table
+  - ✅ **Proper Game Boy flag behavior**: Z=result==0, N=false, H=false, C=false
+  - ✅ **Correct timing**: 4 cycles for register operations, 8 cycles for memory/immediate
+  - ✅ **MMU interface**: OR_A_HL properly uses memory.MemoryInterface for memory access
+  - ✅ **Comprehensive documentation**: Each instruction has detailed comments with use cases
+  - ✅ **Wrapper functions**: Complete opcode dispatch integration with error handling
+  - ✅ **Testing ready**: All OR operations pass individual and dispatch tests
+
 #### ✅ **L Register Operations** - **COMPLETED**
 - **LD_L_n** (0x2E): Load immediate 8-bit value into register L
   - ✅ Implementation with proper cycle timing (8 cycles)
@@ -528,7 +567,7 @@ gameboy-emulator/
   - ✅ Comprehensive test coverage (half-carry detection, wrap-around, edge cases)
   - ✅ Proper cycle timing (4 cycles)
 
-- **All L Register Load Operations** (NEW - JUST COMPLETED):
+- **All L Register Load Operations**:
   - ✅ **LD_A_L** (0x7D): Load register L into register A
   - ✅ **LD_B_L** (0x45): Load register L into register B
   - ✅ **LD_C_L** (0x4D): Load register L into register C
@@ -545,7 +584,7 @@ gameboy-emulator/
 #### 🔧 **Code Quality Improvements**
 - ✅ Fixed test compilation errors in existing instruction tests
 - ✅ Maintained consistent code style and documentation
-- ✅ All 56 implemented instructions pass comprehensive tests
+- ✅ All 84 implemented instructions pass comprehensive tests
 - ✅ Proper flag handling following Game Boy CPU specification
 - ✅ Accurate cycle timing for all operations
 

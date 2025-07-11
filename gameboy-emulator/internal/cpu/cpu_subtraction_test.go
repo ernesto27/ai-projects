@@ -25,7 +25,7 @@ func TestSUB_A_Register(t *testing.T) {
 		{
 			name:        "SUB_A_A - always zero",
 			setupA:      0x42,
-			setupOther:  0x42, // Not used for SUB_A_A
+			setupOther:  0x42,                         // Not used for SUB_A_A
 			setOtherReg: func(cpu *CPU, val uint8) {}, // No-op
 			instruction: (*CPU).SUB_A_A,
 			expectedA:   0x00,
@@ -182,7 +182,7 @@ func TestSUB_A_Register(t *testing.T) {
 			expectedZ:   false,
 			expectedN:   true,
 			expectedH:   false, // No borrow needed in low nibble: 0x5 - 0x0 = 0x5
-			expectedC:   true, // Underflow: 0x05 < 0x10
+			expectedC:   true,  // Underflow: 0x05 < 0x10
 		},
 
 		// SUB_A_E tests
@@ -509,18 +509,18 @@ func TestSUB_A_n(t *testing.T) {
 func TestSUB_EdgeCases(t *testing.T) {
 	t.Run("SUB flag preservation", func(t *testing.T) {
 		cpu := NewCPU()
-		
+
 		// Set some initial flags that should be preserved or overwritten correctly
 		cpu.SetFlag(FlagZ, false)
 		cpu.SetFlag(FlagN, false)
 		cpu.SetFlag(FlagH, false)
 		cpu.SetFlag(FlagC, false)
-		
+
 		cpu.A = 0x10
 		cpu.B = 0x08
-		
+
 		cpu.SUB_A_B()
-		
+
 		// Verify that all flags are properly set/cleared
 		assert.Equal(t, uint8(0x08), cpu.A)
 		assert.False(t, cpu.GetFlag(FlagZ)) // Result is not zero
@@ -528,13 +528,13 @@ func TestSUB_EdgeCases(t *testing.T) {
 		assert.True(t, cpu.GetFlag(FlagH))  // Half-carry: 0x0 < 0x8
 		assert.False(t, cpu.GetFlag(FlagC)) // No carry
 	})
-	
+
 	t.Run("SUB half-carry calculation accuracy", func(t *testing.T) {
 		// Test the exact boundary conditions for half-carry
 		testCases := []struct {
-			a, b     uint8
-			expectH  bool
-			name     string
+			a, b    uint8
+			expectH bool
+			name    string
 		}{
 			{0x10, 0x01, true, "0x10 - 0x01 should have half-carry"},
 			{0x20, 0x01, true, "0x20 - 0x01 should have half-carry"},
@@ -543,7 +543,7 @@ func TestSUB_EdgeCases(t *testing.T) {
 			{0x0F, 0x0F, false, "0x0F - 0x0F should not have half-carry"},
 			{0x08, 0x09, true, "0x08 - 0x09 should have half-carry (borrow)"},
 		}
-		
+
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				cpu := NewCPU()
@@ -554,13 +554,13 @@ func TestSUB_EdgeCases(t *testing.T) {
 			})
 		}
 	})
-	
+
 	t.Run("SUB carry calculation accuracy", func(t *testing.T) {
 		// Test carry flag for underflow conditions
 		testCases := []struct {
-			a, b      uint8
-			expectC   bool
-			name      string
+			a, b    uint8
+			expectC bool
+			name    string
 		}{
 			{0x50, 0x30, false, "0x50 - 0x30 should not have carry"},
 			{0x30, 0x50, true, "0x30 - 0x50 should have carry (underflow)"},
@@ -568,7 +568,7 @@ func TestSUB_EdgeCases(t *testing.T) {
 			{0xFF, 0xFF, false, "0xFF - 0xFF should not have carry"},
 			{0x01, 0xFF, true, "0x01 - 0xFF should have carry"},
 		}
-		
+
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				cpu := NewCPU()
