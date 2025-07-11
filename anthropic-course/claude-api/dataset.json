@@ -1,0 +1,14 @@
+[
+  {
+    "task": "Create a regex to validate an AWS IAM username that must be between 1-64 characters, can only contain alphanumeric characters and certain symbols (+=-,.@_)",
+    "format": "regex"
+  },
+  {
+    "task": "Write a Python function to convert an EC2 instance type (e.g. 't2.micro') into its corresponding memory and vCPU specifications",
+    "format": "python"
+  },
+  {
+    "task": "Create a JSON configuration for an AWS Lambda function that specifies runtime, memory size, timeout, and handler",
+    "format": "json"
+  }
+]
