@@ -57,25 +57,25 @@ func TestLD_A_L(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			// Set initial state
 			cpu.L = tt.initialL
 			cpu.A = tt.initialA
-			
+
 			// Preserve initial flags for testing
 			initialFlags := cpu.F
-			
+
 			// Execute instruction
 			cycles := cpu.LD_A_L()
-			
+
 			// Verify results
 			assert.Equal(t, tt.wantA, cpu.A, "Register A should contain the value from L")
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD A,L should take 4 cycles")
-			
+
 			// Verify flags are not affected (register loads don't change flags)
 			assert.Equal(t, initialFlags, cpu.F, "Flags should not be affected by register load")
-			
+
 			// Verify other registers are not affected
 			assert.Equal(t, uint8(0x00), cpu.B, "Register B should not be affected")
 			assert.Equal(t, uint8(0x13), cpu.C, "Register C should not be affected")
@@ -130,15 +130,15 @@ func TestLD_B_L(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			// Set initial state
 			cpu.L = tt.initialL
 			cpu.B = tt.initialB
 			initialFlags := cpu.F
-			
+
 			// Execute instruction
 			cycles := cpu.LD_B_L()
-			
+
 			// Verify results
 			assert.Equal(t, tt.wantB, cpu.B, "Register B should contain the value from L")
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should remain unchanged")
@@ -185,13 +185,13 @@ func TestLD_C_L(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.L = tt.initialL
 			cpu.C = tt.initialC
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_C_L()
-			
+
 			assert.Equal(t, tt.wantC, cpu.C, "Register C should contain the value from L")
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD C,L should take 4 cycles")
@@ -244,13 +244,13 @@ func TestLD_L_A(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.A = tt.initialA
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_A()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from A")
 			assert.Equal(t, tt.wantA, cpu.A, "Register A should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD L,A should take 4 cycles")
@@ -296,13 +296,13 @@ func TestLD_L_B(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.B = tt.initialB
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_B()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from B")
 			assert.Equal(t, tt.wantB, cpu.B, "Register B should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD L,B should take 4 cycles")
@@ -341,13 +341,13 @@ func TestLD_L_C(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.C = tt.initialC
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_C()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from C")
 			assert.Equal(t, tt.wantC, cpu.C, "Register C should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD L,C should take 4 cycles")
@@ -386,13 +386,13 @@ func TestLD_L_D(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.D = tt.initialD
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_D()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from D")
 			assert.Equal(t, tt.wantD, cpu.D, "Register D should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD L,D should take 4 cycles")
@@ -431,13 +431,13 @@ func TestLD_L_E(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.E = tt.initialE
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_E()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from E")
 			assert.Equal(t, tt.wantE, cpu.E, "Register E should remain unchanged")
 			assert.Equal(t, uint8(4), cycles, "LD L,E should take 4 cycles")
@@ -462,8 +462,8 @@ func TestLD_L_H(t *testing.T) {
 			name:     "Duplicate high byte to low byte",
 			initialH: 0x12,
 			initialL: 0x34,
-			wantL:    0x12, // L gets H's value
-			wantH:    0x12, // H remains the same
+			wantL:    0x12,   // L gets H's value
+			wantH:    0x12,   // H remains the same
 			wantHL:   0x1212, // HL becomes 0x1212
 		},
 		{
@@ -495,13 +495,13 @@ func TestLD_L_H(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			
+
 			cpu.H = tt.initialH
 			cpu.L = tt.initialL
 			initialFlags := cpu.F
-			
+
 			cycles := cpu.LD_L_H()
-			
+
 			assert.Equal(t, tt.wantL, cpu.L, "Register L should contain the value from H")
 			assert.Equal(t, tt.wantH, cpu.H, "Register H should remain unchanged")
 			assert.Equal(t, tt.wantHL, cpu.GetHL(), "HL register pair should have expected combined value")
@@ -516,59 +516,59 @@ func TestLD_L_H(t *testing.T) {
 func TestL_RegisterOperations_Integration(t *testing.T) {
 	t.Run("Sequential L register operations", func(t *testing.T) {
 		cpu := NewCPU()
-		
+
 		// Test sequence: A -> L -> B -> L -> C -> L -> A
 		// This tests a common pattern in Game Boy programming
-		
+
 		// Step 1: Load a value into A, then transfer to L
 		cpu.A = 0x42
 		cycles1 := cpu.LD_L_A() // A(0x42) -> L
 		assert.Equal(t, uint8(0x42), cpu.L)
 		assert.Equal(t, uint8(4), cycles1)
-		
+
 		// Step 2: Copy L to B
 		cycles2 := cpu.LD_B_L() // L(0x42) -> B
 		assert.Equal(t, uint8(0x42), cpu.B)
 		assert.Equal(t, uint8(4), cycles2)
-		
+
 		// Step 3: Change L, then copy to C
-		cpu.L = 0x84 // Simulate some address calculation
+		cpu.L = 0x84            // Simulate some address calculation
 		cycles3 := cpu.LD_C_L() // L(0x84) -> C
 		assert.Equal(t, uint8(0x84), cpu.C)
 		assert.Equal(t, uint8(4), cycles3)
-		
+
 		// Step 4: Copy L back to A
 		cycles4 := cpu.LD_A_L() // L(0x84) -> A
 		assert.Equal(t, uint8(0x84), cpu.A)
 		assert.Equal(t, uint8(4), cycles4)
-		
+
 		// Verify final state
 		assert.Equal(t, uint8(0x84), cpu.A, "A should have final L value")
 		assert.Equal(t, uint8(0x42), cpu.B, "B should preserve first L value")
 		assert.Equal(t, uint8(0x84), cpu.C, "C should have final L value")
 		assert.Equal(t, uint8(0x84), cpu.L, "L should have final value")
 	})
-	
+
 	t.Run("HL register pair manipulation", func(t *testing.T) {
 		cpu := NewCPU()
-		
+
 		// Set up HL register pair
 		cpu.H = 0x80
 		cpu.L = 0x00
 		assert.Equal(t, uint16(0x8000), cpu.GetHL(), "Initial HL should be 0x8000")
-		
+
 		// Test LD L,H (duplicate high byte to low byte)
 		cycles := cpu.LD_L_H()
 		assert.Equal(t, uint8(0x80), cpu.L, "L should now equal H")
 		assert.Equal(t, uint8(0x80), cpu.H, "H should remain unchanged")
 		assert.Equal(t, uint16(0x8080), cpu.GetHL(), "HL should now be 0x8080")
 		assert.Equal(t, uint8(4), cycles)
-		
+
 		// Test copying L to other registers
 		cycles1 := cpu.LD_A_L()
 		cycles2 := cpu.LD_B_L()
 		cycles3 := cpu.LD_C_L()
-		
+
 		assert.Equal(t, uint8(0x80), cpu.A, "A should have L value")
 		assert.Equal(t, uint8(0x80), cpu.B, "B should have L value")
 		assert.Equal(t, uint8(0x80), cpu.C, "C should have L value")
@@ -582,75 +582,75 @@ func TestL_RegisterOperations_Integration(t *testing.T) {
 func TestL_RegisterOperations_EdgeCases(t *testing.T) {
 	t.Run("Boundary values", func(t *testing.T) {
 		cpu := NewCPU()
-		
+
 		// Test with 0x00
 		cpu.A = 0x00
 		cpu.LD_L_A()
 		assert.Equal(t, uint8(0x00), cpu.L)
-		
+
 		cpu.LD_B_L()
 		assert.Equal(t, uint8(0x00), cpu.B)
-		
+
 		// Test with 0xFF
 		cpu.A = 0xFF
 		cpu.LD_L_A()
 		assert.Equal(t, uint8(0xFF), cpu.L)
-		
+
 		cpu.LD_C_L()
 		assert.Equal(t, uint8(0xFF), cpu.C)
-		
+
 		// Test with powers of 2
 		for i := uint8(0); i < 8; i++ {
 			value := uint8(1 << i)
 			cpu.A = value
 			cpu.LD_L_A()
 			assert.Equal(t, value, cpu.L, "Power of 2 value should be copied correctly")
-			
+
 			cpu.LD_A_L()
 			assert.Equal(t, value, cpu.A, "Power of 2 value should be copied back correctly")
 		}
 	})
-	
+
 	t.Run("Flag preservation", func(t *testing.T) {
 		cpu := NewCPU()
-		
+
 		// Set all flags
 		cpu.SetFlag(FlagZ, true)
 		cpu.SetFlag(FlagN, true)
 		cpu.SetFlag(FlagH, true)
 		cpu.SetFlag(FlagC, true)
 		initialFlags := cpu.F
-		
+
 		// Perform various L register operations
 		cpu.A = 0x55
 		cpu.LD_L_A()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,A should preserve flags")
-		
+
 		cpu.LD_A_L()
 		assert.Equal(t, initialFlags, cpu.F, "LD A,L should preserve flags")
-		
+
 		cpu.LD_B_L()
 		assert.Equal(t, initialFlags, cpu.F, "LD B,L should preserve flags")
-		
+
 		cpu.LD_C_L()
 		assert.Equal(t, initialFlags, cpu.F, "LD C,L should preserve flags")
-		
+
 		cpu.B = 0xAA
 		cpu.LD_L_B()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,B should preserve flags")
-		
+
 		cpu.C = 0x33
 		cpu.LD_L_C()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,C should preserve flags")
-		
+
 		cpu.D = 0xCC
 		cpu.LD_L_D()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,D should preserve flags")
-		
+
 		cpu.E = 0x99
 		cpu.LD_L_E()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,E should preserve flags")
-		
+
 		cpu.H = 0x66
 		cpu.LD_L_H()
 		assert.Equal(t, initialFlags, cpu.F, "LD L,H should preserve flags")

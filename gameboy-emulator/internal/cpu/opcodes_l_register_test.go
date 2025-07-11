@@ -48,12 +48,12 @@ func TestWrapLD_A_L(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
 			mmu := memory.NewMMU()
-			
+
 			cpu.L = tt.initialL
 			cpu.A = tt.initialA
-			
+
 			cycles, err := wrapLD_A_L(cpu, mmu)
-			
+
 			assert.NoError(t, err, "Wrapper should not return an error")
 			assert.Equal(t, uint8(4), cycles, "Wrapper should return correct cycle count")
 			assert.Equal(t, tt.wantA, cpu.A, "Register A should be updated correctly")
@@ -66,12 +66,12 @@ func TestWrapLD_A_L(t *testing.T) {
 func TestWrapLD_B_L(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.L = 0x78
 	cpu.B = 0x12
-	
+
 	cycles, err := wrapLD_B_L(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0x78), cpu.B, "B should get L's value")
@@ -82,12 +82,12 @@ func TestWrapLD_B_L(t *testing.T) {
 func TestWrapLD_C_L(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.L = 0x56
 	cpu.C = 0x13 // Default value from NewCPU
-	
+
 	cycles, err := wrapLD_C_L(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0x56), cpu.C, "C should get L's value")
@@ -98,12 +98,12 @@ func TestWrapLD_C_L(t *testing.T) {
 func TestWrapLD_L_A(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.A = 0x34
 	cpu.L = 0x4D // Default value from NewCPU
-	
+
 	cycles, err := wrapLD_L_A(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0x34), cpu.L, "L should get A's value")
@@ -114,12 +114,12 @@ func TestWrapLD_L_A(t *testing.T) {
 func TestWrapLD_L_B(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.B = 0x90
 	cpu.L = 0x00
-	
+
 	cycles, err := wrapLD_L_B(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0x90), cpu.L, "L should get B's value")
@@ -130,12 +130,12 @@ func TestWrapLD_L_B(t *testing.T) {
 func TestWrapLD_L_C(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.C = 0xAB
 	cpu.L = 0xFF
-	
+
 	cycles, err := wrapLD_L_C(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0xAB), cpu.L, "L should get C's value")
@@ -146,12 +146,12 @@ func TestWrapLD_L_C(t *testing.T) {
 func TestWrapLD_L_D(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.D = 0xCD
 	cpu.L = 0x11
-	
+
 	cycles, err := wrapLD_L_D(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0xCD), cpu.L, "L should get D's value")
@@ -162,12 +162,12 @@ func TestWrapLD_L_D(t *testing.T) {
 func TestWrapLD_L_E(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.E = 0xEF
 	cpu.L = 0x22
-	
+
 	cycles, err := wrapLD_L_E(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0xEF), cpu.L, "L should get E's value")
@@ -178,12 +178,12 @@ func TestWrapLD_L_E(t *testing.T) {
 func TestWrapLD_L_H(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	cpu.H = 0x12
 	cpu.L = 0x34
-	
+
 	cycles, err := wrapLD_L_H(cpu, mmu)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0x12), cpu.L, "L should get H's value")
@@ -194,12 +194,12 @@ func TestWrapLD_L_H(t *testing.T) {
 // TestL_WrapperVsOriginal_Comparison tests that wrapper functions produce identical results to direct calls
 func TestL_WrapperVsOriginal_Comparison(t *testing.T) {
 	tests := []struct {
-		name         string
-		opcode       uint8
-		wrapperFunc  func(*CPU, memory.MemoryInterface, ...uint8) (uint8, error)
-		directFunc   func(*CPU) uint8
-		setupFunc    func(*CPU)
-		checkFunc    func(*testing.T, *CPU, *CPU)
+		name        string
+		opcode      uint8
+		wrapperFunc func(*CPU, memory.MemoryInterface, ...uint8) (uint8, error)
+		directFunc  func(*CPU) uint8
+		setupFunc   func(*CPU)
+		checkFunc   func(*testing.T, *CPU, *CPU)
 	}{
 		{
 			name:        "LD A,L comparison",
@@ -266,20 +266,20 @@ func TestL_WrapperVsOriginal_Comparison(t *testing.T) {
 			cpu1 := NewCPU()
 			mmu := memory.NewMMU()
 			tt.setupFunc(cpu1)
-			
+
 			cycles1, err := tt.wrapperFunc(cpu1, mmu)
 			assert.NoError(t, err, "Wrapper function should not return an error")
-			
+
 			// Test direct function call
 			cpu2 := NewCPU()
 			tt.setupFunc(cpu2)
-			
+
 			cycles2 := tt.directFunc(cpu2)
-			
+
 			// Compare results
 			assert.Equal(t, cycles2, cycles1, "Cycle counts should match")
 			tt.checkFunc(t, cpu1, cpu2)
-			
+
 			// Verify flags are identical
 			assert.Equal(t, cpu1.F, cpu2.F, "Flags should match")
 		})
@@ -289,10 +289,10 @@ func TestL_WrapperVsOriginal_Comparison(t *testing.T) {
 // TestL_DispatchIntegration tests the L register operations through the opcode dispatch system
 func TestL_DispatchIntegration(t *testing.T) {
 	tests := []struct {
-		name    string
-		opcode  uint8
-		setup   func(*CPU)
-		verify  func(*testing.T, *CPU)
+		name   string
+		opcode uint8
+		setup  func(*CPU)
+		verify func(*testing.T, *CPU)
 	}{
 		{
 			name:   "Dispatch LD A,L (0x7D)",
@@ -400,15 +400,15 @@ func TestL_DispatchIntegration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
 			mmu := memory.NewMMU()
-			
+
 			tt.setup(cpu)
-			
+
 			// Execute instruction through dispatch system
 			cycles, err := cpu.ExecuteInstruction(mmu, tt.opcode)
-			
+
 			assert.NoError(t, err, "Dispatch should not return an error")
 			assert.Equal(t, uint8(4), cycles, "All L register ops should take 4 cycles")
-			
+
 			tt.verify(t, cpu)
 		})
 	}
@@ -434,17 +434,17 @@ func TestL_OpcodeImplementationStatus(t *testing.T) {
 			assert.True(t, implemented, "Opcode 0x%02X should be implemented in dispatch table", opcode)
 		})
 	}
-	
+
 	// Test that they actually work
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
-	
+
 	for _, opcode := range expectedOpcodes {
 		t.Run(fmt.Sprintf("Opcode 0x%02X should execute without error", opcode), func(t *testing.T) {
 			cpu.Reset() // Reset to known state
-			
+
 			cycles, err := cpu.ExecuteInstruction(mmu, opcode)
-			
+
 			assert.NoError(t, err, "Opcode 0x%02X should execute without error", opcode)
 			assert.Equal(t, uint8(4), cycles, "Opcode 0x%02X should take 4 cycles", opcode)
 		})

@@ -593,90 +593,162 @@ func wrapADD_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	return cycles, nil
 }
 
-// === 16-bit Immediate Value Instructions (4 functions) ===
-// These are HARD difficulty - they need to extract 2 parameters from params[]
+// === SUB Operations Wrappers ===
+// These wrapper functions handle all SUB (subtraction) operations
+// SUB operations subtract a value from register A and store result in A
+// All SUB operations always set the N flag and affect Z, H, C flags
+
+// wrapSUB_A_A wraps the SUB A,A instruction (0x97)
+// Subtract register A from itself (always results in 0, quick way to clear A)
+func wrapSUB_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_A()
+	return cycles, nil
+}
+
+// wrapSUB_A_B wraps the SUB A,B instruction (0x90)
+// Subtract register B from register A
+func wrapSUB_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_B()
+	return cycles, nil
+}
+
+// wrapSUB_A_C wraps the SUB A,C instruction (0x91)
+// Subtract register C from register A
+func wrapSUB_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_C()
+	return cycles, nil
+}
+
+// wrapSUB_A_D wraps the SUB A,D instruction (0x92)
+// Subtract register D from register A
+func wrapSUB_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_D()
+	return cycles, nil
+}
+
+// wrapSUB_A_E wraps the SUB A,E instruction (0x93)
+// Subtract register E from register A
+func wrapSUB_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_E()
+	return cycles, nil
+}
+
+// wrapSUB_A_H wraps the SUB A,H instruction (0x94)
+// Subtract register H from register A
+func wrapSUB_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_H()
+	return cycles, nil
+}
+
+// wrapSUB_A_L wraps the SUB A,L instruction (0x95)
+// Subtract register L from register A
+func wrapSUB_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_L()
+	return cycles, nil
+}
+
+// wrapSUB_A_HL wraps the SUB A,(HL) instruction (0x96)
+// Subtract memory value at address HL from register A
+func wrapSUB_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.SUB_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapSUB_A_n wraps the SUB A,n instruction (0xD6)
+// Subtract immediate 8-bit value from register A
+func wrapSUB_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("SUB A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.SUB_A_n(params[0])
+	return cycles, nil
+}
+
+// === 16-bit Load Instructions Wrappers ===
+// These wrapper functions handle 16-bit immediate load operations
+// They require 2 parameters (low byte, high byte) and are HARD difficulty
 
 // wrapLD_BC_nn wraps the LD BC,nn instruction (0x01)
-// Load 16-bit immediate value into register pair BC
-// Game Boy uses little-endian: first byte is low, second byte is high
+// Load immediate 16-bit value into register pair BC
 func wrapLD_BC_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	if len(params) < 2 {
 		return 0, fmt.Errorf("LD BC,nn requires 2 parameters, got %d", len(params))
 	}
-	cycles := cpu.LD_BC_nn(params[0], params[1]) // low byte, high byte
+	cycles := cpu.LD_BC_nn(params[0], params[1]) // low, high
 	return cycles, nil
 }
 
 // wrapLD_DE_nn wraps the LD DE,nn instruction (0x11)
-// Load 16-bit immediate value into register pair DE
+// Load immediate 16-bit value into register pair DE
 func wrapLD_DE_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	if len(params) < 2 {
 		return 0, fmt.Errorf("LD DE,nn requires 2 parameters, got %d", len(params))
 	}
-	cycles := cpu.LD_DE_nn(params[0], params[1]) // low byte, high byte
+	cycles := cpu.LD_DE_nn(params[0], params[1]) // low, high
 	return cycles, nil
 }
 
 // wrapLD_HL_nn wraps the LD HL,nn instruction (0x21)
-// Load 16-bit immediate value into register pair HL
+// Load immediate 16-bit value into register pair HL
 func wrapLD_HL_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	if len(params) < 2 {
 		return 0, fmt.Errorf("LD HL,nn requires 2 parameters, got %d", len(params))
 	}
-	cycles := cpu.LD_HL_nn(params[0], params[1]) // low byte, high byte
+	cycles := cpu.LD_HL_nn(params[0], params[1]) // low, high
 	return cycles, nil
 }
 
 // wrapLD_SP_nn wraps the LD SP,nn instruction (0x31)
-// Load 16-bit immediate value into Stack Pointer
+// Load immediate 16-bit value into stack pointer
 func wrapLD_SP_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	if len(params) < 2 {
 		return 0, fmt.Errorf("LD SP,nn requires 2 parameters, got %d", len(params))
 	}
-	cycles := cpu.LD_SP_nn(params[0], params[1]) // low byte, high byte
+	cycles := cpu.LD_SP_nn(params[0], params[1]) // low, high
 	return cycles, nil
 }
 
-// === Memory/MMU Instructions (6 functions) ===
-// These are MEDIUM difficulty - they need MMU access but no parameter extraction
+// === Memory Operation Wrappers ===
+// These wrapper functions handle memory operations with register pairs
+// They require MMU access and are HARD difficulty
 
 // wrapLD_A_HL wraps the LD A,(HL) instruction (0x7E)
-// Load from memory at address HL into register A
+// Load memory value at address HL into register A
 func wrapLD_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_A_HL(mmu)
 	return cycles, nil
 }
 
 // wrapLD_HL_A wraps the LD (HL),A instruction (0x77)
-// Store register A into memory at address HL
+// Store register A to memory at address HL
 func wrapLD_HL_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_HL_A(mmu)
 	return cycles, nil
 }
 
 // wrapLD_A_BC wraps the LD A,(BC) instruction (0x0A)
-// Load from memory at address BC into register A
+// Load memory value at address BC into register A
 func wrapLD_A_BC(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_A_BC(mmu)
 	return cycles, nil
 }
 
 // wrapLD_BC_A wraps the LD (BC),A instruction (0x02)
-// Store register A into memory at address BC
+// Store register A to memory at address BC
 func wrapLD_BC_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_BC_A(mmu)
 	return cycles, nil
 }
 
 // wrapLD_A_DE wraps the LD A,(DE) instruction (0x1A)
-// Load from memory at address DE into register A
+// Load memory value at address DE into register A
 func wrapLD_A_DE(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_A_DE(mmu)
 	return cycles, nil
 }
 
 // wrapLD_DE_A wraps the LD (DE),A instruction (0x12)
-// Store register A into memory at address DE
+// Store register A to memory at address DE
 func wrapLD_DE_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_DE_A(mmu)
 	return cycles, nil
@@ -791,7 +863,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x58: wrapLD_E_B, // LD E,B
 	0x59: wrapLD_E_C, // LD E,C
 	0x5A: wrapLD_E_D, // LD E,D
-	0x5B: nil,        // LD E,E (effectively NOP, not implemented)
+	0x5B: nil,        // LD E,E (effectively NOP, not yet implemented)
 	0x5C: wrapLD_E_H, // LD E,H
 	0x5D: wrapLD_E_L, // LD E,L
 	0x5E: nil,        // LD E,(HL) (not yet implemented)
@@ -852,22 +924,22 @@ var opcodeTable = [256]InstructionFunc{
 	0x8F: nil,         // ADC A,A (not yet implemented)
 
 	// 0x90-0x9F: SUB operations
-	0x90: nil, // SUB B (not yet implemented)
-	0x91: nil, // SUB C (not yet implemented)
-	0x92: nil, // SUB D (not yet implemented)
-	0x93: nil, // SUB E (not yet implemented)
-	0x94: nil, // SUB H (not yet implemented)
-	0x95: nil, // SUB L (not yet implemented)
-	0x96: nil, // SUB (HL) (not yet implemented)
-	0x97: nil, // SUB A (not yet implemented)
-	0x98: nil, // SBC A,B (not yet implemented)
-	0x99: nil, // SBC A,C (not yet implemented)
-	0x9A: nil, // SBC A,D (not yet implemented)
-	0x9B: nil, // SBC A,E (not yet implemented)
-	0x9C: nil, // SBC A,H (not yet implemented)
-	0x9D: nil, // SBC A,L (not yet implemented)
-	0x9E: nil, // SBC A,(HL) (not yet implemented)
-	0x9F: nil, // SBC A,A (not yet implemented)
+	0x90: wrapSUB_A_B,  // SUB A,B
+	0x91: wrapSUB_A_C,  // SUB A,C
+	0x92: wrapSUB_A_D,  // SUB A,D
+	0x93: wrapSUB_A_E,  // SUB A,E
+	0x94: wrapSUB_A_H,  // SUB A,H
+	0x95: wrapSUB_A_L,  // SUB A,L
+	0x96: wrapSUB_A_HL, // SUB A,(HL)
+	0x97: wrapSUB_A_A,  // SUB A,A
+	0x98: nil,          // SBC A,B (not yet implemented)
+	0x99: nil,          // SBC A,C (not yet implemented)
+	0x9A: nil,          // SBC A,D (not yet implemented)
+	0x9B: nil,          // SBC A,E (not yet implemented)
+	0x9C: nil,          // SBC A,H (not yet implemented)
+	0x9D: nil,          // SBC A,L (not yet implemented)
+	0x9E: nil,          // SBC A,(HL) (not yet implemented)
+	0x9F: nil,          // SBC A,A (not yet implemented)
 
 	// 0xA0-0xAF: AND operations
 	0xA0: nil, // AND B (not yet implemented)
@@ -924,22 +996,22 @@ var opcodeTable = [256]InstructionFunc{
 	0xCF: nil,         // RST 08H (not yet implemented)
 
 	// 0xD0-0xDF: More conditional operations
-	0xD0: nil, // RET NC (not yet implemented)
-	0xD1: nil, // POP DE (not yet implemented)
-	0xD2: nil, // JP NC,nn (not yet implemented)
-	0xD3: nil, // Invalid opcode
-	0xD4: nil, // CALL NC,nn (not yet implemented)
-	0xD5: nil, // PUSH DE (not yet implemented)
-	0xD6: nil, // SUB n (not yet implemented)
-	0xD7: nil, // RST 10H (not yet implemented)
-	0xD8: nil, // RET C (not yet implemented)
-	0xD9: nil, // RETI (not yet implemented)
-	0xDA: nil, // JP C,nn (not yet implemented)
-	0xDB: nil, // Invalid opcode
-	0xDC: nil, // CALL C,nn (not yet implemented)
-	0xDD: nil, // Invalid opcode
-	0xDE: nil, // SBC A,n (not yet implemented)
-	0xDF: nil, // RST 18H (not yet implemented)
+	0xD0: nil,         // RET NC (not yet implemented)
+	0xD1: nil,         // POP DE (not yet implemented)
+	0xD2: nil,         // JP NC,nn (not yet implemented)
+	0xD3: nil,         // Invalid opcode
+	0xD4: nil,         // CALL NC,nn (not yet implemented)
+	0xD5: nil,         // PUSH DE (not yet implemented)
+	0xD6: wrapSUB_A_n, // SUB A,n
+	0xD7: nil,         // RST 10H (not yet implemented)
+	0xD8: nil,         // RET C (not yet implemented)
+	0xD9: nil,         // RETI (not yet implemented)
+	0xDA: nil,         // JP C,nn (not yet implemented)
+	0xDB: nil,         // Invalid opcode
+	0xDC: nil,         // CALL C,nn (not yet implemented)
+	0xDD: nil,         // Invalid opcode
+	0xDE: nil,         // SBC A,n (not yet implemented)
+	0xDF: nil,         // RST 18H (not yet implemented)
 
 	// 0xE0-0xEF: I/O operations
 	0xE0: nil, // LDH (n),A (not yet implemented)
