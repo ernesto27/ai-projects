@@ -824,6 +824,75 @@ func wrapOR_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, e
 	return cycles, nil
 }
 
+// === AND Operation Wrappers ===
+// These wrapper functions connect the AND CPU methods to the opcode dispatch system
+
+// wrapAND_A_A wraps the AND A,A instruction (0xA7)
+// Performs bitwise AND of register A with itself
+func wrapAND_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_A()
+	return cycles, nil
+}
+
+// wrapAND_A_B wraps the AND A,B instruction (0xA0)
+// Performs bitwise AND of register A with register B
+func wrapAND_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_B()
+	return cycles, nil
+}
+
+// wrapAND_A_C wraps the AND A,C instruction (0xA1)
+// Performs bitwise AND of register A with register C
+func wrapAND_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_C()
+	return cycles, nil
+}
+
+// wrapAND_A_D wraps the AND A,D instruction (0xA2)
+// Performs bitwise AND of register A with register D
+func wrapAND_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_D()
+	return cycles, nil
+}
+
+// wrapAND_A_E wraps the AND A,E instruction (0xA3)
+// Performs bitwise AND of register A with register E
+func wrapAND_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_E()
+	return cycles, nil
+}
+
+// wrapAND_A_H wraps the AND A,H instruction (0xA4)
+// Performs bitwise AND of register A with register H
+func wrapAND_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_H()
+	return cycles, nil
+}
+
+// wrapAND_A_L wraps the AND A,L instruction (0xA5)
+// Performs bitwise AND of register A with register L
+func wrapAND_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_L()
+	return cycles, nil
+}
+
+// wrapAND_A_HL wraps the AND A,(HL) instruction (0xA6)
+// Performs bitwise AND of register A with memory content at address HL
+func wrapAND_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.AND_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapAND_A_n wraps the AND A,n instruction (0xE6)
+// Performs bitwise AND of register A with immediate 8-bit value
+func wrapAND_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("AND A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.AND_A_n(params[0])
+	return cycles, nil
+}
+
 // === Step 3: Opcode Dispatch Table ===
 // This is the heart of the CPU - it maps each opcode byte to its wrapper function
 
@@ -1012,22 +1081,22 @@ var opcodeTable = [256]InstructionFunc{
 	0x9F: nil,          // SBC A,A (not yet implemented)
 
 	// 0xA0-0xAF: AND operations
-	0xA0: nil, // AND B (not yet implemented)
-	0xA1: nil, // AND C (not yet implemented)
-	0xA2: nil, // AND D (not yet implemented)
-	0xA3: nil, // AND E (not yet implemented)
-	0xA4: nil, // AND H (not yet implemented)
-	0xA5: nil, // AND L (not yet implemented)
-	0xA6: nil, // AND (HL) (not yet implemented)
-	0xA7: nil, // AND A (not yet implemented)
-	0xA8: nil, // XOR B (not yet implemented)
-	0xA9: nil, // XOR C (not yet implemented)
-	0xAA: nil, // XOR D (not yet implemented)
-	0xAB: nil, // XOR E (not yet implemented)
-	0xAC: nil, // XOR H (not yet implemented)
-	0xAD: nil, // XOR L (not yet implemented)
-	0xAE: nil, // XOR (HL) (not yet implemented)
-	0xAF: nil, // XOR A (not yet implemented)
+	0xA0: wrapAND_A_B,  // AND B
+	0xA1: wrapAND_A_C,  // AND C
+	0xA2: wrapAND_A_D,  // AND D
+	0xA3: wrapAND_A_E,  // AND E
+	0xA4: wrapAND_A_H,  // AND H
+	0xA5: wrapAND_A_L,  // AND L
+	0xA6: wrapAND_A_HL, // AND (HL)
+	0xA7: wrapAND_A_A,  // AND A
+	0xA8: nil,          // XOR B (not yet implemented)
+	0xA9: nil,          // XOR C (not yet implemented)
+	0xAA: nil,          // XOR D (not yet implemented)
+	0xAB: nil,          // XOR E (not yet implemented)
+	0xAC: nil,          // XOR H (not yet implemented)
+	0xAD: nil,          // XOR L (not yet implemented)
+	0xAE: nil,          // XOR (HL) (not yet implemented)
+	0xAF: nil,          // XOR A (not yet implemented)
 
 	// 0xB0-0xBF: OR operations
 	0xB0: wrapOR_A_B,  // OR A,B
@@ -1084,22 +1153,22 @@ var opcodeTable = [256]InstructionFunc{
 	0xDF: nil,         // RST 18H (not yet implemented)
 
 	// 0xE0-0xEF: I/O operations
-	0xE0: nil, // LDH (n),A (not yet implemented)
-	0xE1: nil, // POP HL (not yet implemented)
-	0xE2: nil, // LD (C),A (not yet implemented)
-	0xE3: nil, // Invalid opcode
-	0xE4: nil, // Invalid opcode
-	0xE5: nil, // PUSH HL (not yet implemented)
-	0xE6: nil, // AND n (not yet implemented)
-	0xE7: nil, // RST 20H (not yet implemented)
-	0xE8: nil, // ADD SP,n (not yet implemented)
-	0xE9: nil, // JP (HL) (not yet implemented)
-	0xEA: nil, // LD (nn),A (not yet implemented)
-	0xEB: nil, // Invalid opcode
-	0xEC: nil, // Invalid opcode
-	0xED: nil, // Invalid opcode
-	0xEE: nil, // XOR n (not yet implemented)
-	0xEF: nil, // RST 28H (not yet implemented)
+	0xE0: nil,         // LDH (n),A (not yet implemented)
+	0xE1: nil,         // POP HL (not yet implemented)
+	0xE2: nil,         // LD (C),A (not yet implemented)
+	0xE3: nil,         // Invalid opcode
+	0xE4: nil,         // Invalid opcode
+	0xE5: nil,         // PUSH HL (not yet implemented)
+	0xE6: wrapAND_A_n, // AND n
+	0xE7: nil,         // RST 20H (not yet implemented)
+	0xE8: nil,         // ADD SP,n (not yet implemented)
+	0xE9: nil,         // JP (HL) (not yet implemented)
+	0xEA: nil,         // LD (nn),A (not yet implemented)
+	0xEB: nil,         // Invalid opcode
+	0xEC: nil,         // Invalid opcode
+	0xED: nil,         // Invalid opcode
+	0xEE: nil,         // XOR n (not yet implemented)
+	0xEF: nil,         // RST 28H (not yet implemented)
 
 	// 0xF0-0xFF: More I/O and operations
 	0xF0: nil,        // LDH A,(n) (not yet implemented)
