@@ -287,7 +287,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ All flag behaviors (Z, N, H, C) properly tested with boundary conditions
   - ✅ Half-carry and carry logic verified for subtraction operations
 
-#### ✅ **Phase 4.5.5: Logical Operations** - **OR OPERATIONS COMPLETED** 
+#### ✅ **Phase 4.5.5: Logical Operations** - **OR AND XOR OPERATIONS COMPLETED** 
 - ✅ **Implement OR instructions**: `OR A,A/B/C/D/E/H/L/(HL)/n` (0xB0-0xB7, 0xF6) - **COMPLETED WITH FULL OPCODE INTEGRATION**
   - ✅ All 9 OR operations implemented: OR_A_A through OR_A_L, OR_A_HL, OR_A_n
   - ✅ Proper flag behavior: Z=result==0, N=false, H=false, C=false (Game Boy specification)
@@ -295,9 +295,22 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ Comprehensive documentation with use cases and examples
   - ✅ Full opcode dispatch integration with wrapper functions
   - ✅ MMU interface properly handled for memory operations
-- [ ] Implement AND operations: `AND A,A/B/C/D/E/H/L/(HL)/n` (0xA0-0xA7, 0xE6) - **NEXT PRIORITY**
-- [ ] Implement XOR operations: `XOR A,A/B/C/D/E/H/L/(HL)/n` (0xA8-0xAF, 0xEE)
-- [ ] Implement compare operations: `CP A,A/B/C/D/E/H/L/(HL)/n` (0xB8-0xBF, 0xFE)
+- ✅ **Implement AND instructions**: `AND A,A/B/C/D/E/H/L/(HL)/n` (0xA0-0xA7, 0xE6) - **COMPLETED WITH FULL OPCODE INTEGRATION**
+  - ✅ All 9 AND operations implemented: AND_A_A through AND_A_L, AND_A_HL, AND_A_n
+  - ✅ Proper flag behavior: Z=result==0, N=false, H=true, C=false (Game Boy specification)
+  - ✅ Correct timing: 4 cycles for register ops, 8 cycles for memory/immediate
+  - ✅ Comprehensive documentation with use cases and examples
+  - ✅ Full opcode dispatch integration with wrapper functions
+  - ✅ MMU interface properly handled for memory operations
+- ✅ **Implement XOR instructions**: `XOR A,A/B/C/D/E/H/L/(HL)/n` (0xA8-0xAF, 0xEE) - **COMPLETED WITH FULL OPCODE INTEGRATION** 
+  - ✅ All 9 XOR operations implemented: XOR_A_A through XOR_A_L, XOR_A_HL, XOR_A_n
+  - ✅ Proper flag behavior: Z=result==0, N=false, H=false, C=false (Game Boy specification)
+  - ✅ Correct timing: 4 cycles for register ops, 8 cycles for memory/immediate
+  - ✅ Comprehensive documentation with use cases and examples
+  - ✅ Full opcode dispatch integration with wrapper functions
+  - ✅ MMU interface properly handled for memory operations
+  - ✅ Comprehensive test coverage with edge cases and bit pattern verification
+- [ ] **Implement CP (Compare) instructions**: `CP A,A/B/C/D/E/H/L/(HL)/n` (0xB8-0xBF, 0xFE) - **NEXT PRIORITY**
 
 **Target**: Reach 110+ implemented instructions (~43% coverage) by end of Phase 4.5
 
@@ -492,10 +505,10 @@ gameboy-emulator/
 5. **Jump Instructions**: JP_nn, JR_n, CALL_nn, RET (20+ instructions)
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 84/256 (32.8%) - **Updated after OR instruction completion (+9 instructions)**
+- **Total Instructions**: 102+/256 (40%+) - **Updated after XOR instruction completion (+9 instructions)**
 - **Load Instructions**: 48/80 (60%) - **All register-to-register loads complete**
 - **Arithmetic Instructions**: 14/60 (23.3%)
-- **Logical Instructions**: 9/36 (25%) - **OR operations complete, AND/XOR/CP next**
+- **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR operations complete, CP next**
 - **Control Instructions**: 1/50 (2%)
 - **Test Coverage**: 100% for implemented instructions
 - **Memory Integration**: ✅ All memory operations implemented and tested

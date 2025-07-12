@@ -46,6 +46,23 @@ func NewCPU() *CPU {
 	}
 }
 
+// Reset resets the CPU to its initial state
+// This restores all registers to their Game Boy boot values
+func (cpu *CPU) Reset() {
+	cpu.A = 0x01
+	cpu.F = 0xB0
+	cpu.B = 0x00
+	cpu.C = 0x13
+	cpu.D = 0x00
+	cpu.E = 0xD8
+	cpu.H = 0x01
+	cpu.L = 0x4D
+	cpu.SP = 0xFFFE
+	cpu.PC = 0x0100
+	cpu.Halted = false
+	cpu.Stopped = false
+}
+
 // === 16-bit Register Pair Operations ===
 // These combine two 8-bit registers into one 16-bit value
 // Like opening a double-wide drawer
@@ -996,7 +1013,7 @@ func (cpu *CPU) ADD_A_E() uint8 {
 	// Update flags
 	cpu.SetFlag(FlagZ, cpu.A == 0)                      // Zero flag: set if result is zero
 	cpu.SetFlag(FlagN, false)                           // Subtract flag: reset for addition
-	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.E&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.E&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to 4
 	cpu.SetFlag(FlagC, result > 0xFF)                   // Carry flag: carry from bit 7
 
 	return 4 // Takes 4 CPU cycles
@@ -1018,7 +1035,7 @@ func (cpu *CPU) ADD_A_H() uint8 {
 	// Update flags
 	cpu.SetFlag(FlagZ, cpu.A == 0)                      // Zero flag: set if result is zero
 	cpu.SetFlag(FlagN, false)                           // Subtract flag: reset for addition
-	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.H&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.H&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to 4
 	cpu.SetFlag(FlagC, result > 0xFF)                   // Carry flag: carry from bit 7
 
 	return 4 // Takes 4 CPU cycles
@@ -1040,7 +1057,7 @@ func (cpu *CPU) ADD_A_L() uint8 {
 	// Update flags
 	cpu.SetFlag(FlagZ, cpu.A == 0)                      // Zero flag: set if result is zero
 	cpu.SetFlag(FlagN, false)                           // Subtract flag: reset for addition
-	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.L&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.L&0x0F) > 0x0F) // Half-carry flag: carry from bit 3 to 4
 	cpu.SetFlag(FlagC, result > 0xFF)                   // Carry flag: carry from bit 7
 
 	return 4 // Takes 4 CPU cycles
@@ -1312,7 +1329,7 @@ func (cpu *CPU) SUB_A_n(value uint8) uint8 {
 // Result is stored in register A
 // All AND operations affect flags: Z N H C
 // Z: Set if result is zero
-// N: Always reset (logical operation, not subtraction)
+// N: Always reset (logical operation)
 // H: Always set (Game Boy specification for AND operations)
 // C: Always reset (no carry in logical AND)
 
@@ -1471,7 +1488,7 @@ func (cpu *CPU) AND_A_L() uint8 {
 	return 4 // Takes 4 CPU cycles
 }
 
-// AND_A_HL - Bitwise AND register A with memory value at address HL (0xA6)
+// AND_A_HL - Bitwise AND register A with value at memory address HL (0xA6)
 // Reads value from memory at address HL, performs AND with A, stores result in A
 // This is a memory operation that requires the MMU for the memory read
 // Common use: Masking with lookup table values, memory-based bit operations
@@ -1480,7 +1497,7 @@ func (cpu *CPU) AND_A_L() uint8 {
 // N: Always reset (logical operation)
 // H: Always set (Game Boy AND specification)
 // C: Always reset (no carry in AND)
-// Cycles: 8 (4 for instruction + 4 for memory access)
+// Cycles: 8 (4 for instruction + 4 for memory read)
 func (cpu *CPU) AND_A_HL(mmu memory.MemoryInterface) uint8 {
 	address := cpu.GetHL()               // Get the 16-bit address from HL register pair
 	memoryValue := mmu.ReadByte(address) // Read the value from memory
@@ -1519,18 +1536,14 @@ func (cpu *CPU) AND_A_n(value uint8) uint8 {
 	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for immediate fetch)
 }
 
-// === OR Operations ===
-// OR operations perform bitwise OR between register A and another operand
-// Result is stored in register A
-// All OR operations affect flags: Z N H C
-// Z: Set if result is zero
-// N: Always reset (logical operation, not subtraction)
-// H: Always reset (Game Boy specification for OR operations)
-// C: Always reset (no carry in logical OR)
+// === OR Instructions ===
+// OR performs bitwise OR operation on register A
+// OR truth table: 0|0=0, 0|1=1, 1|0=1, 1|1=1
+// Common uses: Setting specific bits, combining bit patterns
 
 // OR_A_A - Bitwise OR register A with itself (0xB7)
-// Since A | A = A, this operation effectively tests if A is zero
-// Common use: Quick zero test that sets flags appropriately
+// Since A | A = A, this operation leaves A unchanged but sets flags
+// Common use: Test if A is zero (sets Zero flag without changing A)
 // Flags affected: Z N H C
 // Z: Set if A is zero
 // N: Always reset (logical operation)
@@ -1538,8 +1551,7 @@ func (cpu *CPU) AND_A_n(value uint8) uint8 {
 // C: Always reset (no carry in OR)
 // Cycles: 4
 func (cpu *CPU) OR_A_A() uint8 {
-	// A | A = A, so result is always A
-	result := cpu.A | cpu.A
+	result := cpu.A | cpu.A // A | A = A, so result is just A
 	cpu.A = result
 
 	// Update flags according to Game Boy OR specification
@@ -1552,8 +1564,8 @@ func (cpu *CPU) OR_A_A() uint8 {
 }
 
 // OR_A_B - Bitwise OR register A with register B (0xB0)
-// Performs bitwise OR between A and B, stores result in A
-// Common use: Setting specific bits using B as a bit pattern
+// Performs A = A | B, useful for setting bits and combining values
+// Example: If A=0b11110000 and B=0b00001111, result=0b11111111
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1574,9 +1586,9 @@ func (cpu *CPU) OR_A_B() uint8 {
 }
 
 // OR_A_C - Bitwise OR register A with register C (0xB1)
-// Performs bitwise OR between A and C, stores result in A
-// Common use: I/O port operations, setting control bits
-// Flags affected: Z N H C
+// Performs A = A | C, often used for setting specific bit patterns
+// Example: If A=0b10000000 and C=0b00000001, result=0b10000001
+// Flags affected: Z N H Cfunc (cpu *CPU) OR_A_n
 // Z: Set if result is zero
 // N: Always reset (logical operation)
 // H: Always reset (Game Boy OR specification)
@@ -1587,7 +1599,7 @@ func (cpu *CPU) OR_A_C() uint8 {
 	cpu.A = result
 
 	// Update flags according to Game Boy OR specification
-	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zerofunc (cpu *CPU) OR_A_n
 	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
 	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for OR operations
 	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for OR operations
@@ -1596,8 +1608,8 @@ func (cpu *CPU) OR_A_C() uint8 {
 }
 
 // OR_A_D - Bitwise OR register A with register D (0xB2)
-// Performs bitwise OR between A and D, stores result in A
-// Common use: Data processing, combining bit patterns
+// Performs A = A | D, useful for combining data from different sources
+// Example: If A=0b11001100 and D=0b00110011, result=0b11111111
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1618,8 +1630,8 @@ func (cpu *CPU) OR_A_D() uint8 {
 }
 
 // OR_A_E - Bitwise OR register A with register E (0xB3)
-// Performs bitwise OR between A and E, stores result in A
-// Common use: Graphics processing, pixel manipulation
+// Performs A = A | E, commonly used in status register operations
+// Example: If A=0b01010101 and E=0b10101010, result=0b11111111
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1640,8 +1652,8 @@ func (cpu *CPU) OR_A_E() uint8 {
 }
 
 // OR_A_H - Bitwise OR register A with register H (0xB4)
-// Performs bitwise OR between A and H, stores result in A
-// Common use: Address manipulation, memory banking operations
+// Performs A = A | H, often used when H contains high byte of addresses
+// Example: If A=0b00001111 and H=0b11110000, result=0b11111111
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1662,8 +1674,8 @@ func (cpu *CPU) OR_A_H() uint8 {
 }
 
 // OR_A_L - Bitwise OR register A with register L (0xB5)
-// Performs bitwise OR between A and L, stores result in A
-// Common use: Address manipulation, low-byte operations
+// Performs A = A | L, often used when L contains low byte of addresses
+// Example: If A=0b10000000 and L=0b00000001, result=0b10000001
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1683,9 +1695,9 @@ func (cpu *CPU) OR_A_L() uint8 {
 	return 4 // Takes 4 CPU cycles
 }
 
-// OR_A_HL - Bitwise OR register A with value at memory address HL (0xB6)
-// Reads the value from memory at address HL, performs OR with A, stores result in A
-// Common use: Combining A with memory-stored bit patterns, sprite processing
+// OR_A_HL - Bitwise OR register A with memory value at address HL (0xB6)
+// Performs A = A | [HL], combines A with data from memory
+// Example: Load bit patterns from memory and combine with accumulator
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1693,9 +1705,9 @@ func (cpu *CPU) OR_A_L() uint8 {
 // C: Always reset (no carry in OR)
 // Cycles: 8 (4 for instruction + 4 for memory read)
 func (cpu *CPU) OR_A_HL(mmu memory.MemoryInterface) uint8 {
-	address := cpu.GetHL()
-	value := mmu.ReadByte(address)
-	result := cpu.A | value
+	address := cpu.GetHL()               // Get the 16-bit address from HL register pair
+	memoryValue := mmu.ReadByte(address) // Read the value from memory
+	result := cpu.A | memoryValue        // Perform bitwise OR
 	cpu.A = result
 
 	// Update flags according to Game Boy OR specification
@@ -1708,9 +1720,8 @@ func (cpu *CPU) OR_A_HL(mmu memory.MemoryInterface) uint8 {
 }
 
 // OR_A_n - Bitwise OR register A with immediate 8-bit value (0xF6)
-// Performs bitwise OR between A and an immediate 8-bit value, stores result in A
-// Common use: Setting specific bits with constant values
-// Example: OR A,0x80 sets bit 7, OR A,0x0F sets lower 4 bits
+// Performs A = A | n, useful for setting specific bits with constants
+// Example: OR A,0x80 sets bit 7, OR A,0x01 sets bit 0
 // Flags affected: Z N H C
 // Z: Set if result is zero
 // N: Always reset (logical operation)
@@ -1730,20 +1741,210 @@ func (cpu *CPU) OR_A_n(value uint8) uint8 {
 	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for immediate fetch)
 }
 
-// === Utility Methods ===
+// === XOR Instructions ===
+// XOR (Exclusive OR) performs bitwise XOR operation on register A
+// XOR truth table: 0^0=0, 0^1=1, 1^0=1, 1^1=0
+// Common uses: Toggle bits, clear register (A^A=0), encryption/decryption
 
-// Reset resets the CPU to initial state
-func (cpu *CPU) Reset() {
-	cpu.A = 0x01
-	cpu.F = 0xB0
-	cpu.B = 0x00
-	cpu.C = 0x13
-	cpu.D = 0x00
-	cpu.E = 0xD8
-	cpu.H = 0x01
-	cpu.L = 0x4D
-	cpu.SP = 0xFFFE
-	cpu.PC = 0x0100
-	cpu.Halted = false
-	cpu.Stopped = false
+// XOR_A_A - Bitwise XOR register A with itself (0xA8)
+// Since A ^ A = 0, this operation always clears register A to zero
+// Common use: Fast way to zero the accumulator and set Zero flag
+// Flags affected: Z N H C
+// Z: Always set (result is always zero)
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_A() uint8 {
+	// A ^ A = 0, so result is always zero
+	result := cpu.A ^ cpu.A
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: always set (result is always 0)
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
 }
+
+// XOR_A_B - Bitwise XOR register A with register B (0xA9)
+// Performs A = A ^ B, useful for bit manipulation and encryption
+// Example: If A=0b11110000 and B=0b10101010, result=0b01011010
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_B() uint8 {
+	result := cpu.A ^ cpu.B
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_C - Bitwise XOR register A with register C (0xAA)
+// Performs A = A ^ C, useful for cryptographic operations and bit toggling
+// Example: If A=0b00001111 and C=0b11110000, result=0b11111111
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_C() uint8 {
+	result := cpu.A ^ cpu.C
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_D - Bitwise XOR register A with register D (0xAB)
+// Performs A = A ^ D, often used in checksum calculations
+// Example: If A=0b10101010 and D=0b01010101, result=0b11111111
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_D() uint8 {
+	result := cpu.A ^ cpu.D
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_E - Bitwise XOR register A with register E (0xAC)
+// Performs A = A ^ E, commonly used in data manipulation
+// Example: If A=0b11001100 and E=0b00110011, result=0b11111111
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_E() uint8 {
+	result := cpu.A ^ cpu.E
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_H - Bitwise XOR register A with register H (0xAD)
+// Performs A = A ^ H, useful for address manipulation operations
+// Example: If A=0b11110000 and H=0b00001111, result=0b11111111
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_H() uint8 {
+	result := cpu.A ^ cpu.H
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_L - Bitwise XOR register A with register L (0xAE)
+// Performs A = A ^ L, often used for low-byte manipulations
+// Example: If A=0b10000000 and L=0b00000001, result=0b10000001
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 4
+func (cpu *CPU) XOR_A_L() uint8 {
+	result := cpu.A ^ cpu.L
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// XOR_A_HL - Bitwise XOR register A with memory value at address HL (0xAE)
+// Performs A = A ^ [HL], combines A with data from memory using XOR
+// Example: Load encryption keys from memory and apply to accumulator
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 8 (4 for instruction + 4 for memory read)
+func (cpu *CPU) XOR_A_HL(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()               // Get the 16-bit address from HL register pair
+	memoryValue := mmu.ReadByte(address) // Read the value from memory
+	result := cpu.A ^ memoryValue        // Perform bitwise XOR
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for memory access)
+}
+
+// XOR_A_n - Bitwise XOR register A with immediate 8-bit value (0xEE)
+// Performs A = A ^ n, useful for bit toggling with constants
+// Example: XOR A,0xFF inverts all bits, XOR A,0x80 toggles bit 7
+// Flags affected: Z N H C
+// Z: Set if result is zero
+// N: Always reset (logical operation)
+// H: Always reset (Game Boy XOR specification)
+// C: Always reset (no carry in XOR)
+// Cycles: 8 (4 for instruction + 4 for immediate value fetch)
+func (cpu *CPU) XOR_A_n(value uint8) uint8 {
+	result := cpu.A ^ value
+	cpu.A = result
+
+	// Update flags according to Game Boy XOR specification
+	cpu.SetFlag(FlagZ, result == 0) // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)       // Subtract flag: always reset for logical operations
+	cpu.SetFlag(FlagH, false)       // Half-carry flag: always reset for XOR operations
+	cpu.SetFlag(FlagC, false)       // Carry flag: always reset for XOR operations
+
+	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for immediate fetch)
+}
+
+// === Utility Methods ===

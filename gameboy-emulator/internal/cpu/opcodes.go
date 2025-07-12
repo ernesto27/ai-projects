@@ -893,6 +893,75 @@ func wrapAND_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	return cycles, nil
 }
 
+// === XOR Wrapper Functions ===
+// XOR (Exclusive OR) operations for bitwise manipulation and encryption
+
+// wrapXOR_A_A wraps the XOR A,A instruction (0xAF)
+// Fast way to clear register A to zero and set Zero flag
+func wrapXOR_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_A()
+	return cycles, nil
+}
+
+// wrapXOR_A_B wraps the XOR A,B instruction (0xA8)
+// Performs bitwise XOR of register A with register B
+func wrapXOR_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_B()
+	return cycles, nil
+}
+
+// wrapXOR_A_C wraps the XOR A,C instruction (0xA9)
+// Performs bitwise XOR of register A with register C
+func wrapXOR_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_C()
+	return cycles, nil
+}
+
+// wrapXOR_A_D wraps the XOR A,D instruction (0xAA)
+// Performs bitwise XOR of register A with register D
+func wrapXOR_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_D()
+	return cycles, nil
+}
+
+// wrapXOR_A_E wraps the XOR A,E instruction (0xAB)
+// Performs bitwise XOR of register A with register E
+func wrapXOR_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_E()
+	return cycles, nil
+}
+
+// wrapXOR_A_H wraps the XOR A,H instruction (0xAC)
+// Performs bitwise XOR of register A with register H
+func wrapXOR_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_H()
+	return cycles, nil
+}
+
+// wrapXOR_A_L wraps the XOR A,L instruction (0xAD)
+// Performs bitwise XOR of register A with register L
+func wrapXOR_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_L()
+	return cycles, nil
+}
+
+// wrapXOR_A_HL wraps the XOR A,(HL) instruction (0xAE)
+// Performs bitwise XOR of register A with memory content at address HL
+func wrapXOR_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.XOR_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapXOR_A_n wraps the XOR A,n instruction (0xEE)
+// Performs bitwise XOR of register A with immediate 8-bit value
+func wrapXOR_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("XOR A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.XOR_A_n(params[0])
+	return cycles, nil
+}
+
 // === Step 3: Opcode Dispatch Table ===
 // This is the heart of the CPU - it maps each opcode byte to its wrapper function
 
@@ -1089,14 +1158,14 @@ var opcodeTable = [256]InstructionFunc{
 	0xA5: wrapAND_A_L,  // AND L
 	0xA6: wrapAND_A_HL, // AND (HL)
 	0xA7: wrapAND_A_A,  // AND A
-	0xA8: nil,          // XOR B (not yet implemented)
-	0xA9: nil,          // XOR C (not yet implemented)
-	0xAA: nil,          // XOR D (not yet implemented)
-	0xAB: nil,          // XOR E (not yet implemented)
-	0xAC: nil,          // XOR H (not yet implemented)
-	0xAD: nil,          // XOR L (not yet implemented)
-	0xAE: nil,          // XOR (HL) (not yet implemented)
-	0xAF: nil,          // XOR A (not yet implemented)
+	0xA8: wrapXOR_A_B,  // XOR B
+	0xA9: wrapXOR_A_C,  // XOR C
+	0xAA: wrapXOR_A_D,  // XOR D
+	0xAB: wrapXOR_A_E,  // XOR E
+	0xAC: wrapXOR_A_H,  // XOR H
+	0xAD: wrapXOR_A_L,  // XOR L
+	0xAE: wrapXOR_A_HL, // XOR (HL)
+	0xAF: wrapXOR_A_A,  // XOR A
 
 	// 0xB0-0xBF: OR operations
 	0xB0: wrapOR_A_B,  // OR A,B
@@ -1167,7 +1236,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xEB: nil,         // Invalid opcode
 	0xEC: nil,         // Invalid opcode
 	0xED: nil,         // Invalid opcode
-	0xEE: nil,         // XOR n (not yet implemented)
+	0xEE: wrapXOR_A_n, // XOR n
 	0xEF: nil,         // RST 28H (not yet implemented)
 
 	// 0xF0-0xFF: More I/O and operations
