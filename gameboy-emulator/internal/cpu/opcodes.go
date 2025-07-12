@@ -962,6 +962,76 @@ func wrapXOR_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	return cycles, nil
 }
 
+// === CP (Compare) Wrapper Functions ===
+// CP instructions compare register A with operand (A - operand) but don't store result
+// These are essential for conditional jumps and decision making in games
+
+// wrapCP_A_A wraps the CP A instruction (0xBF)
+// Compares register A with itself (always equal)
+func wrapCP_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_A()
+	return cycles, nil
+}
+
+// wrapCP_A_B wraps the CP B instruction (0xB8)
+// Compares register A with register B
+func wrapCP_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_B()
+	return cycles, nil
+}
+
+// wrapCP_A_C wraps the CP C instruction (0xB9)
+// Compares register A with register C
+func wrapCP_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_C()
+	return cycles, nil
+}
+
+// wrapCP_A_D wraps the CP D instruction (0xBA)
+// Compares register A with register D
+func wrapCP_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_D()
+	return cycles, nil
+}
+
+// wrapCP_A_E wraps the CP E instruction (0xBB)
+// Compares register A with register E
+func wrapCP_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_E()
+	return cycles, nil
+}
+
+// wrapCP_A_H wraps the CP H instruction (0xBC)
+// Compares register A with register H
+func wrapCP_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_H()
+	return cycles, nil
+}
+
+// wrapCP_A_L wraps the CP L instruction (0xBD)
+// Compares register A with register L
+func wrapCP_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_L()
+	return cycles, nil
+}
+
+// wrapCP_A_HL wraps the CP (HL) instruction (0xBE)
+// Compares register A with memory content at address HL
+func wrapCP_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.CP_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapCP_A_n wraps the CP n instruction (0xFE)
+// Compares register A with immediate 8-bit value
+func wrapCP_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("CP A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.CP_A_n(params[0])
+	return cycles, nil
+}
+
 // === Step 3: Opcode Dispatch Table ===
 // This is the heart of the CPU - it maps each opcode byte to its wrapper function
 
@@ -1167,7 +1237,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xAE: wrapXOR_A_HL, // XOR (HL)
 	0xAF: wrapXOR_A_A,  // XOR A
 
-	// 0xB0-0xBF: OR operations
+	// 0xB0-0xBF: OR and CP operations
 	0xB0: wrapOR_A_B,  // OR A,B
 	0xB1: wrapOR_A_C,  // OR A,C
 	0xB2: wrapOR_A_D,  // OR A,D
@@ -1176,14 +1246,14 @@ var opcodeTable = [256]InstructionFunc{
 	0xB5: wrapOR_A_L,  // OR A,L
 	0xB6: wrapOR_A_HL, // OR A,(HL)
 	0xB7: wrapOR_A_A,  // OR A,A
-	0xB8: nil,         // CP B (not yet implemented)
-	0xB9: nil,         // CP C (not yet implemented)
-	0xBA: nil,         // CP D (not yet implemented)
-	0xBB: nil,         // CP E (not yet implemented)
-	0xBC: nil,         // CP H (not yet implemented)
-	0xBD: nil,         // CP L (not yet implemented)
-	0xBE: nil,         // CP (HL) (not yet implemented)
-	0xBF: nil,         // CP A (not yet implemented)
+	0xB8: wrapCP_A_B,  // CP B
+	0xB9: wrapCP_A_C,  // CP C
+	0xBA: wrapCP_A_D,  // CP D
+	0xBB: wrapCP_A_E,  // CP E
+	0xBC: wrapCP_A_H,  // CP H
+	0xBD: wrapCP_A_L,  // CP L
+	0xBE: wrapCP_A_HL, // CP (HL)
+	0xBF: wrapCP_A_A,  // CP A
 
 	// 0xC0-0xCF: Conditional operations and immediate values
 	0xC0: nil,         // RET NZ (not yet implemented)
@@ -1254,7 +1324,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xFB: nil,        // EI (not yet implemented)
 	0xFC: nil,        // Invalid opcode
 	0xFD: nil,        // Invalid opcode
-	0xFE: nil,        // CP n (not yet implemented)
+	0xFE: wrapCP_A_n, // CP n
 	0xFF: nil,        // RST 38H (not yet implemented)
 }
 
