@@ -1032,6 +1032,128 @@ func wrapCP_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, e
 	return cycles, nil
 }
 
+// === Jump Instructions Wrapper Functions ===
+// These wrap the jump instruction methods from cpu_jump.go
+
+// wrapJP_nn wraps the JP nn instruction (0xC3)
+// Unconditional jump to immediate 16-bit address
+func wrapJP_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	// Convert MemoryInterface to *MMU (assuming it's the concrete type)
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JP nn requires MMU instance")
+	}
+	cycles := cpu.JP_nn(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJR_n wraps the JR n instruction (0x18)
+// Unconditional relative jump with signed 8-bit offset
+func wrapJR_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JR n requires MMU instance")
+	}
+	cycles := cpu.JR_n(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJP_NZ_nn wraps the JP NZ,nn instruction (0xC2)
+// Conditional jump to address if Zero flag is clear
+func wrapJP_NZ_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JP NZ,nn requires MMU instance")
+	}
+	cycles := cpu.JP_NZ_nn(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJP_Z_nn wraps the JP Z,nn instruction (0xCA)
+// Conditional jump to address if Zero flag is set
+func wrapJP_Z_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JP Z,nn requires MMU instance")
+	}
+	cycles := cpu.JP_Z_nn(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJP_NC_nn wraps the JP NC,nn instruction (0xD2)
+// Conditional jump to address if Carry flag is clear
+func wrapJP_NC_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JP NC,nn requires MMU instance")
+	}
+	cycles := cpu.JP_NC_nn(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJP_C_nn wraps the JP C,nn instruction (0xDA)
+// Conditional jump to address if Carry flag is set
+func wrapJP_C_nn(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JP C,nn requires MMU instance")
+	}
+	cycles := cpu.JP_C_nn(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJR_NZ_n wraps the JR NZ,n instruction (0x20)
+// Conditional relative jump if Zero flag is clear
+func wrapJR_NZ_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JR NZ,n requires MMU instance")
+	}
+	cycles := cpu.JR_NZ_n(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJR_Z_n wraps the JR Z,n instruction (0x28)
+// Conditional relative jump if Zero flag is set
+func wrapJR_Z_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JR Z,n requires MMU instance")
+	}
+	cycles := cpu.JR_Z_n(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJR_NC_n wraps the JR NC,n instruction (0x30)
+// Conditional relative jump if Carry flag is clear
+func wrapJR_NC_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JR NC,n requires MMU instance")
+	}
+	cycles := cpu.JR_NC_n(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJR_C_n wraps the JR C,n instruction (0x38)
+// Conditional relative jump if Carry flag is set
+func wrapJR_C_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	mmuPtr, ok := mmu.(*memory.MMU)
+	if !ok {
+		return 0, fmt.Errorf("JR C,n requires MMU instance")
+	}
+	cycles := cpu.JR_C_n(mmuPtr)
+	return cycles, nil
+}
+
+// wrapJP_HL wraps the JP (HL) instruction (0xE9)
+// Unconditional jump to address stored in HL register
+func wrapJP_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	// JP (HL) doesn't need MMU access, just reads from HL register
+	cycles := cpu.JP_HL()
+	return cycles, nil
+}
+
 // === Step 3: Opcode Dispatch Table ===
 // This is the heart of the CPU - it maps each opcode byte to its wrapper function
 
@@ -1066,7 +1188,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x15: wrapDEC_D,    // DEC D
 	0x16: wrapLD_D_n,   // LD D,n
 	0x17: nil,          // RLA (not yet implemented)
-	0x18: nil,          // JR n (not yet implemented)
+	0x18: wrapJR_n,     // JR n
 	0x19: nil,          // ADD HL,DE (not yet implemented)
 	0x1A: wrapLD_A_DE,  // LD A,(DE)
 	0x1B: nil,          // DEC DE (not yet implemented)
@@ -1076,7 +1198,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x1F: nil,          // RRA (not yet implemented)
 
 	// 0x20-0x2F: Jump and 8-bit loads
-	0x20: nil,          // JR NZ,n (not yet implemented)
+	0x20: wrapJR_NZ_n,  // JR NZ,n
 	0x21: wrapLD_HL_nn, // LD HL,nn
 	0x22: nil,          // LD (HL+),A (not yet implemented)
 	0x23: nil,          // INC HL (not yet implemented)
@@ -1084,7 +1206,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x25: wrapDEC_H,    // DEC H
 	0x26: wrapLD_H_n,   // LD H,n
 	0x27: nil,          // DAA (not yet implemented)
-	0x28: nil,          // JR Z,n (not yet implemented)
+	0x28: wrapJR_Z_n,   // JR Z,n
 	0x29: nil,          // ADD HL,HL (not yet implemented)
 	0x2A: nil,          // LD A,(HL+) (not yet implemented)
 	0x2B: nil,          // DEC HL (not yet implemented)
@@ -1094,7 +1216,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x2F: nil,          // CPL (not yet implemented)
 
 	// 0x30-0x3F: More jumps and 8-bit operations
-	0x30: nil,          // JR NC,n (not yet implemented)
+	0x30: wrapJR_NC_n,  // JR NC,n
 	0x31: wrapLD_SP_nn, // LD SP,nn
 	0x32: nil,          // LD (HL-),A (not yet implemented)
 	0x33: nil,          // INC SP (not yet implemented)
@@ -1102,7 +1224,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x35: nil,          // DEC (HL) (not yet implemented)
 	0x36: nil,          // LD (HL),n (not yet implemented)
 	0x37: nil,          // SCF (not yet implemented)
-	0x38: nil,          // JR C,n (not yet implemented)
+	0x38: wrapJR_C_n,   // JR C,n
 	0x39: nil,          // ADD HL,SP (not yet implemented)
 	0x3A: nil,          // LD A,(HL-) (not yet implemented)
 	0x3B: nil,          // DEC SP (not yet implemented)
@@ -1256,40 +1378,40 @@ var opcodeTable = [256]InstructionFunc{
 	0xBF: wrapCP_A_A,  // CP A
 
 	// 0xC0-0xCF: Conditional operations and immediate values
-	0xC0: nil,         // RET NZ (not yet implemented)
-	0xC1: nil,         // POP BC (not yet implemented)
-	0xC2: nil,         // JP NZ,nn (not yet implemented)
-	0xC3: nil,         // JP nn (not yet implemented)
-	0xC4: nil,         // CALL NZ,nn (not yet implemented)
-	0xC5: nil,         // PUSH BC (not yet implemented)
-	0xC6: wrapADD_A_n, // ADD A,n
-	0xC7: nil,         // RST 00H (not yet implemented)
-	0xC8: nil,         // RET Z (not yet implemented)
-	0xC9: nil,         // RET (not yet implemented)
-	0xCA: nil,         // JP Z,nn (not yet implemented)
-	0xCB: nil,         // PREFIX CB (not yet implemented)
-	0xCC: nil,         // CALL Z,nn (not yet implemented)
-	0xCD: nil,         // CALL nn (not yet implemented)
-	0xCE: nil,         // ADC A,n (not yet implemented)
-	0xCF: nil,         // RST 08H (not yet implemented)
+	0xC0: nil,          // RET NZ (not yet implemented)
+	0xC1: nil,          // POP BC (not yet implemented)
+	0xC2: wrapJP_NZ_nn, // JP NZ,nn
+	0xC3: wrapJP_nn,    // JP nn
+	0xC4: nil,          // CALL NZ,nn (not yet implemented)
+	0xC5: nil,          // PUSH BC (not yet implemented)
+	0xC6: wrapADD_A_n,  // ADD A,n
+	0xC7: nil,          // RST 00H (not yet implemented)
+	0xC8: nil,          // RET Z (not yet implemented)
+	0xC9: nil,          // RET (not yet implemented)
+	0xCA: wrapJP_Z_nn,  // JP Z,nn
+	0xCB: nil,          // PREFIX CB (not yet implemented)
+	0xCC: nil,          // CALL Z,nn (not yet implemented)
+	0xCD: nil,          // CALL nn (not yet implemented)
+	0xCE: nil,          // ADC A,n (not yet implemented)
+	0xCF: nil,          // RST 08H (not yet implemented)
 
 	// 0xD0-0xDF: More conditional operations
-	0xD0: nil,         // RET NC (not yet implemented)
-	0xD1: nil,         // POP DE (not yet implemented)
-	0xD2: nil,         // JP NC,nn (not yet implemented)
-	0xD3: nil,         // Invalid opcode
-	0xD4: nil,         // CALL NC,nn (not yet implemented)
-	0xD5: nil,         // PUSH DE (not yet implemented)
-	0xD6: wrapSUB_A_n, // SUB A,n
-	0xD7: nil,         // RST 10H (not yet implemented)
-	0xD8: nil,         // RET C (not yet implemented)
-	0xD9: nil,         // RETI (not yet implemented)
-	0xDA: nil,         // JP C,nn (not yet implemented)
-	0xDB: nil,         // Invalid opcode
-	0xDC: nil,         // CALL C,nn (not yet implemented)
-	0xDD: nil,         // Invalid opcode
-	0xDE: nil,         // SBC A,n (not yet implemented)
-	0xDF: nil,         // RST 18H (not yet implemented)
+	0xD0: nil,          // RET NC (not yet implemented)
+	0xD1: nil,          // POP DE (not yet implemented)
+	0xD2: wrapJP_NC_nn, // JP NC,nn
+	0xD3: nil,          // Invalid opcode
+	0xD4: nil,          // CALL NC,nn (not yet implemented)
+	0xD5: nil,          // PUSH DE (not yet implemented)
+	0xD6: wrapSUB_A_n,  // SUB A,n
+	0xD7: nil,          // RST 10H (not yet implemented)
+	0xD8: nil,          // RET C (not yet implemented)
+	0xD9: nil,          // RETI (not yet implemented)
+	0xDA: wrapJP_C_nn,  // JP C,nn
+	0xDB: nil,          // Invalid opcode
+	0xDC: nil,          // CALL C,nn (not yet implemented)
+	0xDD: nil,          // Invalid opcode
+	0xDE: nil,          // SBC A,n (not yet implemented)
+	0xDF: nil,          // RST 18H (not yet implemented)
 
 	// 0xE0-0xEF: I/O operations
 	0xE0: nil,         // LDH (n),A (not yet implemented)
@@ -1301,7 +1423,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xE6: wrapAND_A_n, // AND n
 	0xE7: nil,         // RST 20H (not yet implemented)
 	0xE8: nil,         // ADD SP,n (not yet implemented)
-	0xE9: nil,         // JP (HL) (not yet implemented)
+	0xE9: wrapJP_HL,   // JP (HL)
 	0xEA: nil,         // LD (nn),A (not yet implemented)
 	0xEB: nil,         // Invalid opcode
 	0xEC: nil,         // Invalid opcode
@@ -1394,18 +1516,23 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0x14: "INC D",
 		0x15: "DEC D",
 		0x16: "LD D,n",
+		0x18: "JR n",
 		0x1A: "LD A,(DE)",
 		0x1C: "INC E",
 		0x1D: "DEC E",
 		0x1E: "LD E,n",
+		0x20: "JR NZ,n",
 		0x21: "LD HL,nn",
 		0x24: "INC H",
 		0x25: "DEC H",
 		0x26: "LD H,n",
+		0x28: "JR Z,n",
 		0x2C: "INC L",
 		0x2D: "DEC L",
 		0x2E: "LD L,n",
+		0x30: "JR NC,n",
 		0x31: "LD SP,nn",
+		0x38: "JR C,n",
 		0x3C: "INC A",
 		0x3D: "DEC A",
 		0x3E: "LD A,n",
@@ -1423,7 +1550,13 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0x84: "ADD A,H",
 		0x85: "ADD A,L",
 		0x87: "ADD A,A",
+		0xC2: "JP NZ,nn",
+		0xC3: "JP nn",
 		0xC6: "ADD A,n",
+		0xCA: "JP Z,nn",
+		0xD2: "JP NC,nn",
+		0xDA: "JP C,nn",
+		0xE9: "JP (HL)",
 	}
 
 	if name, exists := opcodeNames[opcode]; exists {

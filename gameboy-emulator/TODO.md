@@ -39,10 +39,11 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ **COMPLETED**: Add instruction timing and cycle counting for all implemented instructions
   - ✅ **COMPLETED**: Use unified InstructionFunc interface for instruction abstraction
   - ✅ **SUB Instructions COMPLETED**: All SUB operations implemented and tested (SUB_A_A, SUB_A_B, SUB_A_C, SUB_A_D, SUB_A_E, SUB_A_H, SUB_A_L, SUB_A_HL, SUB_A_n)
-  - 🔄 **NEXT PHASE**: Expand instruction coverage (AND, XOR, CP operations next)
+  - ✅ **Jump Instructions COMPLETED**: All jump operations implemented and tested (JP_nn, JR_n, JP_NZ_nn, JP_Z_nn, JP_NC_nn, JP_C_nn, JR_NZ_n, JR_Z_n, JR_NC_n, JR_C_n, JP_HL) - **11 INSTRUCTIONS**
+  - 🔄 **NEXT PHASE**: Expand instruction coverage (CALL, RET, stack operations next)
   - [ ] Implement CB-prefixed instructions (256 additional)
-  - [ ] Add jump instructions (JP, JR, CALL, RET)
   - [ ] Add stack operations (PUSH/POP)
+  - [ ] Add call and return instructions (CALL, RET)
 
 ### Medium Priority
 - [ ] **Implement timers and interrupt handling**
@@ -509,21 +510,35 @@ gameboy-emulator/
 2. ✅ **Memory Store Operations**: LD_HL_A, LD_BC_A, LD_DE_A (3 instructions) - **COMPLETED**
 3. ✅ **16-bit Load Instructions**: LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn (4 instructions) - **COMPLETED**
 4. ✅ **Logical Operations**: OR_A_r operations complete, AND_A_r, XOR_A_r, CP_A_r next (32+ instructions) - **OR COMPLETE, AND NEXT**
-5. **Jump Instructions**: JP_nn, JR_n, CALL_nn, RET (20+ instructions)
+5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 102+/256 (40%+) - **Updated after XOR instruction completion (+9 instructions)**
+- **Total Instructions**: 113+/256 (44%+) - **Updated after Jump instruction completion (+11 instructions)**
 - **Load Instructions**: 48/80 (60%) - **All register-to-register loads complete**
 - **Arithmetic Instructions**: 14/60 (23.3%)
 - **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR operations complete, CP next**
-- **Control Instructions**: 1/50 (2%)
+- **Control Instructions**: 12/50 (24%) - **Jump instructions completed, CALL/RET next**
 - **Test Coverage**: 100% for implemented instructions
 - **Memory Integration**: ✅ All memory operations implemented and tested
 
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Implement AND logical operations (9 instructions: AND_A_A through AND_A_n)
+**Next Task**: Implement CALL and RET instructions for function calls and returns
+
+**Recently Completed**: 
+- ✅ **Jump Instructions COMPLETED** - All 11 jump operations (JP_nn, JR_n, conditional jumps) implemented with full opcode dispatch integration
+  - ✅ Unconditional jumps: JP_nn (0xC3), JR_n (0x18), JP_HL (0xE9)
+  - ✅ Conditional jumps: JP_NZ_nn, JP_Z_nn, JP_NC_nn, JP_C_nn, JR_NZ_n, JR_Z_n, JR_NC_n, JR_C_n
+  - ✅ Proper cycle timing: 4-16 cycles depending on instruction type and condition
+  - ✅ Flag-based conditional logic working correctly
+  - ✅ PC (Program Counter) management: Absolute and relative address calculation
+  - ✅ Little-endian 16-bit address handling for absolute jumps
+  - ✅ Signed 8-bit offset handling for relative jumps (supports -128 to +127 range)
+  - ✅ Full opcode dispatch integration with wrapper functions and MMU interface
+  - ✅ Comprehensive test coverage: 25+ test cases covering all jump types, edge cases, and flag combinations
+  - ✅ Memory address reading through MMU interface for address operands
+  - ✅ No flags affected by jump instructions (according to Game Boy specification)
 
 **Completed Tasks**: 
 - ✅ Go module initialized successfully
@@ -609,3 +624,28 @@ gameboy-emulator/
 - ✅ Accurate cycle timing for all operations
 
 ---
+
+## Jump Instructions Implementation Details
+
+#### ✅ **Phase 4.5.6: Jump Instructions** - **ALL JUMP OPERATIONS COMPLETED**
+- ✅ **Implement Jump instructions**: All unconditional and conditional jump operations - **COMPLETED WITH FULL OPCODE INTEGRATION**
+  - ✅ **Unconditional jumps**: JP_nn (0xC3), JR_n (0x18), JP_HL (0xE9) - **3 instructions**
+  - ✅ **Conditional absolute jumps**: JP_NZ_nn (0xC2), JP_Z_nn (0xCA), JP_NC_nn (0xD2), JP_C_nn (0xDA) - **4 instructions**
+  - ✅ **Conditional relative jumps**: JR_NZ_n (0x20), JR_Z_n (0x28), JR_NC_n (0x30), JR_C_n (0x38) - **4 instructions**
+  - ✅ **Total**: 11 jump instructions implemented
+  - ✅ Proper cycle timing: 4 cycles (JP_HL), 12 cycles (JR_n), 16 cycles (JP_nn), conditional timing (8/12 or 12/16)
+  - ✅ Flag-based conditional logic: Zero flag (Z) and Carry flag (C) conditions working correctly
+  - ✅ PC (Program Counter) management: Absolute and relative address calculation
+  - ✅ Little-endian 16-bit address handling for absolute jumps
+  - ✅ Signed 8-bit offset handling for relative jumps (supports -128 to +127 range)
+  - ✅ Full opcode dispatch integration with wrapper functions and MMU interface
+  - ✅ Comprehensive test coverage: 25+ test cases covering all jump types, edge cases, and flag combinations
+  - ✅ Memory address reading through MMU interface for address operands
+  - ✅ No flags affected by jump instructions (according to Game Boy specification)
+
+**Implementation Details**:
+- All jump instructions properly integrated into opcodes.go dispatch table
+- Wrapper functions handle MMU interface conversion for memory-accessing jumps
+- Test coverage includes boundary conditions (max positive/negative offsets)
+- Flag preservation verified (jumps don't modify CPU flags)
+- Cycle timing matches Game Boy hardware specifications
