@@ -199,6 +199,11 @@ func TestOpcodeTable(t *testing.T) {
 		0x0C, // INC C
 		0x0D, // DEC C
 		0x0E, // LD C,n
+		0x18, // JR n
+		0x20, // JR NZ,n
+		0x28, // JR Z,n
+		0x30, // JR NC,n
+		0x38, // JR C,n
 		0x3C, // INC A
 		0x3D, // DEC A
 		0x3E, // LD A,n
@@ -216,7 +221,13 @@ func TestOpcodeTable(t *testing.T) {
 		0x84, // ADD A,H
 		0x85, // ADD A,L
 		0x87, // ADD A,A
+		0xC2, // JP NZ,nn
+		0xC3, // JP nn
 		0xC6, // ADD A,n
+		0xCA, // JP Z,nn
+		0xD2, // JP NC,nn
+		0xDA, // JP C,nn
+		0xE9, // JP (HL)
 	}
 
 	for _, opcode := range implementedOpcodes {
@@ -230,9 +241,7 @@ func TestOpcodeTable(t *testing.T) {
 		0x0F, // RRCA
 		0x10, // STOP
 		0x17, // RLA
-		0x18, // JR n
 		0x1F, // RRA
-		0x20, // JR NZ,n
 		0x27, // DAA
 		0x2F, // CPL
 		0x37, // SCF
