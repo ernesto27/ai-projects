@@ -243,48 +243,48 @@ var opcodeTable = [256]InstructionFunc{
 	0xBF: wrapCP_A_A,  // CP A
 
 	// 0xC0-0xCF: Conditional operations and immediate values
-	0xC0: nil,          // RET NZ (not yet implemented)
-	0xC1: nil,          // POP BC (not yet implemented)
-	0xC2: wrapJP_NZ_nn, // JP NZ,nn
-	0xC3: wrapJP_nn,    // JP nn
-	0xC4: nil,          // CALL NZ,nn (not yet implemented)
-	0xC5: nil,          // PUSH BC (not yet implemented)
-	0xC6: wrapADD_A_n,  // ADD A,n
-	0xC7: nil,          // RST 00H (not yet implemented)
-	0xC8: nil,          // RET Z (not yet implemented)
-	0xC9: nil,          // RET (not yet implemented)
-	0xCA: wrapJP_Z_nn,  // JP Z,nn
-	0xCB: nil,          // PREFIX CB (not yet implemented)
-	0xCC: nil,          // CALL Z,nn (not yet implemented)
-	0xCD: nil,          // CALL nn (not yet implemented)
-	0xCE: nil,          // ADC A,n (not yet implemented)
-	0xCF: nil,          // RST 08H (not yet implemented)
+	0xC0: wrapRET_NZ,     // RET NZ
+	0xC1: wrapPOP_BC,     // POP BC
+	0xC2: wrapJP_NZ_nn,   // JP NZ,nn
+	0xC3: wrapJP_nn,      // JP nn
+	0xC4: wrapCALL_NZ_nn, // CALL NZ,nn
+	0xC5: wrapPUSH_BC,    // PUSH BC
+	0xC6: wrapADD_A_n,    // ADD A,n
+	0xC7: nil,            // RST 00H (not yet implemented)
+	0xC8: wrapRET_Z,      // RET Z
+	0xC9: wrapRET,        // RET
+	0xCA: wrapJP_Z_nn,    // JP Z,nn
+	0xCB: nil,            // PREFIX CB (not yet implemented)
+	0xCC: wrapCALL_Z_nn,  // CALL Z,nn
+	0xCD: wrapCALL_nn,    // CALL nn
+	0xCE: nil,            // ADC A,n (not yet implemented)
+	0xCF: nil,            // RST 08H (not yet implemented)
 
 	// 0xD0-0xDF: More conditional operations
-	0xD0: nil,          // RET NC (not yet implemented)
-	0xD1: nil,          // POP DE (not yet implemented)
-	0xD2: wrapJP_NC_nn, // JP NC,nn
-	0xD3: nil,          // Invalid opcode
-	0xD4: nil,          // CALL NC,nn (not yet implemented)
-	0xD5: nil,          // PUSH DE (not yet implemented)
-	0xD6: wrapSUB_A_n,  // SUB A,n
-	0xD7: nil,          // RST 10H (not yet implemented)
-	0xD8: nil,          // RET C (not yet implemented)
-	0xD9: nil,          // RETI (not yet implemented)
-	0xDA: wrapJP_C_nn,  // JP C,nn
-	0xDB: nil,          // Invalid opcode
-	0xDC: nil,          // CALL C,nn (not yet implemented)
-	0xDD: nil,          // Invalid opcode
-	0xDE: nil,          // SBC A,n (not yet implemented)
-	0xDF: nil,          // RST 18H (not yet implemented)
+	0xD0: wrapRET_NC,     // RET NC
+	0xD1: wrapPOP_DE,     // POP DE
+	0xD2: wrapJP_NC_nn,   // JP NC,nn
+	0xD3: nil,            // Invalid opcode
+	0xD4: wrapCALL_NC_nn, // CALL NC,nn
+	0xD5: wrapPUSH_DE,    // PUSH DE
+	0xD6: wrapSUB_A_n,    // SUB A,n
+	0xD7: nil,            // RST 10H (not yet implemented)
+	0xD8: wrapRET_C,      // RET C
+	0xD9: wrapRETI,       // RETI
+	0xDA: wrapJP_C_nn,    // JP C,nn
+	0xDB: nil,            // Invalid opcode
+	0xDC: wrapCALL_C_nn,  // CALL C,nn
+	0xDD: nil,            // Invalid opcode
+	0xDE: nil,            // SBC A,n (not yet implemented)
+	0xDF: nil,            // RST 18H (not yet implemented)
 
 	// 0xE0-0xEF: I/O operations
 	0xE0: nil,         // LDH (n),A (not yet implemented)
-	0xE1: nil,         // POP HL (not yet implemented)
+	0xE1: wrapPOP_HL,  // POP HL
 	0xE2: nil,         // LD (C),A (not yet implemented)
 	0xE3: nil,         // Invalid opcode
 	0xE4: nil,         // Invalid opcode
-	0xE5: nil,         // PUSH HL (not yet implemented)
+	0xE5: wrapPUSH_HL, // PUSH HL
 	0xE6: wrapAND_A_n, // AND n
 	0xE7: nil,         // RST 20H (not yet implemented)
 	0xE8: nil,         // ADD SP,n (not yet implemented)
@@ -297,22 +297,22 @@ var opcodeTable = [256]InstructionFunc{
 	0xEF: nil,         // RST 28H (not yet implemented)
 
 	// 0xF0-0xFF: More I/O and operations
-	0xF0: nil,        // LDH A,(n) (not yet implemented)
-	0xF1: nil,        // POP AF (not yet implemented)
-	0xF2: nil,        // LD A,(C) (not yet implemented)
-	0xF3: nil,        // DI (not yet implemented)
-	0xF4: nil,        // Invalid opcode
-	0xF5: nil,        // PUSH AF (not yet implemented)
-	0xF6: wrapOR_A_n, // OR A,n
-	0xF7: nil,        // RST 30H (not yet implemented)
-	0xF8: nil,        // LD HL,SP+n (not yet implemented)
-	0xF9: nil,        // LD SP,HL (not yet implemented)
-	0xFA: nil,        // LD A,(nn) (not yet implemented)
-	0xFB: nil,        // EI (not yet implemented)
-	0xFC: nil,        // Invalid opcode
-	0xFD: nil,        // Invalid opcode
-	0xFE: wrapCP_A_n, // CP n
-	0xFF: nil,        // RST 38H (not yet implemented)
+	0xF0: nil,         // LDH A,(n) (not yet implemented)
+	0xF1: wrapPOP_AF,  // POP AF
+	0xF2: nil,         // LD A,(C) (not yet implemented)
+	0xF3: nil,         // DI (not yet implemented)
+	0xF4: nil,         // Invalid opcode
+	0xF5: wrapPUSH_AF, // PUSH AF
+	0xF6: wrapOR_A_n,  // OR A,n
+	0xF7: nil,         // RST 30H (not yet implemented)
+	0xF8: nil,         // LD HL,SP+n (not yet implemented)
+	0xF9: nil,         // LD SP,HL (not yet implemented)
+	0xFA: nil,         // LD A,(nn) (not yet implemented)
+	0xFB: nil,         // EI (not yet implemented)
+	0xFC: nil,         // Invalid opcode
+	0xFD: nil,         // Invalid opcode
+	0xFE: wrapCP_A_n,  // CP n
+	0xFF: nil,         // RST 38H (not yet implemented)
 }
 
 // === Step 4: ExecuteInstruction Method ===
@@ -415,13 +415,34 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0x84: "ADD A,H",
 		0x85: "ADD A,L",
 		0x87: "ADD A,A",
+		// Stack Operations
+		0xC0: "RET NZ",
+		0xC1: "POP BC",
 		0xC2: "JP NZ,nn",
 		0xC3: "JP nn",
+		0xC4: "CALL NZ,nn",
+		0xC5: "PUSH BC",
 		0xC6: "ADD A,n",
+		0xC8: "RET Z",
+		0xC9: "RET",
 		0xCA: "JP Z,nn",
+		0xCC: "CALL Z,nn",
+		0xCD: "CALL nn",
+		0xD0: "RET NC",
+		0xD1: "POP DE",
 		0xD2: "JP NC,nn",
+		0xD4: "CALL NC,nn",
+		0xD5: "PUSH DE",
+		0xD8: "RET C",
+		0xD9: "RETI",
 		0xDA: "JP C,nn",
+		0xDC: "CALL C,nn",
+		0xE1: "POP HL",
+		0xE5: "PUSH HL",
 		0xE9: "JP (HL)",
+		0xF1: "POP AF",
+		0xF5: "PUSH AF",
+		0xFE: "CP n",
 	}
 
 	if name, exists := opcodeNames[opcode]; exists {

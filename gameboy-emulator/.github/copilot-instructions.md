@@ -78,19 +78,47 @@ mmu.WriteWord(address, value)
 - **Test flag behavior**: Verify all flag combinations
 - **Test timing**: Verify cycle counts are accurate
 - **Use table-driven tests**: For testing multiple input/output combinations
+- **Use testify/assert**: Always use `github.com/stretchr/testify/assert` for clean, readable assertions
 
 ### Test Structure
 ```go
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+)
+
 func TestInstructionName(t *testing.T) {
     cpu := NewCPU()
+    mmu := memory.NewMMU()
     
     // Test normal case
+    cycles := cpu.INSTRUCTION_NAME(mmu)
+    
+    // Use assert library for clean, readable tests
+    assert.Equal(t, expectedValue, cpu.A, "Register A should have expected value")
+    assert.Equal(t, expectedCycles, cycles, "Should return correct cycle count")
+    assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set")
+    assert.False(t, cpu.GetFlag(FlagC), "Carry flag should be clear")
+    
     // Test edge cases
     // Test flag behavior
-    // Test cycle count
-    
-    assert.Equal(t, expected, actual, "descriptive message")
 }
+```
+
+### Assert Library Usage
+```go
+// Preferred assertions for Game Boy emulator testing
+assert.Equal(t, expected, actual, "descriptive message")           // Values match
+assert.True(t, condition, "message")                              // Boolean true
+assert.False(t, condition, "message")                             // Boolean false
+assert.Nil(t, err, "No error should occur")                       // No error
+assert.NotNil(t, value, "Value should not be nil")               // Value exists
+
+// Specific to Game Boy testing
+assert.Equal(t, uint8(0x42), cpu.A, "Register A should be 0x42")
+assert.Equal(t, uint8(12), cycles, "Should take 12 cycles")
+assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be set")
+assert.Equal(t, uint16(0x1234), cpu.GetHL(), "HL should be 0x1234")
 ```
 
 ## Architecture Guidelines
