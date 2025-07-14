@@ -150,3 +150,61 @@ func wrapRETI(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, err
 	cycles := cpu.RETI(mmu)
 	return cycles, nil
 }
+
+// === RST Operation Wrappers ===
+
+// wrapRST_00H wraps the RST 00H instruction (0xC7)
+// Restart at address 0x0000
+func wrapRST_00H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_00H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_08H wraps the RST 08H instruction (0xCF)
+// Restart at address 0x0008
+func wrapRST_08H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_08H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_10H wraps the RST 10H instruction (0xD7)
+// Restart at address 0x0010
+func wrapRST_10H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_10H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_18H wraps the RST 18H instruction (0xDF)
+// Restart at address 0x0018
+func wrapRST_18H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_18H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_20H wraps the RST 20H instruction (0xE7)
+// Restart at address 0x0020
+func wrapRST_20H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_20H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_28H wraps the RST 28H instruction (0xEF)
+// Restart at address 0x0028
+func wrapRST_28H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_28H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_30H wraps the RST 30H instruction (0xF7)
+// Restart at address 0x0030
+func wrapRST_30H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_30H(mmu)
+	return cycles, nil
+}
+
+// wrapRST_38H wraps the RST 38H instruction (0xFF)
+// Restart at address 0x0038
+func wrapRST_38H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.RST_38H(mmu)
+	return cycles, nil
+}

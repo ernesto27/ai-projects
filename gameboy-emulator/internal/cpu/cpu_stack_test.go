@@ -1,6 +1,7 @@
 package cpu
 
 import (
+	"fmt"
 	"testing"
 
 	"gameboy-emulator/internal/memory"
@@ -594,4 +595,167 @@ func TestStackHelperIntegration(t *testing.T) {
 	assert.Equal(t, uint8(0x11), value2, "Should pop first pushed value last")
 	assert.True(t, cpu.isStackEmpty(), "Should be empty after popping all")
 	assert.Equal(t, uint16(0), cpu.getStackDepth(), "Should have zero depth")
+}
+
+// === RST Instruction Tests ===
+
+func TestRST_Instructions(t *testing.T) {
+	// Test all 8 RST instructions
+	testCases := []struct {
+		name            string
+		rstFunction     func(*CPU, memory.MemoryInterface) uint8
+		expectedAddress uint16
+		opcode          string
+	}{
+		{"RST_00H", (*CPU).RST_00H, 0x0000, "0xC7"},
+		{"RST_08H", (*CPU).RST_08H, 0x0008, "0xCF"},
+		{"RST_10H", (*CPU).RST_10H, 0x0010, "0xD7"},
+		{"RST_18H", (*CPU).RST_18H, 0x0018, "0xDF"},
+		{"RST_20H", (*CPU).RST_20H, 0x0020, "0xE7"},
+		{"RST_28H", (*CPU).RST_28H, 0x0028, "0xEF"},
+		{"RST_30H", (*CPU).RST_30H, 0x0030, "0xF7"},
+		{"RST_38H", (*CPU).RST_38H, 0x0038, "0xFF"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup
+			cpu := NewCPU()
+			mmu := memory.NewMMU()
+
+			// Set initial state
+			initialPC := uint16(0x1234)
+			cpu.PC = initialPC
+			cpu.SP = 0xFFFE // Initialize stack pointer
+
+			// Store initial flags
+			initialFlags := cpu.F
+
+			// Execute RST instruction
+			cycles := tc.rstFunction(cpu, mmu)
+
+			// Verify cycle count
+			assert.Equal(t, uint8(16), cycles, "%s should take 16 cycles", tc.name)
+
+			// Verify PC jumped to correct restart vector
+			assert.Equal(t, tc.expectedAddress, cpu.PC, "%s should jump to 0x%04X", tc.name, tc.expectedAddress)
+
+			// Verify SP was decremented by 2 (16-bit push)
+			assert.Equal(t, uint16(0xFFFC), cpu.SP, "%s should decrement SP by 2", tc.name)
+
+			// Verify original PC was pushed to stack (little-endian)
+			lowByte := mmu.ReadByte(0xFFFC)  // Low byte at lower address
+			highByte := mmu.ReadByte(0xFFFD) // High byte at higher address
+			pushedPC := uint16(highByte)<<8 | uint16(lowByte)
+			assert.Equal(t, initialPC, pushedPC, "%s should push original PC to stack", tc.name)
+
+			// Verify flags are not affected
+			assert.Equal(t, initialFlags, cpu.F, "%s should not affect flags", tc.name)
+		})
+	}
+}
+
+func TestRST_StackBehavior(t *testing.T) {
+	// Test RST instruction stack behavior in detail
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Setup initial state
+	cpu.PC = 0x5678
+	cpu.SP = 0xFFFE
+
+	// Execute RST 20H (0xE7) - restart at 0x0020
+	cycles := cpu.RST_20H(mmu)
+
+	// Verify detailed stack behavior
+	assert.Equal(t, uint8(16), cycles, "RST should take 16 cycles")
+	assert.Equal(t, uint16(0x0020), cpu.PC, "PC should be 0x0020")
+	assert.Equal(t, uint16(0xFFFC), cpu.SP, "SP should point to 0xFFFC")
+
+	// Verify little-endian storage on stack
+	assert.Equal(t, uint8(0x78), mmu.ReadByte(0xFFFC), "Low byte of PC at lower address")
+	assert.Equal(t, uint8(0x56), mmu.ReadByte(0xFFFD), "High byte of PC at higher address")
+
+	// Test that we can return properly using RET
+	retCycles := cpu.RET(mmu)
+
+	assert.Equal(t, uint8(16), retCycles, "RET should take 16 cycles")
+	assert.Equal(t, uint16(0x5678), cpu.PC, "RET should restore original PC")
+	assert.Equal(t, uint16(0xFFFE), cpu.SP, "RET should restore original SP")
+}
+
+func TestRST_EdgeCases(t *testing.T) {
+	// Test RST with edge case PC values
+	testCases := []struct {
+		name      string
+		initialPC uint16
+	}{
+		{"PC at 0x0000", 0x0000},
+		{"PC at 0xFFFF", 0xFFFF},
+		{"PC at 0x8000", 0x8000},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cpu := NewCPU()
+			mmu := memory.NewMMU()
+
+			cpu.PC = tc.initialPC
+			cpu.SP = 0xFFFE
+
+			// Execute RST 10H
+			cycles := cpu.RST_10H(mmu)
+
+			// Verify basic behavior
+			assert.Equal(t, uint8(16), cycles, "RST should take 16 cycles")
+			assert.Equal(t, uint16(0x0010), cpu.PC, "PC should be 0x0010")
+
+			// Verify stack push worked correctly
+			lowByte := mmu.ReadByte(0xFFFC)
+			highByte := mmu.ReadByte(0xFFFD)
+			pushedPC := uint16(highByte)<<8 | uint16(lowByte)
+			assert.Equal(t, tc.initialPC, pushedPC, "Should push correct PC value")
+		})
+	}
+}
+
+func TestRST_FlagPreservation(t *testing.T) {
+	// Test that RST instructions preserve all flags
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Set all flags
+	cpu.SetFlag(FlagZ, true)
+	cpu.SetFlag(FlagN, true)
+	cpu.SetFlag(FlagH, true)
+	cpu.SetFlag(FlagC, true)
+
+	initialFlags := cpu.F
+	cpu.PC = 0x1000
+	cpu.SP = 0xFFFE
+
+	// Test each RST instruction preserves flags
+	rstInstructions := []func(*CPU, memory.MemoryInterface) uint8{
+		(*CPU).RST_00H, (*CPU).RST_08H, (*CPU).RST_10H, (*CPU).RST_18H,
+		(*CPU).RST_20H, (*CPU).RST_28H, (*CPU).RST_30H, (*CPU).RST_38H,
+	}
+
+	for i, rstFunc := range rstInstructions {
+		t.Run(fmt.Sprintf("RST_%02XH", i*8), func(t *testing.T) {
+			// Reset CPU state for each test
+			cpu.F = initialFlags
+			cpu.PC = 0x1000 + uint16(i*0x100) // Different PC for each test
+			cpu.SP = 0xFFFE
+
+			// Execute RST
+			rstFunc(cpu, mmu)
+
+			// Verify flags unchanged
+			assert.Equal(t, initialFlags, cpu.F, "RST should not modify flags")
+			assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be preserved")
+			assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be preserved")
+			assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be preserved")
+			assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be preserved")
+		})
+	}
 }

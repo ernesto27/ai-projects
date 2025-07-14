@@ -313,6 +313,98 @@ func (cpu *CPU) RETI(mmu memory.MemoryInterface) uint8 {
 }
 
 // ================================
+// RST Operations (0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF)
+// ================================
+
+// RST_00H - Restart at address 0x0000 (0xC7)
+// Push PC onto stack, then jump to 0x0000
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0000
+func (cpu *CPU) RST_00H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0000           // Jump to restart vector 0x0000
+	return 16                 // 16 cycles
+}
+
+// RST_08H - Restart at address 0x0008 (0xCF)
+// Push PC onto stack, then jump to 0x0008
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0008
+func (cpu *CPU) RST_08H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0008           // Jump to restart vector 0x0008
+	return 16                 // 16 cycles
+}
+
+// RST_10H - Restart at address 0x0010 (0xD7)
+// Push PC onto stack, then jump to 0x0010
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0010
+func (cpu *CPU) RST_10H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0010           // Jump to restart vector 0x0010
+	return 16                 // 16 cycles
+}
+
+// RST_18H - Restart at address 0x0018 (0xDF)
+// Push PC onto stack, then jump to 0x0018
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0018
+func (cpu *CPU) RST_18H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0018           // Jump to restart vector 0x0018
+	return 16                 // 16 cycles
+}
+
+// RST_20H - Restart at address 0x0020 (0xE7)
+// Push PC onto stack, then jump to 0x0020
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0020
+func (cpu *CPU) RST_20H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0020           // Jump to restart vector 0x0020
+	return 16                 // 16 cycles
+}
+
+// RST_28H - Restart at address 0x0028 (0xEF)
+// Push PC onto stack, then jump to 0x0028
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0028
+func (cpu *CPU) RST_28H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0028           // Jump to restart vector 0x0028
+	return 16                 // 16 cycles
+}
+
+// RST_30H - Restart at address 0x0030 (0xF7)
+// Push PC onto stack, then jump to 0x0030
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0030
+func (cpu *CPU) RST_30H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0030           // Jump to restart vector 0x0030
+	return 16                 // 16 cycles
+}
+
+// RST_38H - Restart at address 0x0038 (0xFF)
+// Push PC onto stack, then jump to 0x0038
+// Flags affected: None
+// Cycles: 16
+// Example: PC=0x1234 → Push 0x1234 to stack, PC becomes 0x0038
+func (cpu *CPU) RST_38H(mmu memory.MemoryInterface) uint8 {
+	cpu.pushWord(mmu, cpu.PC) // Push current PC to stack
+	cpu.PC = 0x0038           // Jump to restart vector 0x0038
+	return 16                 // 16 cycles
+}
+
+// ================================
 // Stack Utility Functions
 // ================================
 
