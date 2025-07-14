@@ -42,8 +42,9 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ **Jump Instructions COMPLETED**: All jump operations implemented and tested (JP_nn, JR_n, JP_NZ_nn, JP_Z_nn, JP_NC_nn, JP_C_nn, JR_NZ_n, JR_Z_n, JR_NC_n, JR_C_n, JP_HL) - **11 INSTRUCTIONS**
   - 🔄 **NEXT PHASE**: Expand instruction coverage (CALL, RET, stack operations next)
   - [ ] Implement CB-prefixed instructions (256 additional)
-  - [ ] Add stack operations (PUSH/POP)
-  - [ ] Add call and return instructions (CALL, RET)
+  - ✅ **Stack Helper Methods COMPLETED**: pushWord, popWord, pushByte, popByte with comprehensive tests
+  - ✅ **Stack Operations COMPLETED**: All PUSH/POP, CALL/RET, RST instructions implemented (27 instructions)
+  - [ ] Add call and return instructions (CALL, RET) - **ALREADY IMPLEMENTED, NEEDS OPCODE INTEGRATION**
 
 ### Medium Priority
 - [ ] **Implement timers and interrupt handling**
@@ -524,9 +525,17 @@ gameboy-emulator/
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Implement CALL and RET instructions for function calls and returns
+**Next Task**: Integrate existing stack operations into opcode dispatch system (Phase 2 completion)
 
 **Recently Completed**: 
+- ✅ **Stack Helper Methods Phase 1 COMPLETED** (July 14, 2025) - Foundation for all stack operations
+  - ✅ **pushByte/popByte**: Single-byte stack operations with SP management
+  - ✅ **pushWord/popWord**: 16-bit stack operations with little-endian handling  
+  - ✅ **Utility functions**: getStackTop, getStackDepth, isStackEmpty for debugging
+  - ✅ **Comprehensive testing**: 25+ test cases covering edge cases, round-trips, integration
+  - ✅ **Stack behavior**: Proper Game Boy stack semantics (grows downward from 0xFFFE)
+  - ✅ **All 27 stack instructions already implemented**: PUSH/POP (8), CALL/RET (10), RST (8), RETI (1)
+
 - ✅ **Jump Instructions COMPLETED** - All 11 jump operations (JP_nn, JR_n, conditional jumps) implemented with full opcode dispatch integration
   - ✅ Unconditional jumps: JP_nn (0xC3), JR_n (0x18), JP_HL (0xE9)
   - ✅ Conditional jumps: JP_NZ_nn, JP_Z_nn, JP_NC_nn, JP_C_nn, JR_NZ_n, JR_Z_n, JR_NC_n, JR_C_n

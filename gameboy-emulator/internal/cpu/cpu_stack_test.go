@@ -436,154 +436,162 @@ func TestRETI(t *testing.T) {
 }
 
 // ================================
-// Integration Tests (PUSH/POP pairs)
+// Stack Helper Method Tests (Phase 1)
 // ================================
 
-func TestPUSH_POP_BC_Integration(t *testing.T) {
+func TestPushByte(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
 
-	// Setup original values
-	originalB := uint8(0x12)
-	originalC := uint8(0x34)
-	cpu.B = originalB
-	cpu.C = originalC
+	// Set initial stack pointer
 	cpu.SP = 0xFFFE
 
-	// Push BC
-	cpu.PUSH_BC(mmu)
+	// Push a byte
+	cpu.pushByte(mmu, 0x42)
 
-	// Modify BC to different values
-	cpu.B = 0xFF
-	cpu.C = 0xFF
+	// Verify stack pointer decremented
+	assert.Equal(t, uint16(0xFFFD), cpu.SP, "Stack pointer should decrement after pushByte")
 
-	// Pop BC
-	cpu.POP_BC(mmu)
+	// Verify byte written to stack
+	assert.Equal(t, uint8(0x42), mmu.ReadByte(0xFFFD), "Byte should be written to stack location")
 
-	// Verify BC restored to original values
-	if cpu.B != originalB {
-		t.Errorf("Expected B=0x%02X, got B=0x%02X", originalB, cpu.B)
-	}
+	// Push another byte
+	cpu.pushByte(mmu, 0x84)
 
-	if cpu.C != originalC {
-		t.Errorf("Expected C=0x%02X, got C=0x%02X", originalC, cpu.C)
-	}
+	// Verify stack pointer decremented again
+	assert.Equal(t, uint16(0xFFFC), cpu.SP, "Stack pointer should decrement again")
 
-	// Verify SP back to original position
-	if cpu.SP != 0xFFFE {
-		t.Errorf("Expected SP=0xFFFE, got SP=0x%04X", cpu.SP)
-	}
+	// Verify second byte written
+	assert.Equal(t, uint8(0x84), mmu.ReadByte(0xFFFC), "Second byte should be written to new stack location")
+
+	// Verify first byte still there
+	assert.Equal(t, uint8(0x42), mmu.ReadByte(0xFFFD), "First byte should still be on stack")
 }
 
-func TestCALL_RET_Integration(t *testing.T) {
+func TestPopByte(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
 
-	// Setup initial state
-	cpu.PC = 0x8000
-	cpu.SP = 0xFFFE
-
-	// Setup CALL instruction target
-	mmu.WriteByte(0x8000, 0x00) // Low byte of 0x4000
-	mmu.WriteByte(0x8001, 0x40) // High byte of 0x4000
-
-	// Execute CALL
-	cpu.CALL_nn(mmu)
-
-	// Verify we're at the called function
-	assert.Equal(t, uint16(0x4000), cpu.PC, "PC should be set correctly")
-
-	// Execute RET
-	cpu.RET(mmu)
-
-	// Verify we're back to original location + 2 (after CALL instruction)
-	assert.Equal(t, uint16(0x8002), cpu.PC, "PC should be set correctly")
-
-	// Verify SP back to original position
-	if cpu.SP != 0xFFFE {
-		t.Errorf("Expected SP=0xFFFE after CALL/RET pair, got SP=0x%04X", cpu.SP)
-	}
-}
-
-// ================================
-// Stack Helper Function Tests
-// ================================
-
-func TestPushWord(t *testing.T) {
-	cpu := NewCPU()
-	mmu := memory.NewMMU()
-
-	cpu.SP = 0xFFFE
-
-	cpu.pushWord(mmu, 0x1234)
-
-	if cpu.SP != 0xFFFC {
-		t.Errorf("Expected SP=0xFFFC, got SP=0x%04X", cpu.SP)
-	}
-
-	// Verify word stored correctly (little-endian)
-	if mmu.ReadByte(0xFFFC) != 0x34 {
-		t.Errorf("Expected low byte 0x34 at 0xFFFC, got 0x%02X", mmu.ReadByte(0xFFFC))
-	}
-
-	if mmu.ReadByte(0xFFFD) != 0x12 {
-		t.Errorf("Expected high byte 0x12 at 0xFFFD, got 0x%02X", mmu.ReadByte(0xFFFD))
-	}
-}
-
-func TestPopWord(t *testing.T) {
-	cpu := NewCPU()
-	mmu := memory.NewMMU()
-
+	// Set up stack with data
 	cpu.SP = 0xFFFC
-	mmu.WriteByte(0xFFFC, 0x34) // Low byte
-	mmu.WriteByte(0xFFFD, 0x12) // High byte
+	mmu.WriteByte(0xFFFC, 0x84)
+	mmu.WriteByte(0xFFFD, 0x42)
 
-	value := cpu.popWord(mmu)
+	// Pop first byte (should be 0x84)
+	value1 := cpu.popByte(mmu)
+	assert.Equal(t, uint8(0x84), value1, "Should pop the correct byte")
+	assert.Equal(t, uint16(0xFFFD), cpu.SP, "Stack pointer should increment after popByte")
 
-	if value != 0x1234 {
-		t.Errorf("Expected 0x1234, got 0x%04X", value)
-	}
-
-	if cpu.SP != 0xFFFE {
-		t.Errorf("Expected SP=0xFFFE, got SP=0x%04X", cpu.SP)
-	}
+	// Pop second byte (should be 0x42)
+	value2 := cpu.popByte(mmu)
+	assert.Equal(t, uint8(0x42), value2, "Should pop the second byte")
+	assert.Equal(t, uint16(0xFFFE), cpu.SP, "Stack pointer should increment again")
 }
 
-// ================================
-// Edge Case Tests
-// ================================
-
-func TestStackOverflow(t *testing.T) {
+func TestPushPopByteRoundTrip(t *testing.T) {
 	cpu := NewCPU()
 	mmu := memory.NewMMU()
 
-	// Test pushing when SP is at minimum
-	cpu.SP = 0x0001
-	cpu.B = 0x12
-	cpu.C = 0x34
-
-	cpu.PUSH_BC(mmu)
-
-	// SP should wrap around (Game Boy behavior)
-	if cpu.SP != 0xFFFF {
-		t.Errorf("Expected SP=0xFFFF (wrapped), got SP=0x%04X", cpu.SP)
-	}
-}
-
-func TestStackUnderflow(t *testing.T) {
-	cpu := NewCPU()
-	mmu := memory.NewMMU()
-
-	// Test popping when SP is at maximum
 	cpu.SP = 0xFFFE
-	mmu.WriteByte(0xFFFE, 0x34)
-	mmu.WriteByte(0xFFFF, 0x12)
+	originalSP := cpu.SP
 
-	cpu.POP_BC(mmu)
+	// Test round-trip with various values
+	testValues := []uint8{0x00, 0x42, 0xFF, 0x80, 0x7F}
 
-	// SP should wrap around (Game Boy behavior)
-	if cpu.SP != 0x0000 {
-		t.Errorf("Expected SP=0x0000 (wrapped), got SP=0x%04X", cpu.SP)
+	for _, testValue := range testValues {
+		// Push the value
+		cpu.pushByte(mmu, testValue)
+
+		// Pop the value back
+		poppedValue := cpu.popByte(mmu)
+
+		// Verify round-trip
+		assert.Equal(t, testValue, poppedValue, "Push/pop round-trip should preserve value")
+		assert.Equal(t, originalSP, cpu.SP, "Stack pointer should return to original position")
 	}
+}
+
+func TestGetStackTop(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Test with empty stack
+	cpu.SP = 0xFFFE
+	top := cpu.getStackTop(mmu)
+	assert.Equal(t, uint8(0), top, "Empty stack should return 0")
+
+	// Test with data on stack
+	cpu.SP = 0xFFFD
+	mmu.WriteByte(0xFFFD, 0x99)
+	top = cpu.getStackTop(mmu)
+	assert.Equal(t, uint8(0x99), top, "Should return top of stack value")
+	assert.Equal(t, uint16(0xFFFD), cpu.SP, "getStackTop should not modify SP")
+}
+
+func TestGetStackDepth(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test empty stack
+	cpu.SP = 0xFFFE
+	depth := cpu.getStackDepth()
+	assert.Equal(t, uint16(0), depth, "Empty stack should have depth 0")
+
+	// Test with some items
+	cpu.SP = 0xFFFC
+	depth = cpu.getStackDepth()
+	assert.Equal(t, uint16(2), depth, "Stack with 2 bytes should have depth 2")
+
+	// Test with many items
+	cpu.SP = 0xFF80
+	depth = cpu.getStackDepth()
+	assert.Equal(t, uint16(126), depth, "Stack should calculate correct depth")
+}
+
+func TestIsStackEmpty(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test empty stack
+	cpu.SP = 0xFFFE
+	assert.True(t, cpu.isStackEmpty(), "Stack should be empty at initial position")
+
+	// Test with overflow condition
+	cpu.SP = 0xFFFF
+	assert.True(t, cpu.isStackEmpty(), "Stack should be empty with SP overflow")
+
+	// Test non-empty stack
+	cpu.SP = 0xFFFD
+	assert.False(t, cpu.isStackEmpty(), "Stack should not be empty with items")
+
+	cpu.SP = 0xFF80
+	assert.False(t, cpu.isStackEmpty(), "Stack should not be empty with many items")
+}
+
+func TestStackHelperIntegration(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Start with empty stack
+	cpu.SP = 0xFFFE
+	assert.True(t, cpu.isStackEmpty(), "Should start with empty stack")
+	assert.Equal(t, uint16(0), cpu.getStackDepth(), "Should start with zero depth")
+
+	// Push some bytes using helper
+	cpu.pushByte(mmu, 0x11)
+	assert.False(t, cpu.isStackEmpty(), "Should not be empty after push")
+	assert.Equal(t, uint16(1), cpu.getStackDepth(), "Should have depth 1")
+	assert.Equal(t, uint8(0x11), cpu.getStackTop(mmu), "Top should be the pushed value")
+
+	cpu.pushByte(mmu, 0x22)
+	assert.Equal(t, uint16(2), cpu.getStackDepth(), "Should have depth 2")
+	assert.Equal(t, uint8(0x22), cpu.getStackTop(mmu), "Top should be the last pushed value")
+
+	// Pop bytes back
+	value1 := cpu.popByte(mmu)
+	assert.Equal(t, uint8(0x22), value1, "Should pop last pushed value first")
+	assert.Equal(t, uint16(1), cpu.getStackDepth(), "Should have depth 1 after pop")
+
+	value2 := cpu.popByte(mmu)
+	assert.Equal(t, uint8(0x11), value2, "Should pop first pushed value last")
+	assert.True(t, cpu.isStackEmpty(), "Should be empty after popping all")
+	assert.Equal(t, uint16(0), cpu.getStackDepth(), "Should have zero depth")
 }

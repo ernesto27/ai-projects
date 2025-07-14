@@ -224,7 +224,9 @@ func TestOpcodeTable(t *testing.T) {
 		0xC2, // JP NZ,nn
 		0xC3, // JP nn
 		0xC6, // ADD A,n
+		0xC9, // RET
 		0xCA, // JP Z,nn
+		0xCD, // CALL nn
 		0xD2, // JP NC,nn
 		0xDA, // JP C,nn
 		0xE9, // JP (HL)
@@ -248,8 +250,6 @@ func TestOpcodeTable(t *testing.T) {
 		0x3F, // CCF
 		0x76, // HALT
 		0xCB, // PREFIX CB
-		0xC9, // RET
-		0xCD, // CALL nn
 	}
 
 	for _, opcode := range unimplementedOpcodes {
