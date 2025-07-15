@@ -81,76 +81,76 @@ var opcodeTable = [256]InstructionFunc{
 	0x2F: nil,          // CPL (not yet implemented)
 
 	// 0x30-0x3F: More jumps and 8-bit operations
-	0x30: wrapJR_NC_n,  // JR NC,n
-	0x31: wrapLD_SP_nn, // LD SP,nn
-	0x32: nil,          // LD (HL-),A (not yet implemented)
-	0x33: wrapINC_SP,   // INC SP
-	0x34: nil,          // INC (HL) (not yet implemented)
-	0x35: nil,          // DEC (HL) (not yet implemented)
-	0x36: nil,          // LD (HL),n (not yet implemented)
-	0x37: nil,          // SCF (not yet implemented)
-	0x38: wrapJR_C_n,   // JR C,n
-	0x39: nil,          // ADD HL,SP (not yet implemented)
-	0x3A: nil,          // LD A,(HL-) (not yet implemented)
-	0x3B: wrapDEC_SP,   // DEC SP
-	0x3C: wrapINC_A,    // INC A
-	0x3D: wrapDEC_A,    // DEC A
-	0x3E: wrapLD_A_n,   // LD A,n
-	0x3F: nil,          // CCF (not yet implemented)
+	0x30: wrapJR_NC_n,     // JR NC,n
+	0x31: wrapLD_SP_nn,    // LD SP,nn
+	0x32: nil,             // LD (HL-),A (not yet implemented)
+	0x33: wrapINC_SP,      // INC SP
+	0x34: wrapINC_HL_mem,  // INC (HL)
+	0x35: wrapDEC_HL_mem,  // DEC (HL)
+	0x36: wrapLD_HL_mem_n, // LD (HL),n
+	0x37: nil,             // SCF (not yet implemented)
+	0x38: wrapJR_C_n,      // JR C,n
+	0x39: nil,             // ADD HL,SP (not yet implemented)
+	0x3A: nil,             // LD A,(HL-) (not yet implemented)
+	0x3B: wrapDEC_SP,      // DEC SP
+	0x3C: wrapINC_A,       // INC A
+	0x3D: wrapDEC_A,       // DEC A
+	0x3E: wrapLD_A_n,      // LD A,n
+	0x3F: nil,             // CCF (not yet implemented)
 
 	// 0x40-0x4F: 8-bit register-to-register loads (LD r,r)
-	0x40: nil,        // LD B,B (effectively NOP, not implemented)
-	0x41: wrapLD_B_C, // LD B,C
-	0x42: wrapLD_B_D, // LD B,D
-	0x43: wrapLD_B_E, // LD B,E
-	0x44: wrapLD_B_H, // LD B,H
-	0x45: wrapLD_B_L, // LD B,L
-	0x46: nil,        // LD B,(HL) (not yet implemented)
-	0x47: wrapLD_B_A, // LD B,A
-	0x48: wrapLD_C_B, // LD C,B
-	0x49: nil,        // LD C,C (effectively NOP, not implemented)
-	0x4A: wrapLD_C_D, // LD C,D
-	0x4B: wrapLD_C_E, // LD C,E
-	0x4C: wrapLD_C_H, // LD C,H
-	0x4D: wrapLD_C_L, // LD C,L
-	0x4E: nil,        // LD C,(HL) (not yet implemented)
-	0x4F: wrapLD_C_A, // LD C,A
+	0x40: nil,         // LD B,B (effectively NOP, not implemented)
+	0x41: wrapLD_B_C,  // LD B,C
+	0x42: wrapLD_B_D,  // LD B,D
+	0x43: wrapLD_B_E,  // LD B,E
+	0x44: wrapLD_B_H,  // LD B,H
+	0x45: wrapLD_B_L,  // LD B,L
+	0x46: wrapLD_B_HL, // LD B,(HL)
+	0x47: wrapLD_B_A,  // LD B,A
+	0x48: wrapLD_C_B,  // LD C,B
+	0x49: nil,         // LD C,C (effectively NOP, not implemented)
+	0x4A: wrapLD_C_D,  // LD C,D
+	0x4B: wrapLD_C_E,  // LD C,E
+	0x4C: wrapLD_C_H,  // LD C,H
+	0x4D: wrapLD_C_L,  // LD C,L
+	0x4E: wrapLD_C_HL, // LD C,(HL)
+	0x4F: wrapLD_C_A,  // LD C,A
 
 	// 0x50-0x5F: More 8-bit register-to-register loads
-	0x50: wrapLD_D_B, // LD D,B
-	0x51: wrapLD_D_C, // LD D,C
-	0x52: nil,        // LD D,D (effectively NOP, not implemented)
-	0x53: wrapLD_D_E, // LD D,E
-	0x54: wrapLD_D_H, // LD D,H
-	0x55: wrapLD_D_L, // LD D,L
-	0x56: nil,        // LD D,(HL) (not yet implemented)
-	0x57: wrapLD_D_A, // LD D,A
-	0x58: wrapLD_E_B, // LD E,B
-	0x59: wrapLD_E_C, // LD E,C
-	0x5A: wrapLD_E_D, // LD E,D
-	0x5B: nil,        // LD E,E (effectively NOP, not implemented)
-	0x5C: wrapLD_E_H, // LD E,H
-	0x5D: wrapLD_E_L, // LD E,L
-	0x5E: nil,        // LD E,(HL) (not yet implemented)
-	0x5F: wrapLD_E_A, // LD E,A
+	0x50: wrapLD_D_B,  // LD D,B
+	0x51: wrapLD_D_C,  // LD D,C
+	0x52: nil,         // LD D,D (effectively NOP, not implemented)
+	0x53: wrapLD_D_E,  // LD D,E
+	0x54: wrapLD_D_H,  // LD D,H
+	0x55: wrapLD_D_L,  // LD D,L
+	0x56: wrapLD_D_HL, // LD D,(HL)
+	0x57: wrapLD_D_A,  // LD D,A
+	0x58: wrapLD_E_B,  // LD E,B
+	0x59: wrapLD_E_C,  // LD E,C
+	0x5A: wrapLD_E_D,  // LD E,D
+	0x5B: nil,         // LD E,E (effectively NOP, not implemented)
+	0x5C: wrapLD_E_H,  // LD E,H
+	0x5D: wrapLD_E_L,  // LD E,L
+	0x5E: wrapLD_E_HL, // LD E,(HL)
+	0x5F: wrapLD_E_A,  // LD E,A
 
 	// 0x60-0x6F: H and L register loads
-	0x60: wrapLD_H_B, // LD H,B
-	0x61: wrapLD_H_C, // LD H,C
-	0x62: wrapLD_H_D, // LD H,D
-	0x63: wrapLD_H_E, // LD H,E
-	0x64: nil,        // LD H,H (effectively NOP, not implemented)
-	0x65: wrapLD_H_L, // LD H,L
-	0x66: nil,        // LD H,(HL) (not yet implemented)
-	0x67: wrapLD_H_A, // LD H,A
-	0x68: wrapLD_L_B, // LD L,B
-	0x69: wrapLD_L_C, // LD L,C
-	0x6A: wrapLD_L_D, // LD L,D
-	0x6B: wrapLD_L_E, // LD L,E
-	0x6C: wrapLD_L_H, // LD L,H
-	0x6D: nil,        // LD L,L (effectively NOP, not implemented)
-	0x6E: nil,        // LD L,(HL) (not yet implemented)
-	0x6F: wrapLD_L_A, // LD L,A
+	0x60: wrapLD_H_B,  // LD H,B
+	0x61: wrapLD_H_C,  // LD H,C
+	0x62: wrapLD_H_D,  // LD H,D
+	0x63: wrapLD_H_E,  // LD H,E
+	0x64: nil,         // LD H,H (effectively NOP, not implemented)
+	0x65: wrapLD_H_L,  // LD H,L
+	0x66: wrapLD_H_HL, // LD H,(HL)
+	0x67: wrapLD_H_A,  // LD H,A
+	0x68: wrapLD_L_B,  // LD L,B
+	0x69: wrapLD_L_C,  // LD L,C
+	0x6A: wrapLD_L_D,  // LD L,D
+	0x6B: wrapLD_L_E,  // LD L,E
+	0x6C: wrapLD_L_H,  // LD L,H
+	0x6D: nil,         // LD L,L (effectively NOP, not implemented)
+	0x6E: wrapLD_L_HL, // LD L,(HL)
+	0x6F: wrapLD_L_A,  // LD L,A
 
 	// 0x70-0x7F: Memory operations and A register loads
 	0x70: nil,         // LD (HL),B (not yet implemented)
