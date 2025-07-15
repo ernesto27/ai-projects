@@ -30,7 +30,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x00: wrapNOP,      // NOP
 	0x01: wrapLD_BC_nn, // LD BC,nn
 	0x02: wrapLD_BC_A,  // LD (BC),A
-	0x03: nil,          // INC BC (not yet implemented)
+	0x03: wrapINC_BC,   // INC BC
 	0x04: wrapINC_B,    // INC B
 	0x05: wrapDEC_B,    // DEC B
 	0x06: wrapLD_B_n,   // LD B,n
@@ -38,7 +38,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x08: nil,          // LD (nn),SP (not yet implemented)
 	0x09: nil,          // ADD HL,BC (not yet implemented)
 	0x0A: wrapLD_A_BC,  // LD A,(BC)
-	0x0B: nil,          // DEC BC (not yet implemented)
+	0x0B: wrapDEC_BC,   // DEC BC
 	0x0C: wrapINC_C,    // INC C
 	0x0D: wrapDEC_C,    // DEC C
 	0x0E: wrapLD_C_n,   // LD C,n
@@ -48,7 +48,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x10: nil,          // STOP (not yet implemented)
 	0x11: wrapLD_DE_nn, // LD DE,nn
 	0x12: wrapLD_DE_A,  // LD (DE),A
-	0x13: nil,          // INC DE (not yet implemented)
+	0x13: wrapINC_DE,   // INC DE
 	0x14: wrapINC_D,    // INC D
 	0x15: wrapDEC_D,    // DEC D
 	0x16: wrapLD_D_n,   // LD D,n
@@ -56,7 +56,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x18: wrapJR_n,     // JR n
 	0x19: nil,          // ADD HL,DE (not yet implemented)
 	0x1A: wrapLD_A_DE,  // LD A,(DE)
-	0x1B: nil,          // DEC DE (not yet implemented)
+	0x1B: wrapDEC_DE,   // DEC DE
 	0x1C: wrapINC_E,    // INC E
 	0x1D: wrapDEC_E,    // DEC E
 	0x1E: wrapLD_E_n,   // LD E,n
@@ -66,7 +66,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x20: wrapJR_NZ_n,  // JR NZ,n
 	0x21: wrapLD_HL_nn, // LD HL,nn
 	0x22: nil,          // LD (HL+),A (not yet implemented)
-	0x23: nil,          // INC HL (not yet implemented)
+	0x23: wrapINC_HL,   // INC HL
 	0x24: wrapINC_H,    // INC H
 	0x25: wrapDEC_H,    // DEC H
 	0x26: wrapLD_H_n,   // LD H,n
@@ -74,7 +74,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x28: wrapJR_Z_n,   // JR Z,n
 	0x29: nil,          // ADD HL,HL (not yet implemented)
 	0x2A: nil,          // LD A,(HL+) (not yet implemented)
-	0x2B: nil,          // DEC HL (not yet implemented)
+	0x2B: wrapDEC_HL,   // DEC HL
 	0x2C: wrapINC_L,    // INC L
 	0x2D: wrapDEC_L,    // DEC L
 	0x2E: wrapLD_L_n,   // LD L,n
@@ -84,7 +84,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x30: wrapJR_NC_n,  // JR NC,n
 	0x31: wrapLD_SP_nn, // LD SP,nn
 	0x32: nil,          // LD (HL-),A (not yet implemented)
-	0x33: nil,          // INC SP (not yet implemented)
+	0x33: wrapINC_SP,   // INC SP
 	0x34: nil,          // INC (HL) (not yet implemented)
 	0x35: nil,          // DEC (HL) (not yet implemented)
 	0x36: nil,          // LD (HL),n (not yet implemented)
@@ -92,7 +92,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x38: wrapJR_C_n,   // JR C,n
 	0x39: nil,          // ADD HL,SP (not yet implemented)
 	0x3A: nil,          // LD A,(HL-) (not yet implemented)
-	0x3B: nil,          // DEC SP (not yet implemented)
+	0x3B: wrapDEC_SP,   // DEC SP
 	0x3C: wrapINC_A,    // INC A
 	0x3D: wrapDEC_A,    // DEC A
 	0x3E: wrapLD_A_n,   // LD A,n
