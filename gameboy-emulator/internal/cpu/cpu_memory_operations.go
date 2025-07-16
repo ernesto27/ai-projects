@@ -71,6 +71,62 @@ func (cpu *CPU) LD_HL_mem_n(mmu memory.MemoryInterface, value uint8) uint8 {
 	return 12
 }
 
+// LD_HL_mem_B stores register B into memory address HL (opcode 0x70)
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_HL_mem_B(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.B)
+	return 8
+}
+
+// LD_HL_mem_C stores register C into memory address HL (opcode 0x71)
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_HL_mem_C(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.C)
+	return 8
+}
+
+// LD_HL_mem_D stores register D into memory address HL (opcode 0x72)
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_HL_mem_D(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.D)
+	return 8
+}
+
+// LD_HL_mem_E stores register E into memory address HL (opcode 0x73)
+// Flags affected: None
+// Cycles: 8
+func (cpu *CPU) LD_HL_mem_E(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.E)
+	return 8
+}
+
+// LD_HL_mem_H stores register H into memory address HL (opcode 0x74)
+// Flags affected: None
+// Cycles: 8
+// Note: This stores the current H value to memory at address formed by H and L
+func (cpu *CPU) LD_HL_mem_H(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.H)
+	return 8
+}
+
+// LD_HL_mem_L stores register L into memory address HL (opcode 0x75)
+// Flags affected: None
+// Cycles: 8
+// Note: This stores the current L value to memory at address formed by H and L
+func (cpu *CPU) LD_HL_mem_L(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	mmu.WriteByte(address, cpu.L)
+	return 8
+}
+
 // === Memory Load Operations ===
 // These instructions load from memory address HL into registers
 
@@ -192,5 +248,43 @@ func wrapLD_H_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 // wrapLD_L_HL wraps the LD L,(HL) instruction (0x6E)
 func wrapLD_L_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
 	cycles := cpu.LD_L_HL(mmu)
+	return cycles, nil
+}
+
+// === Store Register to Memory Wrapper Functions ===
+
+// wrapLD_HL_mem_B wraps the LD (HL),B instruction (0x70)
+func wrapLD_HL_mem_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_B(mmu)
+	return cycles, nil
+}
+
+// wrapLD_HL_mem_C wraps the LD (HL),C instruction (0x71)
+func wrapLD_HL_mem_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_C(mmu)
+	return cycles, nil
+}
+
+// wrapLD_HL_mem_D wraps the LD (HL),D instruction (0x72)
+func wrapLD_HL_mem_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_D(mmu)
+	return cycles, nil
+}
+
+// wrapLD_HL_mem_E wraps the LD (HL),E instruction (0x73)
+func wrapLD_HL_mem_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_E(mmu)
+	return cycles, nil
+}
+
+// wrapLD_HL_mem_H wraps the LD (HL),H instruction (0x74)
+func wrapLD_HL_mem_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_H(mmu)
+	return cycles, nil
+}
+
+// wrapLD_HL_mem_L wraps the LD (HL),L instruction (0x75)
+func wrapLD_HL_mem_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_HL_mem_L(mmu)
 	return cycles, nil
 }

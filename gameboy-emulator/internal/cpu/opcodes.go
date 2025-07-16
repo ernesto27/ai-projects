@@ -153,12 +153,12 @@ var opcodeTable = [256]InstructionFunc{
 	0x6F: wrapLD_L_A,  // LD L,A
 
 	// 0x70-0x7F: Memory operations and A register loads
-	0x70: nil,         // LD (HL),B (not yet implemented)
-	0x71: nil,         // LD (HL),C (not yet implemented)
-	0x72: nil,         // LD (HL),D (not yet implemented)
-	0x73: nil,         // LD (HL),E (not yet implemented)
-	0x74: nil,         // LD (HL),H (not yet implemented)
-	0x75: nil,         // LD (HL),L (not yet implemented)
+	0x70: wrapLD_HL_mem_B, // LD (HL),B
+	0x71: wrapLD_HL_mem_C, // LD (HL),C
+	0x72: wrapLD_HL_mem_D, // LD (HL),D
+	0x73: wrapLD_HL_mem_E, // LD (HL),E
+	0x74: wrapLD_HL_mem_H, // LD (HL),H
+	0x75: wrapLD_HL_mem_L, // LD (HL),L
 	0x76: nil,         // HALT (not yet implemented)
 	0x77: wrapLD_HL_A, // LD (HL),A
 	0x78: wrapLD_A_B,  // LD A,B
@@ -401,6 +401,12 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0x3C: "INC A",
 		0x3D: "DEC A",
 		0x3E: "LD A,n",
+		0x70: "LD (HL),B",
+		0x71: "LD (HL),C",
+		0x72: "LD (HL),D",
+		0x73: "LD (HL),E",
+		0x74: "LD (HL),H",
+		0x75: "LD (HL),L",
 		0x77: "LD (HL),A",
 		0x78: "LD A,B",
 		0x79: "LD A,C",

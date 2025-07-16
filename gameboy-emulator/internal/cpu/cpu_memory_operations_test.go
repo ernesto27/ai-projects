@@ -406,3 +406,213 @@ func TestAllMemoryLoadOperations(t *testing.T) {
 		})
 	}
 }
+
+// === Tests for Store Register to Memory Operations ===
+
+func TestLD_HL_mem_B(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Test store B to memory
+	cpu.SetHL(0x8000)
+	cpu.B = 0x55
+	mmu.WriteByte(0x8000, 0x00) // Initialize memory
+
+	cycles := cpu.LD_HL_mem_B(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),B should take 8 cycles")
+	assert.Equal(t, uint8(0x55), mmu.ReadByte(0x8000), "Memory should contain B register value")
+	assert.Equal(t, uint8(0x55), cpu.B, "B register should remain unchanged")
+	assert.Equal(t, uint16(0x8000), cpu.GetHL(), "HL register should remain unchanged")
+
+	// Test flags are not affected
+	cpu.SetFlag(FlagZ, true)
+	cpu.SetFlag(FlagN, true)
+	cpu.SetFlag(FlagH, true)
+	cpu.SetFlag(FlagC, true)
+
+	cpu.B = 0xAA
+	cpu.LD_HL_mem_B(mmu)
+
+	assert.True(t, cpu.GetFlag(FlagZ), "Zero flag should be preserved")
+	assert.True(t, cpu.GetFlag(FlagN), "Subtract flag should be preserved")
+	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be preserved")
+	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be preserved")
+	assert.Equal(t, uint8(0xAA), mmu.ReadByte(0x8000), "Memory should contain new B value")
+}
+
+func TestLD_HL_mem_C(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.C = 0x33
+
+	cycles := cpu.LD_HL_mem_C(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),C should take 8 cycles")
+	assert.Equal(t, uint8(0x33), mmu.ReadByte(0x8000), "Memory should contain C register value")
+}
+
+func TestLD_HL_mem_D(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.D = 0x44
+
+	cycles := cpu.LD_HL_mem_D(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),D should take 8 cycles")
+	assert.Equal(t, uint8(0x44), mmu.ReadByte(0x8000), "Memory should contain D register value")
+}
+
+func TestLD_HL_mem_E(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.E = 0x55
+
+	cycles := cpu.LD_HL_mem_E(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),E should take 8 cycles")
+	assert.Equal(t, uint8(0x55), mmu.ReadByte(0x8000), "Memory should contain E register value")
+}
+
+func TestLD_HL_mem_H(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000) // H=0x80, L=0x00
+	originalH := cpu.H
+
+	cycles := cpu.LD_HL_mem_H(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),H should take 8 cycles")
+	assert.Equal(t, originalH, mmu.ReadByte(0x8000), "Memory should contain H register value")
+	assert.Equal(t, originalH, cpu.H, "H register should remain unchanged")
+	assert.Equal(t, uint16(0x8000), cpu.GetHL(), "HL should remain unchanged")
+}
+
+func TestLD_HL_mem_L(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8055) // H=0x80, L=0x55
+	originalL := cpu.L
+
+	cycles := cpu.LD_HL_mem_L(mmu)
+
+	assert.Equal(t, uint8(8), cycles, "LD (HL),L should take 8 cycles")
+	assert.Equal(t, originalL, mmu.ReadByte(0x8055), "Memory should contain L register value")
+	assert.Equal(t, originalL, cpu.L, "L register should remain unchanged")
+	assert.Equal(t, uint16(0x8055), cpu.GetHL(), "HL should remain unchanged")
+}
+
+func TestAllMemoryStoreOperations(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	// Test all LD (HL),r operations work correctly
+	cpu.SetHL(0x8000)
+	
+	// Set up test register values
+	cpu.B = 0x11
+	cpu.C = 0x22
+	cpu.D = 0x33
+	cpu.E = 0x44
+	cpu.H = 0x80 // Part of the HL address
+	cpu.L = 0x00 // Part of the HL address
+
+	storeTests := []struct {
+		name      string
+		storeFunc func() uint8
+		checkReg  func() uint8
+		expected  uint8
+	}{
+		{"LD (HL),B", func() uint8 { return cpu.LD_HL_mem_B(mmu) }, func() uint8 { return cpu.B }, 0x11},
+		{"LD (HL),C", func() uint8 { return cpu.LD_HL_mem_C(mmu) }, func() uint8 { return cpu.C }, 0x22},
+		{"LD (HL),D", func() uint8 { return cpu.LD_HL_mem_D(mmu) }, func() uint8 { return cpu.D }, 0x33},
+		{"LD (HL),E", func() uint8 { return cpu.LD_HL_mem_E(mmu) }, func() uint8 { return cpu.E }, 0x44},
+		{"LD (HL),H", func() uint8 { return cpu.LD_HL_mem_H(mmu) }, func() uint8 { return cpu.H }, 0x80},
+		{"LD (HL),L", func() uint8 { return cpu.LD_HL_mem_L(mmu) }, func() uint8 { return cpu.L }, 0x00},
+	}
+
+	for _, test := range storeTests {
+		t.Run(test.name, func(t *testing.T) {
+			// Clear memory location
+			mmu.WriteByte(0x8000, 0xFF)
+			
+			cycles := test.storeFunc()
+			assert.Equal(t, uint8(8), cycles, "%s should take 8 cycles", test.name)
+			assert.Equal(t, test.expected, mmu.ReadByte(0x8000), "%s should store 0x%02X to memory", test.name, test.expected)
+			assert.Equal(t, test.expected, test.checkReg(), "%s should not modify source register", test.name)
+		})
+	}
+}
+
+// === Wrapper Function Tests for Store Operations ===
+
+func TestWrapLD_HL_mem_B(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.B = 0x77
+
+	cycles, err := wrapLD_HL_mem_B(cpu, mmu)
+
+	assert.NoError(t, err, "wrapLD_HL_mem_B should not return error")
+	assert.Equal(t, uint8(8), cycles, "wrapLD_HL_mem_B should return 8 cycles")
+	assert.Equal(t, uint8(0x77), mmu.ReadByte(0x8000), "Memory should contain B value")
+}
+
+func TestWrapLD_HL_mem_C(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.C = 0x88
+
+	cycles, err := wrapLD_HL_mem_C(cpu, mmu)
+
+	assert.NoError(t, err, "wrapLD_HL_mem_C should not return error")
+	assert.Equal(t, uint8(8), cycles, "wrapLD_HL_mem_C should return 8 cycles")
+	assert.Equal(t, uint8(0x88), mmu.ReadByte(0x8000), "Memory should contain C value")
+}
+
+func TestAllStoreWrapperFunctions(t *testing.T) {
+	cpu := NewCPU()
+	mmu := memory.NewMMU()
+
+	cpu.SetHL(0x8000)
+	cpu.B = 0x10
+	cpu.C = 0x20
+	cpu.D = 0x30
+	cpu.E = 0x40
+	cpu.H = 0x80
+	cpu.L = 0x00
+
+	wrapperTests := []struct {
+		name        string
+		wrapperFunc func() (uint8, error)
+		expected    uint8
+	}{
+		{"wrapLD_HL_mem_B", func() (uint8, error) { return wrapLD_HL_mem_B(cpu, mmu) }, 0x10},
+		{"wrapLD_HL_mem_C", func() (uint8, error) { return wrapLD_HL_mem_C(cpu, mmu) }, 0x20},
+		{"wrapLD_HL_mem_D", func() (uint8, error) { return wrapLD_HL_mem_D(cpu, mmu) }, 0x30},
+		{"wrapLD_HL_mem_E", func() (uint8, error) { return wrapLD_HL_mem_E(cpu, mmu) }, 0x40},
+		{"wrapLD_HL_mem_H", func() (uint8, error) { return wrapLD_HL_mem_H(cpu, mmu) }, 0x80},
+		{"wrapLD_HL_mem_L", func() (uint8, error) { return wrapLD_HL_mem_L(cpu, mmu) }, 0x00},
+	}
+
+	for _, test := range wrapperTests {
+		t.Run(test.name, func(t *testing.T) {
+			cycles, err := test.wrapperFunc()
+			assert.NoError(t, err, "%s should not return error", test.name)
+			assert.Equal(t, uint8(8), cycles, "%s should return 8 cycles", test.name)
+			assert.Equal(t, test.expected, mmu.ReadByte(0x8000), "%s should store correct value", test.name)
+		})
+	}
+}
