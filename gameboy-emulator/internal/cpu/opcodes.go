@@ -254,7 +254,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xC8: wrapRET_Z,      // RET Z
 	0xC9: wrapRET,        // RET
 	0xCA: wrapJP_Z_nn,    // JP Z,nn
-	0xCB: nil,            // PREFIX CB (not yet implemented)
+	0xCB: wrapCB_PREFIX,  // PREFIX CB - CB-prefixed instructions
 	0xCC: wrapCALL_Z_nn,  // CALL Z,nn
 	0xCD: wrapCALL_nn,    // CALL nn
 	0xCE: nil,            // ADC A,n (not yet implemented)
@@ -464,4 +464,24 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 	}
 
 	return "Implemented", true
+}
+
+// === CB PREFIX INSTRUCTION HANDLER ===
+
+// wrapCB_PREFIX handles CB-prefixed instructions (0xCB)
+// When the CPU encounters 0xCB, it needs to read the next byte to determine 
+// which of the 256 CB instructions to execute
+func wrapCB_PREFIX(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("CB prefix requires next opcode byte, got %d parameters", len(params))
+	}
+	
+	cbOpcode := params[0]
+	cycles, err := cpu.ExecuteCBInstruction(mmu, cbOpcode)
+	if err != nil {
+		return 0, fmt.Errorf("error executing CB instruction: %w", err)
+	}
+	
+	// CB instructions have base cycle cost + 4 cycles for the CB prefix fetch
+	return cycles + 4, nil
 }

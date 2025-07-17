@@ -249,7 +249,7 @@ func TestOpcodeTable(t *testing.T) {
 		0x37, // SCF
 		0x3F, // CCF
 		0x76, // HALT
-		0xCB, // PREFIX CB
+		// 0xCB is now implemented as PREFIX CB
 	}
 
 	for _, opcode := range unimplementedOpcodes {
@@ -263,7 +263,7 @@ func TestUtilityFunctions(t *testing.T) {
 	assert.True(t, IsOpcodeImplemented(0x00), "NOP should be implemented")
 	assert.True(t, IsOpcodeImplemented(0x3E), "LD A,n should be implemented")
 	assert.False(t, IsOpcodeImplemented(0x07), "RLCA should not be implemented")
-	assert.False(t, IsOpcodeImplemented(0xCB), "PREFIX CB should not be implemented")
+	assert.True(t, IsOpcodeImplemented(0xCB), "PREFIX CB should be implemented")
 
 	// Test GetImplementedOpcodes
 	implementedOpcodes := GetImplementedOpcodes()
