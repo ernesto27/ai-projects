@@ -20,6 +20,17 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0x01: wrapCB_RLC_C,    // RLC C
 	0x08: wrapCB_RRC_B,    // RRC B
 	0x09: wrapCB_RRC_C,    // RRC C
+	
+	// SLA Instructions (0x20-0x27)
+	0x20: wrapCB_SLA_B,    // SLA B
+	0x21: wrapCB_SLA_C,    // SLA C
+	0x22: wrapCB_SLA_D,    // SLA D
+	0x23: wrapCB_SLA_E,    // SLA E
+	0x24: wrapCB_SLA_H,    // SLA H
+	0x25: wrapCB_SLA_L,    // SLA L
+	0x26: wrapCB_SLA_HL,   // SLA (HL)
+	0x27: wrapCB_SLA_A,    // SLA A
+	
 	0x30: wrapCB_SWAP_B,   // SWAP B
 	0x31: wrapCB_SWAP_C,   // SWAP C
 	0x36: wrapCB_SWAP_HL,  // SWAP (HL)
@@ -375,6 +386,48 @@ func wrapCB_SET_7_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+// === SLA Instruction Wrapper Functions ===
+
+func wrapCB_SLA_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_B()
+	return cycles, nil
+}
+
+func wrapCB_SLA_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_C()
+	return cycles, nil
+}
+
+func wrapCB_SLA_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_D()
+	return cycles, nil
+}
+
+func wrapCB_SLA_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_E()
+	return cycles, nil
+}
+
+func wrapCB_SLA_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_H()
+	return cycles, nil
+}
+
+func wrapCB_SLA_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_L()
+	return cycles, nil
+}
+
+func wrapCB_SLA_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_SLA_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SLA_A()
+	return cycles, nil
+}
+
 // === CB Instruction Utilities ===
 
 // GetImplementedCBOpcodes returns a slice of all implemented CB opcodes
@@ -400,6 +453,17 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0x01: "RLC C",
 		0x08: "RRC B",
 		0x09: "RRC C",
+		
+		// SLA Instructions
+		0x20: "SLA B",
+		0x21: "SLA C",
+		0x22: "SLA D",
+		0x23: "SLA E",
+		0x24: "SLA H",
+		0x25: "SLA L",
+		0x26: "SLA (HL)",
+		0x27: "SLA A",
+		
 		0x30: "SWAP B",
 		0x31: "SWAP C",
 		0x36: "SWAP (HL)",

@@ -1567,3 +1567,99 @@ func (cpu *CPU) SWAP_HL(mmu memory.MemoryInterface) uint8 {
 	cpu.SetFlag(FlagC, false)
 	return 16
 }
+
+// === SLA Instructions (0x20-0x27) ===
+// SLA r shifts register r left by 1 bit, bit 7 goes to carry, bit 0 becomes 0
+// Flags: Z = result==0, N = 0, H = 0, C = original bit 7
+// Cycles: 8 for registers, 16 for (HL)
+
+// SLA_B shifts register B left arithmetically (CB 0x20)
+func (cpu *CPU) SLA_B() uint8 {
+	carry := (cpu.B & 0x80) != 0
+	cpu.B = cpu.B << 1
+	cpu.SetFlag(FlagZ, cpu.B == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_C shifts register C left arithmetically (CB 0x21)
+func (cpu *CPU) SLA_C() uint8 {
+	carry := (cpu.C & 0x80) != 0
+	cpu.C = cpu.C << 1
+	cpu.SetFlag(FlagZ, cpu.C == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_D shifts register D left arithmetically (CB 0x22)
+func (cpu *CPU) SLA_D() uint8 {
+	carry := (cpu.D & 0x80) != 0
+	cpu.D = cpu.D << 1
+	cpu.SetFlag(FlagZ, cpu.D == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_E shifts register E left arithmetically (CB 0x23)
+func (cpu *CPU) SLA_E() uint8 {
+	carry := (cpu.E & 0x80) != 0
+	cpu.E = cpu.E << 1
+	cpu.SetFlag(FlagZ, cpu.E == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_H shifts register H left arithmetically (CB 0x24)
+func (cpu *CPU) SLA_H() uint8 {
+	carry := (cpu.H & 0x80) != 0
+	cpu.H = cpu.H << 1
+	cpu.SetFlag(FlagZ, cpu.H == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_L shifts register L left arithmetically (CB 0x25)
+func (cpu *CPU) SLA_L() uint8 {
+	carry := (cpu.L & 0x80) != 0
+	cpu.L = cpu.L << 1
+	cpu.SetFlag(FlagZ, cpu.L == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}
+
+// SLA_HL shifts value at memory address HL left arithmetically (CB 0x26)
+func (cpu *CPU) SLA_HL(mmu memory.MemoryInterface) uint8 {
+	address := cpu.GetHL()
+	value := mmu.ReadByte(address)
+	carry := (value & 0x80) != 0
+	value = value << 1
+	mmu.WriteByte(address, value)
+	cpu.SetFlag(FlagZ, value == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 16
+}
+
+// SLA_A shifts register A left arithmetically (CB 0x27)
+func (cpu *CPU) SLA_A() uint8 {
+	carry := (cpu.A & 0x80) != 0
+	cpu.A = cpu.A << 1
+	cpu.SetFlag(FlagZ, cpu.A == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, carry)
+	return 8
+}

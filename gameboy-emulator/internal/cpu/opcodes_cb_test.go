@@ -81,7 +81,7 @@ func TestGetImplementedCBOpcodes(t *testing.T) {
 	implementedOpcodes := GetImplementedCBOpcodes()
 	
 	// Should have the exact number of implemented opcodes
-	expectedCount := 51 // Based on our implementation
+	expectedCount := 59 // Based on our implementation (51 original + 8 SLA operations)
 	assert.Equal(t, expectedCount, len(implementedOpcodes), "Should return correct number of implemented CB opcodes")
 	
 	// All returned opcodes should be implemented

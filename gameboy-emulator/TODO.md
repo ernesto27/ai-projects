@@ -41,18 +41,19 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ **SUB Instructions COMPLETED**: All SUB operations implemented and tested (SUB_A_A, SUB_A_B, SUB_A_C, SUB_A_D, SUB_A_E, SUB_A_H, SUB_A_L, SUB_A_HL, SUB_A_n)
   - ✅ **Jump Instructions COMPLETED**: All jump operations implemented and tested (JP_nn, JR_n, JP_NZ_nn, JP_Z_nn, JP_NC_nn, JP_C_nn, JR_NZ_n, JR_Z_n, JR_NC_n, JR_C_n, JP_HL) - **11 INSTRUCTIONS**
   - 🔄 **NEXT PHASE**: Expand instruction coverage (CALL, RET, stack operations next)
-  - ✅ **Implement CB-prefixed instructions** (51/256 implemented - **MAJOR MILESTONE ACHIEVED!**) - **COMPLETED CORE SET**
+  - ✅ **Implement CB-prefixed instructions** (59/256 implemented - **MAJOR MILESTONE ACHIEVED!**) - **EXPANDED SHIFT OPERATIONS**
   - ✅ **BIT b,r instructions**: All bit test operations (BIT 0/1/7 for all registers and (HL)) - **16 instructions**
   - ✅ **SET b,r instructions**: All bit set operations (SET 0/7 for all registers and (HL)) - **16 instructions**  
   - ✅ **RES b,r instructions**: All bit reset operations (RES 0/7 for all registers and (HL)) - **16 instructions**
   - ✅ **Rotate instructions**: RLC, RRC for B,C registers - **4 instructions**
   - ✅ **SWAP instructions**: SWAP for B,C registers and (HL) - **3 instructions**
+  - ✅ **SLA instructions**: All shift left arithmetic operations (SLA B/C/D/E/H/L/(HL)/A) - **8 instructions** - **NEW!**
   - ✅ **CB dispatch system**: Complete 256-entry CB opcode table with ExecuteCBInstruction method
   - ✅ **CB prefix integration**: 0xCB prefix handler integrated into main opcode dispatch
   - ✅ **Comprehensive testing**: 100+ test cases covering all CB operations, edge cases, and integration
-  - ✅ **Proper timing**: 8 cycles for register ops, 12/16 cycles for memory ops + 4 cycles for CB prefix
-  - ✅ **Flag behavior**: BIT affects Z/N/H flags, SET/RES affect no flags, rotates affect Z/N/H/C flags
-  - [ ] **Remaining CB instructions**: Shift operations (SLA, SRA, SRL), complete bit patterns for all 8 bits - **205 additional instructions**
+  - ✅ **Proper timing**: 8 cycles for register ops, 16 cycles for memory ops + 4 cycles for CB prefix
+  - ✅ **Flag behavior**: BIT affects Z/N/H flags, SET/RES affect no flags, rotates affect Z/N/H/C flags, SLA affects Z/N/H/C flags
+  - 🔄 **IN PROGRESS**: Shift operations (SRA, SRL remaining), complete bit patterns for all 8 bits - **197 additional instructions remaining**
   - ✅ **Stack Helper Methods COMPLETED**: pushWord, popWord, pushByte, popByte with comprehensive tests
   - ✅ **Stack Operations COMPLETED**: All PUSH/POP, CALL/RET, RST instructions implemented (27 instructions)
   - [ ] Add call and return instructions (CALL, RET) - **ALREADY IMPLEMENTED, NEEDS OPCODE INTEGRATION**
@@ -503,7 +504,7 @@ gameboy-emulator/
 
 **Overall Progress**: 6/14 major milestones completed
 
-**Instruction Progress**: 144+/256 base instructions (56%+) + 51/256 CB-prefixed (20%) = **195/512 total (76%)**
+**Instruction Progress**: 144+/256 base instructions (56%+) + 59/256 CB-prefixed (23%) = **203/512 total (79.7%)**
 
 **MMU Progress**: ✅ COMPLETE - Full interface + CPU integration implemented with 100+ tests
 
@@ -541,15 +542,15 @@ gameboy-emulator/
 5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 195+/512 (76%+) - **Updated after CB Instructions implementation (+51 instructions)**
+- **Total Instructions**: 203+/512 (79.7%+) - **Updated after SLA shift operations implementation (+8 instructions)**
 - **Base Instructions**: 144/256 (56%) - **All core operations complete**
-- **CB Instructions**: 51/256 (20%) - **Core bit manipulation complete**
+- **CB Instructions**: 59/256 (23%) - **Core bit manipulation + SLA shift operations complete**
 - **Load Instructions**: 63/80 (79%) - **All register-to-register loads complete + ALL memory operations**
 - **Arithmetic Instructions**: 22/60 (37%) - **Basic arithmetic + 16-bit inc/dec + memory inc/dec**
 - **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR, CP operations complete**
 - **Control Instructions**: 12/50 (24%) - **Jump instructions completed, CALL/RET complete**
 - **Memory Instructions**: 15/15 (100%) - **ALL HL-based memory operations complete**
-- **Bit Manipulation**: 51/256 (20%) - **BIT, SET, RES, rotate, SWAP operations complete**
+- **Bit Manipulation**: 59/256 (23%) - **BIT, SET, RES, rotate, SWAP, SLA operations complete**
 - **Test Coverage**: 100% for implemented instructions
 - **Memory Integration**: ✅ All memory operations implemented and tested
 
