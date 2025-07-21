@@ -67,9 +67,29 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0x26: wrapCB_SLA_HL,   // SLA (HL)
 	0x27: wrapCB_SLA_A,    // SLA A
 	
+	// SRA Instructions (0x28-0x2F)
+	0x28: wrapCB_SRA_B,    // SRA B
+	0x29: wrapCB_SRA_C,    // SRA C
+	0x2A: wrapCB_SRA_D,    // SRA D
+	0x2B: wrapCB_SRA_E,    // SRA E
+	0x2C: wrapCB_SRA_H,    // SRA H
+	0x2D: wrapCB_SRA_L,    // SRA L
+	0x2E: wrapCB_SRA_HL,   // SRA (HL)
+	0x2F: wrapCB_SRA_A,    // SRA A
+	
 	0x30: wrapCB_SWAP_B,   // SWAP B
 	0x31: wrapCB_SWAP_C,   // SWAP C
 	0x36: wrapCB_SWAP_HL,  // SWAP (HL)
+	
+	// SRL Instructions (0x38-0x3F)
+	0x38: wrapCB_SRL_B,    // SRL B
+	0x39: wrapCB_SRL_C,    // SRL C
+	0x3A: wrapCB_SRL_D,    // SRL D
+	0x3B: wrapCB_SRL_E,    // SRL E
+	0x3C: wrapCB_SRL_H,    // SRL H
+	0x3D: wrapCB_SRL_L,    // SRL L
+	0x3E: wrapCB_SRL_HL,   // SRL (HL)
+	0x3F: wrapCB_SRL_A,    // SRL A
 
 	// === BIT Instructions (0x40-0x7F) ===
 	// BIT 0,r
@@ -608,6 +628,90 @@ func wrapCB_SLA_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+// === SRA Instruction Wrapper Functions ===
+
+func wrapCB_SRA_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_B()
+	return cycles, nil
+}
+
+func wrapCB_SRA_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_C()
+	return cycles, nil
+}
+
+func wrapCB_SRA_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_D()
+	return cycles, nil
+}
+
+func wrapCB_SRA_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_E()
+	return cycles, nil
+}
+
+func wrapCB_SRA_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_H()
+	return cycles, nil
+}
+
+func wrapCB_SRA_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_L()
+	return cycles, nil
+}
+
+func wrapCB_SRA_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_SRA_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRA_A()
+	return cycles, nil
+}
+
+// === SRL Instruction Wrapper Functions ===
+
+func wrapCB_SRL_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_B()
+	return cycles, nil
+}
+
+func wrapCB_SRL_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_C()
+	return cycles, nil
+}
+
+func wrapCB_SRL_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_D()
+	return cycles, nil
+}
+
+func wrapCB_SRL_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_E()
+	return cycles, nil
+}
+
+func wrapCB_SRL_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_H()
+	return cycles, nil
+}
+
+func wrapCB_SRL_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_L()
+	return cycles, nil
+}
+
+func wrapCB_SRL_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_SRL_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SRL_A()
+	return cycles, nil
+}
+
 // === CB Instruction Utilities ===
 
 // GetImplementedCBOpcodes returns a slice of all implemented CB opcodes
@@ -678,9 +782,29 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0x26: "SLA (HL)",
 		0x27: "SLA A",
 		
+		// SRA Instructions (0x28-0x2F)
+		0x28: "SRA B",
+		0x29: "SRA C",
+		0x2A: "SRA D",
+		0x2B: "SRA E",
+		0x2C: "SRA H",
+		0x2D: "SRA L",
+		0x2E: "SRA (HL)",
+		0x2F: "SRA A",
+		
 		0x30: "SWAP B",
 		0x31: "SWAP C",
 		0x36: "SWAP (HL)",
+		
+		// SRL Instructions (0x38-0x3F)
+		0x38: "SRL B",
+		0x39: "SRL C",
+		0x3A: "SRL D",
+		0x3B: "SRL E",
+		0x3C: "SRL H",
+		0x3D: "SRL L",
+		0x3E: "SRL (HL)",
+		0x3F: "SRL A",
 
 		// BIT 0,r
 		0x40: "BIT 0,B",

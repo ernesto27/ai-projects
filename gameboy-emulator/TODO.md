@@ -504,7 +504,7 @@ gameboy-emulator/
 
 **Overall Progress**: 6/14 major milestones completed
 
-**Instruction Progress**: 144+/256 base instructions (56%+) + 59/256 CB-prefixed (23%) = **203/512 total (79.7%)**
+**Instruction Progress**: 144+/256 base instructions (56%+) + 107/256 CB-prefixed (42%) = **251/512 total (49.0%)**
 
 **MMU Progress**: ✅ COMPLETE - Full interface + CPU integration implemented with 100+ tests
 
@@ -542,15 +542,15 @@ gameboy-emulator/
 5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 235/512 (45.9%) - **Updated after rotation instruction implementation (+32 instructions)**
+- **Total Instructions**: 251/512 (49.0%) - **Updated after SRA and SRL shift instruction implementation (+16 instructions)**
 - **Base Instructions**: 144/256 (56%) - **All core operations complete**
-- **CB Instructions**: 91/256 (35.5%) - **All rotation operations + bit manipulation + SLA shift operations complete**
+- **CB Instructions**: 107/256 (42%) - **All rotation operations + bit manipulation + SLA/SRA/SRL shift operations complete**
 - **Load Instructions**: 63/80 (79%) - **All register-to-register loads complete + ALL memory operations**
 - **Arithmetic Instructions**: 22/60 (37%) - **Basic arithmetic + 16-bit inc/dec + memory inc/dec**
 - **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR, CP operations complete**
 - **Control Instructions**: 12/50 (24%) - **Jump instructions completed, CALL/RET complete**
 - **Memory Instructions**: 15/15 (100%) - **ALL HL-based memory operations complete**
-- **Bit Manipulation**: 91/256 (35.5%) - **ALL rotation operations + BIT, SET, RES, SWAP, SLA operations complete**
+- **Bit Manipulation**: 107/256 (42%) - **ALL rotation operations + BIT, SET, RES, SWAP, SLA, SRA, SRL operations complete**
 - **Test Coverage**: 100% for implemented instructions with comprehensive edge case testing
 - **Memory Integration**: ✅ All memory operations implemented and tested
 
