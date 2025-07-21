@@ -16,10 +16,46 @@ type CBInstructionFunc func(*CPU, memory.MemoryInterface) (uint8, error)
 // cbOpcodeTable maps CB opcodes (0x00-0xFF) to their instruction functions
 var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	// === Rotate and Shift Instructions (0x00-0x3F) ===
+	
+	// RLC Instructions (0x00-0x07)
 	0x00: wrapCB_RLC_B,    // RLC B
 	0x01: wrapCB_RLC_C,    // RLC C
+	0x02: wrapCB_RLC_D,    // RLC D
+	0x03: wrapCB_RLC_E,    // RLC E
+	0x04: wrapCB_RLC_H,    // RLC H
+	0x05: wrapCB_RLC_L,    // RLC L
+	0x06: wrapCB_RLC_HL,   // RLC (HL)
+	0x07: wrapCB_RLC_A,    // RLC A
+	
+	// RRC Instructions (0x08-0x0F)
 	0x08: wrapCB_RRC_B,    // RRC B
 	0x09: wrapCB_RRC_C,    // RRC C
+	0x0A: wrapCB_RRC_D,    // RRC D
+	0x0B: wrapCB_RRC_E,    // RRC E
+	0x0C: wrapCB_RRC_H,    // RRC H
+	0x0D: wrapCB_RRC_L,    // RRC L
+	0x0E: wrapCB_RRC_HL,   // RRC (HL)
+	0x0F: wrapCB_RRC_A,    // RRC A
+	
+	// RL Instructions (0x10-0x17)
+	0x10: wrapCB_RL_B,     // RL B
+	0x11: wrapCB_RL_C,     // RL C
+	0x12: wrapCB_RL_D,     // RL D
+	0x13: wrapCB_RL_E,     // RL E
+	0x14: wrapCB_RL_H,     // RL H
+	0x15: wrapCB_RL_L,     // RL L
+	0x16: wrapCB_RL_HL,    // RL (HL)
+	0x17: wrapCB_RL_A,     // RL A
+	
+	// RR Instructions (0x18-0x1F)
+	0x18: wrapCB_RR_B,     // RR B
+	0x19: wrapCB_RR_C,     // RR C
+	0x1A: wrapCB_RR_D,     // RR D
+	0x1B: wrapCB_RR_E,     // RR E
+	0x1C: wrapCB_RR_H,     // RR H
+	0x1D: wrapCB_RR_L,     // RR L
+	0x1E: wrapCB_RR_HL,    // RR (HL)
+	0x1F: wrapCB_RR_A,     // RR A
 	
 	// SLA Instructions (0x20-0x27)
 	0x20: wrapCB_SLA_B,    // SLA B
@@ -118,6 +154,7 @@ func (cpu *CPU) ExecuteCBInstruction(mmu memory.MemoryInterface, opcode uint8) (
 
 // === Rotate and Shift Wrapper Functions ===
 
+// RLC Wrappers (0x00-0x07)
 func wrapCB_RLC_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.RLC_B()
 	return cycles, nil
@@ -128,6 +165,37 @@ func wrapCB_RLC_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+func wrapCB_RLC_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_D()
+	return cycles, nil
+}
+
+func wrapCB_RLC_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_E()
+	return cycles, nil
+}
+
+func wrapCB_RLC_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_H()
+	return cycles, nil
+}
+
+func wrapCB_RLC_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_L()
+	return cycles, nil
+}
+
+func wrapCB_RLC_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_RLC_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RLC_A()
+	return cycles, nil
+}
+
+// RRC Wrappers (0x08-0x0F)
 func wrapCB_RRC_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.RRC_B()
 	return cycles, nil
@@ -135,6 +203,118 @@ func wrapCB_RRC_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 
 func wrapCB_RRC_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.RRC_C()
+	return cycles, nil
+}
+
+func wrapCB_RRC_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_D()
+	return cycles, nil
+}
+
+func wrapCB_RRC_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_E()
+	return cycles, nil
+}
+
+func wrapCB_RRC_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_H()
+	return cycles, nil
+}
+
+func wrapCB_RRC_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_L()
+	return cycles, nil
+}
+
+func wrapCB_RRC_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_RRC_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RRC_A()
+	return cycles, nil
+}
+
+// RL Wrappers (0x10-0x17)
+func wrapCB_RL_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_B()
+	return cycles, nil
+}
+
+func wrapCB_RL_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_C()
+	return cycles, nil
+}
+
+func wrapCB_RL_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_D()
+	return cycles, nil
+}
+
+func wrapCB_RL_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_E()
+	return cycles, nil
+}
+
+func wrapCB_RL_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_H()
+	return cycles, nil
+}
+
+func wrapCB_RL_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_L()
+	return cycles, nil
+}
+
+func wrapCB_RL_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_RL_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RL_A()
+	return cycles, nil
+}
+
+// RR Wrappers (0x18-0x1F)
+func wrapCB_RR_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_B()
+	return cycles, nil
+}
+
+func wrapCB_RR_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_C()
+	return cycles, nil
+}
+
+func wrapCB_RR_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_D()
+	return cycles, nil
+}
+
+func wrapCB_RR_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_E()
+	return cycles, nil
+}
+
+func wrapCB_RR_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_H()
+	return cycles, nil
+}
+
+func wrapCB_RR_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_L()
+	return cycles, nil
+}
+
+func wrapCB_RR_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_RR_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RR_A()
 	return cycles, nil
 }
 
@@ -448,13 +628,47 @@ func IsCBOpcodeImplemented(opcode uint8) bool {
 // GetCBOpcodeInfo returns a human-readable description of a CB instruction
 func GetCBOpcodeInfo(opcode uint8) string {
 	descriptions := map[uint8]string{
-		// Rotate and Shift
+		// RLC Instructions (0x00-0x07)
 		0x00: "RLC B",
 		0x01: "RLC C",
+		0x02: "RLC D",
+		0x03: "RLC E",
+		0x04: "RLC H",
+		0x05: "RLC L",
+		0x06: "RLC (HL)",
+		0x07: "RLC A",
+		
+		// RRC Instructions (0x08-0x0F)
 		0x08: "RRC B",
 		0x09: "RRC C",
+		0x0A: "RRC D",
+		0x0B: "RRC E",
+		0x0C: "RRC H",
+		0x0D: "RRC L",
+		0x0E: "RRC (HL)",
+		0x0F: "RRC A",
 		
-		// SLA Instructions
+		// RL Instructions (0x10-0x17)
+		0x10: "RL B",
+		0x11: "RL C",
+		0x12: "RL D",
+		0x13: "RL E",
+		0x14: "RL H",
+		0x15: "RL L",
+		0x16: "RL (HL)",
+		0x17: "RL A",
+		
+		// RR Instructions (0x18-0x1F)
+		0x18: "RR B",
+		0x19: "RR C",
+		0x1A: "RR D",
+		0x1B: "RR E",
+		0x1C: "RR H",
+		0x1D: "RR L",
+		0x1E: "RR (HL)",
+		0x1F: "RR A",
+		
+		// SLA Instructions (0x20-0x27)
 		0x20: "SLA B",
 		0x21: "SLA C",
 		0x22: "SLA D",

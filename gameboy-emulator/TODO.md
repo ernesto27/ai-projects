@@ -542,16 +542,16 @@ gameboy-emulator/
 5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 203+/512 (79.7%+) - **Updated after SLA shift operations implementation (+8 instructions)**
+- **Total Instructions**: 235/512 (45.9%) - **Updated after rotation instruction implementation (+32 instructions)**
 - **Base Instructions**: 144/256 (56%) - **All core operations complete**
-- **CB Instructions**: 59/256 (23%) - **Core bit manipulation + SLA shift operations complete**
+- **CB Instructions**: 91/256 (35.5%) - **All rotation operations + bit manipulation + SLA shift operations complete**
 - **Load Instructions**: 63/80 (79%) - **All register-to-register loads complete + ALL memory operations**
 - **Arithmetic Instructions**: 22/60 (37%) - **Basic arithmetic + 16-bit inc/dec + memory inc/dec**
 - **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR, CP operations complete**
 - **Control Instructions**: 12/50 (24%) - **Jump instructions completed, CALL/RET complete**
 - **Memory Instructions**: 15/15 (100%) - **ALL HL-based memory operations complete**
-- **Bit Manipulation**: 59/256 (23%) - **BIT, SET, RES, rotate, SWAP, SLA operations complete**
-- **Test Coverage**: 100% for implemented instructions
+- **Bit Manipulation**: 91/256 (35.5%) - **ALL rotation operations + BIT, SET, RES, SWAP, SLA operations complete**
+- **Test Coverage**: 100% for implemented instructions with comprehensive edge case testing
 - **Memory Integration**: ✅ All memory operations implemented and tested
 
 ---
@@ -560,6 +560,18 @@ gameboy-emulator/
 **Next Task**: Integrate existing stack operations into opcode dispatch system (Phase 2 completion)
 
 **Recently Completed**: 
+- ✅ **ALL Rotation Instructions COMPLETED** (July 21, 2025) - Complete rotation operation set implemented
+  - ✅ **All RLC operations**: RLC B/C/D/E/H/L/(HL)/A (8 instructions) - circular left rotation
+  - ✅ **All RRC operations**: RRC B/C/D/E/H/L/(HL)/A (8 instructions) - circular right rotation  
+  - ✅ **All RL operations**: RL B/C/D/E/H/L/(HL)/A (8 instructions) - left rotation through carry
+  - ✅ **All RR operations**: RR B/C/D/E/H/L/(HL)/A (8 instructions) - right rotation through carry
+  - ✅ **New dedicated file**: cpu_cb_rotate_shift.go for better code organization
+  - ✅ **Complete CB dispatch integration**: All 32 rotation instructions callable via ExecuteCBInstruction
+  - ✅ **Comprehensive testing**: 50+ test cases covering all rotation types, edge cases, and CB dispatch
+  - ✅ **Proper flag handling**: Z/N/H/C flags correctly set for each rotation type
+  - ✅ **Memory operations**: (HL) variants with 16-cycle timing vs 8-cycle register timing
+  - ✅ **Carry flag participation**: Distinction between circular (RLC/RRC) and through-carry (RL/RR) rotations
+
 - ✅ **RST Instructions Implementation COMPLETED** (July 14, 2025) - All 8 RST instructions now fully integrated
   - ✅ **All RST operations**: RST 00H through RST 38H (0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF)
   - ✅ **Proper restart vector handling**: Each RST jumps to fixed addresses (0x0000, 0x0008, 0x0010, etc.)
