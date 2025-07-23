@@ -268,8 +268,72 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0xC5: wrapCB_SET_0_L,  // SET 0,L
 	0xC6: wrapCB_SET_0_HL, // SET 0,(HL)
 	0xC7: wrapCB_SET_0_A,  // SET 0,A
-
+	
+	// SET 1,r
+	0xC8: wrapCB_SET_1_B,  // SET 1,B
+	0xC9: wrapCB_SET_1_C,  // SET 1,C
+	0xCA: wrapCB_SET_1_D,  // SET 1,D
+	0xCB: wrapCB_SET_1_E,  // SET 1,E
+	0xCC: wrapCB_SET_1_H,  // SET 1,H
+	0xCD: wrapCB_SET_1_L,  // SET 1,L
+	0xCE: wrapCB_SET_1_HL, // SET 1,(HL)
+	0xCF: wrapCB_SET_1_A,  // SET 1,A
+	
+	// SET 2,r
+	0xD0: wrapCB_SET_2_B,  // SET 2,B
+	0xD1: wrapCB_SET_2_C,  // SET 2,C
+	0xD2: wrapCB_SET_2_D,  // SET 2,D
+	0xD3: wrapCB_SET_2_E,  // SET 2,E
+	0xD4: wrapCB_SET_2_H,  // SET 2,H
+	0xD5: wrapCB_SET_2_L,  // SET 2,L
+	0xD6: wrapCB_SET_2_HL, // SET 2,(HL)
+	0xD7: wrapCB_SET_2_A,  // SET 2,A
+	
+	// SET 3,r
+	0xD8: wrapCB_SET_3_B,  // SET 3,B
+	0xD9: wrapCB_SET_3_C,  // SET 3,C
+	0xDA: wrapCB_SET_3_D,  // SET 3,D
+	0xDB: wrapCB_SET_3_E,  // SET 3,E
+	0xDC: wrapCB_SET_3_H,  // SET 3,H
+	0xDD: wrapCB_SET_3_L,  // SET 3,L
+	0xDE: wrapCB_SET_3_HL, // SET 3,(HL)
+	0xDF: wrapCB_SET_3_A,  // SET 3,A
+	
+	// SET 4,r
+	0xE0: wrapCB_SET_4_B,  // SET 4,B
+	0xE1: wrapCB_SET_4_C,  // SET 4,C
+	0xE2: wrapCB_SET_4_D,  // SET 4,D
+	0xE3: wrapCB_SET_4_E,  // SET 4,E
+	0xE4: wrapCB_SET_4_H,  // SET 4,H
+	0xE5: wrapCB_SET_4_L,  // SET 4,L
+	0xE6: wrapCB_SET_4_HL, // SET 4,(HL)
+	0xE7: wrapCB_SET_4_A,  // SET 4,A
+	
+	// SET 5,r
+	0xE8: wrapCB_SET_5_B,  // SET 5,B
+	0xE9: wrapCB_SET_5_C,  // SET 5,C
+	0xEA: wrapCB_SET_5_D,  // SET 5,D
+	0xEB: wrapCB_SET_5_E,  // SET 5,E
+	0xEC: wrapCB_SET_5_H,  // SET 5,H
+	0xED: wrapCB_SET_5_L,  // SET 5,L
+	0xEE: wrapCB_SET_5_HL, // SET 5,(HL)
+	0xEF: wrapCB_SET_5_A,  // SET 5,A
+	
+	// SET 6,r
+	0xF0: wrapCB_SET_6_B,  // SET 6,B
+	0xF1: wrapCB_SET_6_C,  // SET 6,C
+	0xF2: wrapCB_SET_6_D,  // SET 6,D
+	0xF3: wrapCB_SET_6_E,  // SET 6,E
+	0xF4: wrapCB_SET_6_H,  // SET 6,H
+	0xF5: wrapCB_SET_6_L,  // SET 6,L
+	0xF6: wrapCB_SET_6_HL, // SET 6,(HL)
+	0xF7: wrapCB_SET_6_A,  // SET 6,A
+	
 	// SET 7,r (most significant bit)
+	0xF8: wrapCB_SET_7_B,  // SET 7,B
+	0xF9: wrapCB_SET_7_C,  // SET 7,C
+	0xFA: wrapCB_SET_7_D,  // SET 7,D
+	0xFB: wrapCB_SET_7_E,  // SET 7,E
 	0xFC: wrapCB_SET_7_H,  // SET 7,H
 	0xFD: wrapCB_SET_7_L,  // SET 7,L
 	0xFE: wrapCB_SET_7_HL, // SET 7,(HL)
@@ -1154,7 +1218,227 @@ func wrapCB_SET_0_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+// SET 1,r wrappers
+func wrapCB_SET_1_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_B()
+	return cycles, nil
+}
+func wrapCB_SET_1_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_C()
+	return cycles, nil
+}
+func wrapCB_SET_1_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_D()
+	return cycles, nil
+}
+func wrapCB_SET_1_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_E()
+	return cycles, nil
+}
+func wrapCB_SET_1_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_H()
+	return cycles, nil
+}
+func wrapCB_SET_1_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_L()
+	return cycles, nil
+}
+func wrapCB_SET_1_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_1_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_1_A()
+	return cycles, nil
+}
+
+// SET 2,r wrappers
+func wrapCB_SET_2_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_B()
+	return cycles, nil
+}
+func wrapCB_SET_2_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_C()
+	return cycles, nil
+}
+func wrapCB_SET_2_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_D()
+	return cycles, nil
+}
+func wrapCB_SET_2_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_E()
+	return cycles, nil
+}
+func wrapCB_SET_2_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_H()
+	return cycles, nil
+}
+func wrapCB_SET_2_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_L()
+	return cycles, nil
+}
+func wrapCB_SET_2_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_2_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_2_A()
+	return cycles, nil
+}
+
+// SET 3,r wrappers
+func wrapCB_SET_3_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_B()
+	return cycles, nil
+}
+func wrapCB_SET_3_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_C()
+	return cycles, nil
+}
+func wrapCB_SET_3_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_D()
+	return cycles, nil
+}
+func wrapCB_SET_3_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_E()
+	return cycles, nil
+}
+func wrapCB_SET_3_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_H()
+	return cycles, nil
+}
+func wrapCB_SET_3_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_L()
+	return cycles, nil
+}
+func wrapCB_SET_3_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_3_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_3_A()
+	return cycles, nil
+}
+
+// SET 4,r wrappers
+func wrapCB_SET_4_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_B()
+	return cycles, nil
+}
+func wrapCB_SET_4_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_C()
+	return cycles, nil
+}
+func wrapCB_SET_4_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_D()
+	return cycles, nil
+}
+func wrapCB_SET_4_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_E()
+	return cycles, nil
+}
+func wrapCB_SET_4_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_H()
+	return cycles, nil
+}
+func wrapCB_SET_4_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_L()
+	return cycles, nil
+}
+func wrapCB_SET_4_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_4_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_4_A()
+	return cycles, nil
+}
+
+// SET 5,r wrappers
+func wrapCB_SET_5_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_B()
+	return cycles, nil
+}
+func wrapCB_SET_5_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_C()
+	return cycles, nil
+}
+func wrapCB_SET_5_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_D()
+	return cycles, nil
+}
+func wrapCB_SET_5_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_E()
+	return cycles, nil
+}
+func wrapCB_SET_5_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_H()
+	return cycles, nil
+}
+func wrapCB_SET_5_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_L()
+	return cycles, nil
+}
+func wrapCB_SET_5_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_5_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_5_A()
+	return cycles, nil
+}
+
+// SET 6,r wrappers
+func wrapCB_SET_6_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_B()
+	return cycles, nil
+}
+func wrapCB_SET_6_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_C()
+	return cycles, nil
+}
+func wrapCB_SET_6_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_D()
+	return cycles, nil
+}
+func wrapCB_SET_6_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_E()
+	return cycles, nil
+}
+func wrapCB_SET_6_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_H()
+	return cycles, nil
+}
+func wrapCB_SET_6_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_L()
+	return cycles, nil
+}
+func wrapCB_SET_6_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_SET_6_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_6_A()
+	return cycles, nil
+}
+
 // SET 7,r wrappers
+func wrapCB_SET_7_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_7_B()
+	return cycles, nil
+}
+func wrapCB_SET_7_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_7_C()
+	return cycles, nil
+}
+func wrapCB_SET_7_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_7_D()
+	return cycles, nil
+}
+func wrapCB_SET_7_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SET_7_E()
+	return cycles, nil
+}
 func wrapCB_SET_7_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.SET_7_H()
 	return cycles, nil
@@ -1570,7 +1854,71 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0xC6: "SET 0,(HL)",
 		0xC7: "SET 0,A",
 
+		// SET 1,r
+		0xC8: "SET 1,B",
+		0xC9: "SET 1,C",
+		0xCA: "SET 1,D",
+		0xCB: "SET 1,E",
+		0xCC: "SET 1,H",
+		0xCD: "SET 1,L",
+		0xCE: "SET 1,(HL)",
+		0xCF: "SET 1,A",
+
+		// SET 2,r
+		0xD0: "SET 2,B",
+		0xD1: "SET 2,C",
+		0xD2: "SET 2,D",
+		0xD3: "SET 2,E",
+		0xD4: "SET 2,H",
+		0xD5: "SET 2,L",
+		0xD6: "SET 2,(HL)",
+		0xD7: "SET 2,A",
+
+		// SET 3,r
+		0xD8: "SET 3,B",
+		0xD9: "SET 3,C",
+		0xDA: "SET 3,D",
+		0xDB: "SET 3,E",
+		0xDC: "SET 3,H",
+		0xDD: "SET 3,L",
+		0xDE: "SET 3,(HL)",
+		0xDF: "SET 3,A",
+
+		// SET 4,r
+		0xE0: "SET 4,B",
+		0xE1: "SET 4,C",
+		0xE2: "SET 4,D",
+		0xE3: "SET 4,E",
+		0xE4: "SET 4,H",
+		0xE5: "SET 4,L",
+		0xE6: "SET 4,(HL)",
+		0xE7: "SET 4,A",
+
+		// SET 5,r
+		0xE8: "SET 5,B",
+		0xE9: "SET 5,C",
+		0xEA: "SET 5,D",
+		0xEB: "SET 5,E",
+		0xEC: "SET 5,H",
+		0xED: "SET 5,L",
+		0xEE: "SET 5,(HL)",
+		0xEF: "SET 5,A",
+
+		// SET 6,r
+		0xF0: "SET 6,B",
+		0xF1: "SET 6,C",
+		0xF2: "SET 6,D",
+		0xF3: "SET 6,E",
+		0xF4: "SET 6,H",
+		0xF5: "SET 6,L",
+		0xF6: "SET 6,(HL)",
+		0xF7: "SET 6,A",
+
 		// SET 7,r
+		0xF8: "SET 7,B",
+		0xF9: "SET 7,C",
+		0xFA: "SET 7,D",
+		0xFB: "SET 7,E",
 		0xFC: "SET 7,H",
 		0xFD: "SET 7,L",
 		0xFE: "SET 7,(HL)",
