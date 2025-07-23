@@ -168,6 +168,10 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0x77: wrapCB_BIT_6_A,  // BIT 6,A
 
 	// BIT 7,r (most significant bit)
+	0x78: wrapCB_BIT_7_B,  // BIT 7,B
+	0x79: wrapCB_BIT_7_C,  // BIT 7,C
+	0x7A: wrapCB_BIT_7_D,  // BIT 7,D
+	0x7B: wrapCB_BIT_7_E,  // BIT 7,E
 	0x7C: wrapCB_BIT_7_H,  // BIT 7,H
 	0x7D: wrapCB_BIT_7_L,  // BIT 7,L
 	0x7E: wrapCB_BIT_7_HL, // BIT 7,(HL)
@@ -183,8 +187,72 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0x85: wrapCB_RES_0_L,  // RES 0,L
 	0x86: wrapCB_RES_0_HL, // RES 0,(HL)
 	0x87: wrapCB_RES_0_A,  // RES 0,A
-
+	
+	// RES 1,r
+	0x88: wrapCB_RES_1_B,  // RES 1,B
+	0x89: wrapCB_RES_1_C,  // RES 1,C
+	0x8A: wrapCB_RES_1_D,  // RES 1,D
+	0x8B: wrapCB_RES_1_E,  // RES 1,E
+	0x8C: wrapCB_RES_1_H,  // RES 1,H
+	0x8D: wrapCB_RES_1_L,  // RES 1,L
+	0x8E: wrapCB_RES_1_HL, // RES 1,(HL)
+	0x8F: wrapCB_RES_1_A,  // RES 1,A
+	
+	// RES 2,r
+	0x90: wrapCB_RES_2_B,  // RES 2,B
+	0x91: wrapCB_RES_2_C,  // RES 2,C
+	0x92: wrapCB_RES_2_D,  // RES 2,D
+	0x93: wrapCB_RES_2_E,  // RES 2,E
+	0x94: wrapCB_RES_2_H,  // RES 2,H
+	0x95: wrapCB_RES_2_L,  // RES 2,L
+	0x96: wrapCB_RES_2_HL, // RES 2,(HL)
+	0x97: wrapCB_RES_2_A,  // RES 2,A
+	
+	// RES 3,r
+	0x98: wrapCB_RES_3_B,  // RES 3,B
+	0x99: wrapCB_RES_3_C,  // RES 3,C
+	0x9A: wrapCB_RES_3_D,  // RES 3,D
+	0x9B: wrapCB_RES_3_E,  // RES 3,E
+	0x9C: wrapCB_RES_3_H,  // RES 3,H
+	0x9D: wrapCB_RES_3_L,  // RES 3,L
+	0x9E: wrapCB_RES_3_HL, // RES 3,(HL)
+	0x9F: wrapCB_RES_3_A,  // RES 3,A
+	
+	// RES 4,r
+	0xA0: wrapCB_RES_4_B,  // RES 4,B
+	0xA1: wrapCB_RES_4_C,  // RES 4,C
+	0xA2: wrapCB_RES_4_D,  // RES 4,D
+	0xA3: wrapCB_RES_4_E,  // RES 4,E
+	0xA4: wrapCB_RES_4_H,  // RES 4,H
+	0xA5: wrapCB_RES_4_L,  // RES 4,L
+	0xA6: wrapCB_RES_4_HL, // RES 4,(HL)
+	0xA7: wrapCB_RES_4_A,  // RES 4,A
+	
+	// RES 5,r
+	0xA8: wrapCB_RES_5_B,  // RES 5,B
+	0xA9: wrapCB_RES_5_C,  // RES 5,C
+	0xAA: wrapCB_RES_5_D,  // RES 5,D
+	0xAB: wrapCB_RES_5_E,  // RES 5,E
+	0xAC: wrapCB_RES_5_H,  // RES 5,H
+	0xAD: wrapCB_RES_5_L,  // RES 5,L
+	0xAE: wrapCB_RES_5_HL, // RES 5,(HL)
+	0xAF: wrapCB_RES_5_A,  // RES 5,A
+	
+	// RES 6,r
+	0xB0: wrapCB_RES_6_B,  // RES 6,B
+	0xB1: wrapCB_RES_6_C,  // RES 6,C
+	0xB2: wrapCB_RES_6_D,  // RES 6,D
+	0xB3: wrapCB_RES_6_E,  // RES 6,E
+	0xB4: wrapCB_RES_6_H,  // RES 6,H
+	0xB5: wrapCB_RES_6_L,  // RES 6,L
+	0xB6: wrapCB_RES_6_HL, // RES 6,(HL)
+	0xB7: wrapCB_RES_6_A,  // RES 6,A
+	
 	// RES 7,r (most significant bit)
+	0xB8: wrapCB_RES_7_B,  // RES 7,B
+	0xB9: wrapCB_RES_7_C,  // RES 7,C
+	0xBA: wrapCB_RES_7_D,  // RES 7,D
+	0xBB: wrapCB_RES_7_E,  // RES 7,E
 	0xBC: wrapCB_RES_7_H,  // RES 7,H
 	0xBD: wrapCB_RES_7_L,  // RES 7,L
 	0xBE: wrapCB_RES_7_HL, // RES 7,(HL)
@@ -723,6 +791,22 @@ func wrapCB_BIT_6_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 }
 
 // BIT 7,r wrappers
+func wrapCB_BIT_7_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_7_B()
+	return cycles, nil
+}
+func wrapCB_BIT_7_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_7_C()
+	return cycles, nil
+}
+func wrapCB_BIT_7_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_7_D()
+	return cycles, nil
+}
+func wrapCB_BIT_7_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_7_E()
+	return cycles, nil
+}
 func wrapCB_BIT_7_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.BIT_7_H()
 	return cycles, nil
@@ -786,7 +870,227 @@ func wrapCB_RES_0_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+// RES 1,r wrappers
+func wrapCB_RES_1_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_B()
+	return cycles, nil
+}
+func wrapCB_RES_1_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_C()
+	return cycles, nil
+}
+func wrapCB_RES_1_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_D()
+	return cycles, nil
+}
+func wrapCB_RES_1_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_E()
+	return cycles, nil
+}
+func wrapCB_RES_1_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_H()
+	return cycles, nil
+}
+func wrapCB_RES_1_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_L()
+	return cycles, nil
+}
+func wrapCB_RES_1_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_1_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_1_A()
+	return cycles, nil
+}
+
+// RES 2,r wrappers
+func wrapCB_RES_2_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_B()
+	return cycles, nil
+}
+func wrapCB_RES_2_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_C()
+	return cycles, nil
+}
+func wrapCB_RES_2_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_D()
+	return cycles, nil
+}
+func wrapCB_RES_2_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_E()
+	return cycles, nil
+}
+func wrapCB_RES_2_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_H()
+	return cycles, nil
+}
+func wrapCB_RES_2_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_L()
+	return cycles, nil
+}
+func wrapCB_RES_2_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_2_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_2_A()
+	return cycles, nil
+}
+
+// RES 3,r wrappers
+func wrapCB_RES_3_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_B()
+	return cycles, nil
+}
+func wrapCB_RES_3_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_C()
+	return cycles, nil
+}
+func wrapCB_RES_3_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_D()
+	return cycles, nil
+}
+func wrapCB_RES_3_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_E()
+	return cycles, nil
+}
+func wrapCB_RES_3_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_H()
+	return cycles, nil
+}
+func wrapCB_RES_3_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_L()
+	return cycles, nil
+}
+func wrapCB_RES_3_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_3_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_3_A()
+	return cycles, nil
+}
+
+// RES 4,r wrappers
+func wrapCB_RES_4_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_B()
+	return cycles, nil
+}
+func wrapCB_RES_4_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_C()
+	return cycles, nil
+}
+func wrapCB_RES_4_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_D()
+	return cycles, nil
+}
+func wrapCB_RES_4_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_E()
+	return cycles, nil
+}
+func wrapCB_RES_4_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_H()
+	return cycles, nil
+}
+func wrapCB_RES_4_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_L()
+	return cycles, nil
+}
+func wrapCB_RES_4_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_4_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_4_A()
+	return cycles, nil
+}
+
+// RES 5,r wrappers
+func wrapCB_RES_5_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_B()
+	return cycles, nil
+}
+func wrapCB_RES_5_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_C()
+	return cycles, nil
+}
+func wrapCB_RES_5_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_D()
+	return cycles, nil
+}
+func wrapCB_RES_5_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_E()
+	return cycles, nil
+}
+func wrapCB_RES_5_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_H()
+	return cycles, nil
+}
+func wrapCB_RES_5_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_L()
+	return cycles, nil
+}
+func wrapCB_RES_5_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_5_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_5_A()
+	return cycles, nil
+}
+
+// RES 6,r wrappers
+func wrapCB_RES_6_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_B()
+	return cycles, nil
+}
+func wrapCB_RES_6_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_C()
+	return cycles, nil
+}
+func wrapCB_RES_6_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_D()
+	return cycles, nil
+}
+func wrapCB_RES_6_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_E()
+	return cycles, nil
+}
+func wrapCB_RES_6_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_H()
+	return cycles, nil
+}
+func wrapCB_RES_6_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_L()
+	return cycles, nil
+}
+func wrapCB_RES_6_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_HL(mmu)
+	return cycles, nil
+}
+func wrapCB_RES_6_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_6_A()
+	return cycles, nil
+}
+
 // RES 7,r wrappers
+func wrapCB_RES_7_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_7_B()
+	return cycles, nil
+}
+func wrapCB_RES_7_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_7_C()
+	return cycles, nil
+}
+func wrapCB_RES_7_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_7_D()
+	return cycles, nil
+}
+func wrapCB_RES_7_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.RES_7_E()
+	return cycles, nil
+}
 func wrapCB_RES_7_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.RES_7_H()
 	return cycles, nil
@@ -1167,6 +1471,10 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0x77: "BIT 6,A",
 
 		// BIT 7,r
+		0x78: "BIT 7,B",
+		0x79: "BIT 7,C",
+		0x7A: "BIT 7,D",
+		0x7B: "BIT 7,E",
 		0x7C: "BIT 7,H",
 		0x7D: "BIT 7,L",
 		0x7E: "BIT 7,(HL)",
@@ -1182,7 +1490,71 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0x86: "RES 0,(HL)",
 		0x87: "RES 0,A",
 
+		// RES 1,r
+		0x88: "RES 1,B",
+		0x89: "RES 1,C",
+		0x8A: "RES 1,D",
+		0x8B: "RES 1,E",
+		0x8C: "RES 1,H",
+		0x8D: "RES 1,L",
+		0x8E: "RES 1,(HL)",
+		0x8F: "RES 1,A",
+
+		// RES 2,r
+		0x90: "RES 2,B",
+		0x91: "RES 2,C",
+		0x92: "RES 2,D",
+		0x93: "RES 2,E",
+		0x94: "RES 2,H",
+		0x95: "RES 2,L",
+		0x96: "RES 2,(HL)",
+		0x97: "RES 2,A",
+
+		// RES 3,r
+		0x98: "RES 3,B",
+		0x99: "RES 3,C",
+		0x9A: "RES 3,D",
+		0x9B: "RES 3,E",
+		0x9C: "RES 3,H",
+		0x9D: "RES 3,L",
+		0x9E: "RES 3,(HL)",
+		0x9F: "RES 3,A",
+
+		// RES 4,r
+		0xA0: "RES 4,B",
+		0xA1: "RES 4,C",
+		0xA2: "RES 4,D",
+		0xA3: "RES 4,E",
+		0xA4: "RES 4,H",
+		0xA5: "RES 4,L",
+		0xA6: "RES 4,(HL)",
+		0xA7: "RES 4,A",
+
+		// RES 5,r
+		0xA8: "RES 5,B",
+		0xA9: "RES 5,C",
+		0xAA: "RES 5,D",
+		0xAB: "RES 5,E",
+		0xAC: "RES 5,H",
+		0xAD: "RES 5,L",
+		0xAE: "RES 5,(HL)",
+		0xAF: "RES 5,A",
+
+		// RES 6,r
+		0xB0: "RES 6,B",
+		0xB1: "RES 6,C",
+		0xB2: "RES 6,D",
+		0xB3: "RES 6,E",
+		0xB4: "RES 6,H",
+		0xB5: "RES 6,L",
+		0xB6: "RES 6,(HL)",
+		0xB7: "RES 6,A",
+
 		// RES 7,r
+		0xB8: "RES 7,B",
+		0xB9: "RES 7,C",
+		0xBA: "RES 7,D",
+		0xBB: "RES 7,E",
 		0xBC: "RES 7,H",
 		0xBD: "RES 7,L",
 		0xBE: "RES 7,(HL)",
