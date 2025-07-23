@@ -117,6 +117,56 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	0x4E: wrapCB_BIT_1_HL, // BIT 1,(HL)
 	0x4F: wrapCB_BIT_1_A,  // BIT 1,A
 
+	// BIT 2,r
+	0x50: wrapCB_BIT_2_B,  // BIT 2,B
+	0x51: wrapCB_BIT_2_C,  // BIT 2,C
+	0x52: wrapCB_BIT_2_D,  // BIT 2,D
+	0x53: wrapCB_BIT_2_E,  // BIT 2,E
+	0x54: wrapCB_BIT_2_H,  // BIT 2,H
+	0x55: wrapCB_BIT_2_L,  // BIT 2,L
+	0x56: wrapCB_BIT_2_HL, // BIT 2,(HL)
+	0x57: wrapCB_BIT_2_A,  // BIT 2,A
+
+	// BIT 3,r
+	0x58: wrapCB_BIT_3_B,  // BIT 3,B
+	0x59: wrapCB_BIT_3_C,  // BIT 3,C
+	0x5A: wrapCB_BIT_3_D,  // BIT 3,D
+	0x5B: wrapCB_BIT_3_E,  // BIT 3,E
+	0x5C: wrapCB_BIT_3_H,  // BIT 3,H
+	0x5D: wrapCB_BIT_3_L,  // BIT 3,L
+	0x5E: wrapCB_BIT_3_HL, // BIT 3,(HL)
+	0x5F: wrapCB_BIT_3_A,  // BIT 3,A
+
+	// BIT 4,r
+	0x60: wrapCB_BIT_4_B,  // BIT 4,B
+	0x61: wrapCB_BIT_4_C,  // BIT 4,C
+	0x62: wrapCB_BIT_4_D,  // BIT 4,D
+	0x63: wrapCB_BIT_4_E,  // BIT 4,E
+	0x64: wrapCB_BIT_4_H,  // BIT 4,H
+	0x65: wrapCB_BIT_4_L,  // BIT 4,L
+	0x66: wrapCB_BIT_4_HL, // BIT 4,(HL)
+	0x67: wrapCB_BIT_4_A,  // BIT 4,A
+
+	// BIT 5,r
+	0x68: wrapCB_BIT_5_B,  // BIT 5,B
+	0x69: wrapCB_BIT_5_C,  // BIT 5,C
+	0x6A: wrapCB_BIT_5_D,  // BIT 5,D
+	0x6B: wrapCB_BIT_5_E,  // BIT 5,E
+	0x6C: wrapCB_BIT_5_H,  // BIT 5,H
+	0x6D: wrapCB_BIT_5_L,  // BIT 5,L
+	0x6E: wrapCB_BIT_5_HL, // BIT 5,(HL)
+	0x6F: wrapCB_BIT_5_A,  // BIT 5,A
+
+	// BIT 6,r
+	0x70: wrapCB_BIT_6_B,  // BIT 6,B
+	0x71: wrapCB_BIT_6_C,  // BIT 6,C
+	0x72: wrapCB_BIT_6_D,  // BIT 6,D
+	0x73: wrapCB_BIT_6_E,  // BIT 6,E
+	0x74: wrapCB_BIT_6_H,  // BIT 6,H
+	0x75: wrapCB_BIT_6_L,  // BIT 6,L
+	0x76: wrapCB_BIT_6_HL, // BIT 6,(HL)
+	0x77: wrapCB_BIT_6_A,  // BIT 6,A
+
 	// BIT 7,r (most significant bit)
 	0x7C: wrapCB_BIT_7_H,  // BIT 7,H
 	0x7D: wrapCB_BIT_7_L,  // BIT 7,L
@@ -464,6 +514,211 @@ func wrapCB_BIT_1_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 
 func wrapCB_BIT_1_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.BIT_1_A()
+	return cycles, nil
+}
+
+// BIT 2,r wrappers
+func wrapCB_BIT_2_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_B()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_C()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_D()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_E()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_H()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_L()
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_BIT_2_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_2_A()
+	return cycles, nil
+}
+
+// BIT 3,r wrappers
+func wrapCB_BIT_3_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_B()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_C()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_D()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_E()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_H()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_L()
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_BIT_3_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_3_A()
+	return cycles, nil
+}
+
+// BIT 4,r wrappers
+func wrapCB_BIT_4_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_B()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_C()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_D()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_E()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_H()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_L()
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_BIT_4_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_4_A()
+	return cycles, nil
+}
+
+// BIT 5,r wrappers
+func wrapCB_BIT_5_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_B()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_C()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_D()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_E()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_H()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_L()
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_BIT_5_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_5_A()
+	return cycles, nil
+}
+
+// BIT 6,r wrappers
+func wrapCB_BIT_6_B(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_B()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_C()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_D()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_E()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_H()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_L()
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_BIT_6_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.BIT_6_A()
 	return cycles, nil
 }
 
@@ -860,6 +1115,56 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		0x4D: "BIT 1,L",
 		0x4E: "BIT 1,(HL)",
 		0x4F: "BIT 1,A",
+
+		// BIT 2,r
+		0x50: "BIT 2,B",
+		0x51: "BIT 2,C",
+		0x52: "BIT 2,D",
+		0x53: "BIT 2,E",
+		0x54: "BIT 2,H",
+		0x55: "BIT 2,L",
+		0x56: "BIT 2,(HL)",
+		0x57: "BIT 2,A",
+
+		// BIT 3,r
+		0x58: "BIT 3,B",
+		0x59: "BIT 3,C",
+		0x5A: "BIT 3,D",
+		0x5B: "BIT 3,E",
+		0x5C: "BIT 3,H",
+		0x5D: "BIT 3,L",
+		0x5E: "BIT 3,(HL)",
+		0x5F: "BIT 3,A",
+
+		// BIT 4,r
+		0x60: "BIT 4,B",
+		0x61: "BIT 4,C",
+		0x62: "BIT 4,D",
+		0x63: "BIT 4,E",
+		0x64: "BIT 4,H",
+		0x65: "BIT 4,L",
+		0x66: "BIT 4,(HL)",
+		0x67: "BIT 4,A",
+
+		// BIT 5,r
+		0x68: "BIT 5,B",
+		0x69: "BIT 5,C",
+		0x6A: "BIT 5,D",
+		0x6B: "BIT 5,E",
+		0x6C: "BIT 5,H",
+		0x6D: "BIT 5,L",
+		0x6E: "BIT 5,(HL)",
+		0x6F: "BIT 5,A",
+
+		// BIT 6,r
+		0x70: "BIT 6,B",
+		0x71: "BIT 6,C",
+		0x72: "BIT 6,D",
+		0x73: "BIT 6,E",
+		0x74: "BIT 6,H",
+		0x75: "BIT 6,L",
+		0x76: "BIT 6,(HL)",
+		0x77: "BIT 6,A",
 
 		// BIT 7,r
 		0x7C: "BIT 7,H",
