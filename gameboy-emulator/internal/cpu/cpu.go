@@ -730,6 +730,211 @@ func (cpu *CPU) ADD_A_n(value uint8) uint8 {
 	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for immediate fetch)
 }
 
+// === ADC Instructions ===
+// ADC (Add with Carry) adds the source value plus the current carry flag to register A
+// This is essential for multi-byte arithmetic operations where carries must be propagated
+// ADC is used in chains: ADD for first byte, then ADC for subsequent bytes
+
+// ADC_A_B - Add register B plus carry flag to register A (0x88)
+// Performs: A = A + B + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_B() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.B) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.B&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_C - Add register C plus carry flag to register A (0x89)
+// Performs: A = A + C + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_C() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.C) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.C&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_D - Add register D plus carry flag to register A (0x8A)
+// Performs: A = A + D + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_D() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.D) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.D&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_E - Add register E plus carry flag to register A (0x8B)
+// Performs: A = A + E + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_E() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.E) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.E&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_H - Add register H plus carry flag to register A (0x8C)
+// Performs: A = A + H + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_H() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.H) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.H&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_L - Add register L plus carry flag to register A (0x8D)
+// Performs: A = A + L + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_L() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.L) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(cpu.L&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_HL - Add memory value at address HL plus carry flag to register A (0x8E)
+// Performs: A = A + (HL) + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 8
+func (cpu *CPU) ADC_A_HL(mmu memory.MemoryInterface) uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	address := cpu.GetHL()
+	value := mmu.ReadByte(address)
+	result := uint16(cpu.A) + uint16(value) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(value&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for memory access)
+}
+
+// ADC_A_A - Add register A plus carry flag to register A (0x8F)
+// Performs: A = A + A + Carry (effectively A = 2*A + Carry)
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 4
+func (cpu *CPU) ADC_A_A() uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(cpu.A) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(oldA&0x0F)+carry > 0x0F)                  // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 4 // Takes 4 CPU cycles
+}
+
+// ADC_A_n - Add immediate value plus carry flag to register A (0xCE)
+// Performs: A = A + n + Carry
+// Flags: Z (if result is zero), N (reset), H (half-carry), C (carry)
+// Cycles: 8
+func (cpu *CPU) ADC_A_n(value uint8) uint8 {
+	oldA := cpu.A
+	carry := uint8(0)
+	if cpu.GetFlag(FlagC) {
+		carry = 1
+	}
+	result := uint16(cpu.A) + uint16(value) + uint16(carry)
+	cpu.A = uint8(result)
+
+	// Update flags
+	cpu.SetFlag(FlagZ, cpu.A == 0)                                            // Zero flag: set if result is zero
+	cpu.SetFlag(FlagN, false)                                                 // Subtract flag: reset for addition
+	cpu.SetFlag(FlagH, (oldA&0x0F)+(value&0x0F)+carry > 0x0F)                 // Half-carry flag: carry from bit 3 to bit 4
+	cpu.SetFlag(FlagC, result > 0xFF)                                         // Carry flag: carry from bit 7
+
+	return 8 // Takes 8 CPU cycles (4 for instruction + 4 for immediate fetch)
+}
+
 // === OR Instructions ===
 // OR performs bitwise OR operation on register A
 // OR truth table: 0|0=0, 0|1=1, 1|0=1, 1|1=1

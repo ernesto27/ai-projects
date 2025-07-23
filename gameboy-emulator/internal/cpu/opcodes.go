@@ -170,7 +170,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x7E: wrapLD_A_HL, // LD A,(HL)
 	0x7F: nil,         // LD A,A (effectively NOP, not implemented)
 
-	// 0x80-0x8F: ADD operations
+	// 0x80-0x8F: ADD and ADC operations
 	0x80: wrapADD_A_B, // ADD A,B
 	0x81: wrapADD_A_C, // ADD A,C
 	0x82: wrapADD_A_D, // ADD A,D
@@ -179,14 +179,14 @@ var opcodeTable = [256]InstructionFunc{
 	0x85: wrapADD_A_L, // ADD A,L
 	0x86: nil,         // ADD A,(HL) (not yet implemented)
 	0x87: wrapADD_A_A, // ADD A,A
-	0x88: nil,         // ADC A,B (not yet implemented)
-	0x89: nil,         // ADC A,C (not yet implemented)
-	0x8A: nil,         // ADC A,D (not yet implemented)
-	0x8B: nil,         // ADC A,E (not yet implemented)
-	0x8C: nil,         // ADC A,H (not yet implemented)
-	0x8D: nil,         // ADC A,L (not yet implemented)
-	0x8E: nil,         // ADC A,(HL) (not yet implemented)
-	0x8F: nil,         // ADC A,A (not yet implemented)
+	0x88: wrapADC_A_B, // ADC A,B
+	0x89: wrapADC_A_C, // ADC A,C
+	0x8A: wrapADC_A_D, // ADC A,D
+	0x8B: wrapADC_A_E, // ADC A,E
+	0x8C: wrapADC_A_H, // ADC A,H
+	0x8D: wrapADC_A_L, // ADC A,L
+	0x8E: wrapADC_A_HL, // ADC A,(HL)
+	0x8F: wrapADC_A_A, // ADC A,A
 
 	// 0x90-0x9F: SUB operations
 	0x90: wrapSUB_A_B,  // SUB A,B
@@ -257,7 +257,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xCB: wrapCB_PREFIX,  // PREFIX CB - CB-prefixed instructions
 	0xCC: wrapCALL_Z_nn,  // CALL Z,nn
 	0xCD: wrapCALL_nn,    // CALL nn
-	0xCE: nil,            // ADC A,n (not yet implemented)
+	0xCE: wrapADC_A_n,    // ADC A,n
 	0xCF: wrapRST_08H,    // RST 08H
 
 	// 0xD0-0xDF: More conditional operations

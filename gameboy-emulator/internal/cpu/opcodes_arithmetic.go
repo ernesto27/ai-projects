@@ -137,3 +137,74 @@ func wrapSUB_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	cycles := cpu.SUB_A_n(params[0])
 	return cycles, nil
 }
+
+// === ADC Operations Wrappers ===
+// These wrapper functions handle all ADC (Add with Carry) operations
+// ADC operations add a value plus the carry flag to register A and store result in A
+// All ADC operations reset the N flag and affect Z, H, C flags
+
+// wrapADC_A_B wraps the ADC A,B instruction (0x88)
+// Add register B plus carry flag to register A
+func wrapADC_A_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_B()
+	return cycles, nil
+}
+
+// wrapADC_A_C wraps the ADC A,C instruction (0x89)
+// Add register C plus carry flag to register A
+func wrapADC_A_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_C()
+	return cycles, nil
+}
+
+// wrapADC_A_D wraps the ADC A,D instruction (0x8A)
+// Add register D plus carry flag to register A
+func wrapADC_A_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_D()
+	return cycles, nil
+}
+
+// wrapADC_A_E wraps the ADC A,E instruction (0x8B)
+// Add register E plus carry flag to register A
+func wrapADC_A_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_E()
+	return cycles, nil
+}
+
+// wrapADC_A_H wraps the ADC A,H instruction (0x8C)
+// Add register H plus carry flag to register A
+func wrapADC_A_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_H()
+	return cycles, nil
+}
+
+// wrapADC_A_L wraps the ADC A,L instruction (0x8D)
+// Add register L plus carry flag to register A
+func wrapADC_A_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_L()
+	return cycles, nil
+}
+
+// wrapADC_A_HL wraps the ADC A,(HL) instruction (0x8E)
+// Add memory value at address HL plus carry flag to register A
+func wrapADC_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_HL(mmu)
+	return cycles, nil
+}
+
+// wrapADC_A_A wraps the ADC A,A instruction (0x8F)
+// Add register A plus carry flag to register A (effectively A = 2*A + Carry)
+func wrapADC_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADC_A_A()
+	return cycles, nil
+}
+
+// wrapADC_A_n wraps the ADC A,n instruction (0xCE)
+// Add immediate 8-bit value plus carry flag to register A
+func wrapADC_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("ADC A,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.ADC_A_n(params[0])
+	return cycles, nil
+}
