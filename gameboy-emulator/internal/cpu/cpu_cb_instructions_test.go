@@ -433,6 +433,93 @@ func TestSWAP_HL(t *testing.T) {
 	assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be true (result == 0)")
 }
 
+func TestSWAP_D(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test basic swap: 0xAB -> 0xBA
+	cpu.D = 0xAB
+	cycles := cpu.SWAP_D()
+
+	assert.Equal(t, uint8(8), cycles, "SWAP D should take 8 cycles")
+	assert.Equal(t, uint8(0xBA), cpu.D, "SWAP should swap nibbles: 0xAB -> 0xBA")
+	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false")
+	assert.False(t, cpu.GetFlag(FlagN), "N flag should be false")
+	assert.False(t, cpu.GetFlag(FlagH), "H flag should be false")
+	assert.False(t, cpu.GetFlag(FlagC), "C flag should be false")
+
+	// Test zero result
+	cpu.D = 0x00
+	cycles = cpu.SWAP_D()
+	assert.Equal(t, uint8(0x00), cpu.D, "SWAP 0x00 should remain 0x00")
+	assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be true (result == 0)")
+}
+
+func TestSWAP_E(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test basic swap: 0x12 -> 0x21
+	cpu.E = 0x12
+	cycles := cpu.SWAP_E()
+
+	assert.Equal(t, uint8(8), cycles, "SWAP E should take 8 cycles")
+	assert.Equal(t, uint8(0x21), cpu.E, "SWAP should swap nibbles: 0x12 -> 0x21")
+	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false")
+	assert.False(t, cpu.GetFlag(FlagN), "N flag should be false")
+	assert.False(t, cpu.GetFlag(FlagH), "H flag should be false")
+	assert.False(t, cpu.GetFlag(FlagC), "C flag should be false")
+}
+
+func TestSWAP_H(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test swap with same nibbles: 0x77 -> 0x77
+	cpu.H = 0x77
+	cycles := cpu.SWAP_H()
+
+	assert.Equal(t, uint8(8), cycles, "SWAP H should take 8 cycles")
+	assert.Equal(t, uint8(0x77), cpu.H, "SWAP should swap nibbles: 0x77 -> 0x77")
+	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false")
+	assert.False(t, cpu.GetFlag(FlagN), "N flag should be false")
+	assert.False(t, cpu.GetFlag(FlagH), "H flag should be false")
+	assert.False(t, cpu.GetFlag(FlagC), "C flag should be false")
+}
+
+func TestSWAP_L(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test edge case: 0xF0 -> 0x0F
+	cpu.L = 0xF0
+	cycles := cpu.SWAP_L()
+
+	assert.Equal(t, uint8(8), cycles, "SWAP L should take 8 cycles")
+	assert.Equal(t, uint8(0x0F), cpu.L, "SWAP should swap nibbles: 0xF0 -> 0x0F")
+	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false")
+	assert.False(t, cpu.GetFlag(FlagN), "N flag should be false")
+	assert.False(t, cpu.GetFlag(FlagH), "H flag should be false")
+	assert.False(t, cpu.GetFlag(FlagC), "C flag should be false")
+}
+
+func TestSWAP_A(t *testing.T) {
+	cpu := NewCPU()
+
+	// Test edge case: 0x0F -> 0xF0
+	cpu.A = 0x0F
+	cycles := cpu.SWAP_A()
+
+	assert.Equal(t, uint8(8), cycles, "SWAP A should take 8 cycles")
+	assert.Equal(t, uint8(0xF0), cpu.A, "SWAP should swap nibbles: 0x0F -> 0xF0")
+	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false")
+	assert.False(t, cpu.GetFlag(FlagN), "N flag should be false")
+	assert.False(t, cpu.GetFlag(FlagH), "H flag should be false")
+	assert.False(t, cpu.GetFlag(FlagC), "C flag should be false")
+
+	// Test zero result with A register
+	cpu.A = 0x00
+	cycles = cpu.SWAP_A()
+	assert.Equal(t, uint8(0x00), cpu.A, "SWAP 0x00 should remain 0x00")
+	assert.True(t, cpu.GetFlag(FlagZ), "Z flag should be true (result == 0)")
+}
+
 // === Edge Case Tests ===
 
 func TestBitInstructionsPreserveOtherBits(t *testing.T) {

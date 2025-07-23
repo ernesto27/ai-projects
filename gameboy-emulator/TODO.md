@@ -46,7 +46,7 @@ This document outlines the development roadmap for building a Game Boy emulator 
   - ✅ **SET b,r instructions**: All bit set operations (SET 0/7 for all registers and (HL)) - **16 instructions**  
   - ✅ **RES b,r instructions**: All bit reset operations (RES 0/7 for all registers and (HL)) - **16 instructions**
   - ✅ **Rotate instructions**: RLC, RRC for B,C registers - **4 instructions**
-  - ✅ **SWAP instructions**: SWAP for B,C registers and (HL) - **3 instructions**
+  - ✅ **SWAP instructions**: ALL SWAP operations implemented (SWAP B/C/D/E/H/L/(HL)/A) - **8 instructions** - **COMPLETED!**
   - ✅ **SLA instructions**: All shift left arithmetic operations (SLA B/C/D/E/H/L/(HL)/A) - **8 instructions** - **NEW!**
   - ✅ **CB dispatch system**: Complete 256-entry CB opcode table with ExecuteCBInstruction method
   - ✅ **CB prefix integration**: 0xCB prefix handler integrated into main opcode dispatch
@@ -504,7 +504,7 @@ gameboy-emulator/
 
 **Overall Progress**: 6/14 major milestones completed
 
-**Instruction Progress**: 144+/256 base instructions (56%+) + 107/256 CB-prefixed (42%) = **251/512 total (49.0%)**
+**Instruction Progress**: 144+/256 base instructions (56%+) + 112/256 CB-prefixed (44%) = **256/512 total (50.0%)** - **MAJOR MILESTONE: 50% COMPLETE!** 🎉
 
 **MMU Progress**: ✅ COMPLETE - Full interface + CPU integration implemented with 100+ tests
 
@@ -631,7 +631,19 @@ gameboy-emulator/
 
 ### 🎉 **Recent Accomplishments** (Latest Session)
 
-#### ✅ **OR Logical Operations** - **COMPLETED** (NEW - July 11, 2025)
+#### ✅ **SWAP Instructions COMPLETED** - **COMPLETED** (NEW - July 23, 2025)
+- **All 8 SWAP instructions implemented**: SWAP_B, SWAP_C, SWAP_D, SWAP_E, SWAP_H, SWAP_L, SWAP_HL, SWAP_A
+  - ✅ **Opcodes**: 0x30-0x37 - fully integrated into CB opcode dispatch table
+  - ✅ **Proper Game Boy flag behavior**: Z=result==0, N=false, H=false, C=false
+  - ✅ **Correct timing**: 8 cycles for register operations, 16 cycles for (HL) memory operation
+  - ✅ **Nibble swapping logic**: Upper 4 bits ↔ Lower 4 bits (e.g., 0xAB → 0xBA)
+  - ✅ **Complete CB dispatch integration**: All SWAP operations callable via ExecuteCBInstruction
+  - ✅ **Comprehensive testing**: 50+ test cases covering all SWAP types, edge cases, and dispatch integration
+  - ✅ **Memory operations**: SWAP (HL) with proper MMU interface integration
+  - ✅ **Flag accuracy**: Zero flag correctly set when result is 0x00
+  - ✅ **CB instruction count increased**: 107 → 112 CB instructions (44% of CB instruction set)
+
+#### ✅ **OR Logical Operations** - **COMPLETED** (July 11, 2025)
 - **All 9 OR instructions implemented**: OR_A_A, OR_A_B, OR_A_C, OR_A_D, OR_A_E, OR_A_H, OR_A_L, OR_A_HL, OR_A_n
   - ✅ **Opcodes**: 0xB0-0xB7, 0xF6 - fully integrated into opcode dispatch table
   - ✅ **Proper Game Boy flag behavior**: Z=result==0, N=false, H=false, C=false

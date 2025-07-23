@@ -79,7 +79,12 @@ var cbOpcodeTable = map[uint8]CBInstructionFunc{
 	
 	0x30: wrapCB_SWAP_B,   // SWAP B
 	0x31: wrapCB_SWAP_C,   // SWAP C
+	0x32: wrapCB_SWAP_D,   // SWAP D
+	0x33: wrapCB_SWAP_E,   // SWAP E
+	0x34: wrapCB_SWAP_H,   // SWAP H
+	0x35: wrapCB_SWAP_L,   // SWAP L
 	0x36: wrapCB_SWAP_HL,  // SWAP (HL)
+	0x37: wrapCB_SWAP_A,   // SWAP A
 	
 	// SRL Instructions (0x38-0x3F)
 	0x38: wrapCB_SRL_B,    // SRL B
@@ -348,8 +353,33 @@ func wrapCB_SWAP_C(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	return cycles, nil
 }
 
+func wrapCB_SWAP_D(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SWAP_D()
+	return cycles, nil
+}
+
+func wrapCB_SWAP_E(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SWAP_E()
+	return cycles, nil
+}
+
+func wrapCB_SWAP_H(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SWAP_H()
+	return cycles, nil
+}
+
+func wrapCB_SWAP_L(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SWAP_L()
+	return cycles, nil
+}
+
 func wrapCB_SWAP_HL(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
 	cycles := cpu.SWAP_HL(mmu)
+	return cycles, nil
+}
+
+func wrapCB_SWAP_A(cpu *CPU, mmu memory.MemoryInterface) (uint8, error) {
+	cycles := cpu.SWAP_A()
 	return cycles, nil
 }
 
@@ -794,7 +824,12 @@ func GetCBOpcodeInfo(opcode uint8) string {
 		
 		0x30: "SWAP B",
 		0x31: "SWAP C",
+		0x32: "SWAP D",
+		0x33: "SWAP E",
+		0x34: "SWAP H",
+		0x35: "SWAP L",
 		0x36: "SWAP (HL)",
+		0x37: "SWAP A",
 		
 		// SRL Instructions (0x38-0x3F)
 		0x38: "SRL B",

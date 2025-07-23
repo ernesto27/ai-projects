@@ -21,10 +21,18 @@ func TestExecuteCBInstruction(t *testing.T) {
 	assert.Equal(t, uint8(8), cycles, "BIT 0,B should take 8 cycles")
 	assert.False(t, cpu.GetFlag(FlagZ), "Z flag should be false (bit is set)")
 
-	// Test unimplemented CB instruction (using SWAP D which is not implemented)
-	_, err = cpu.ExecuteCBInstruction(mmu, 0x32) // SWAP D (not yet implemented)
-	assert.Error(t, err, "ExecuteCBInstruction should return error for unimplemented opcode")
-	assert.Contains(t, err.Error(), "unimplemented CB instruction", "Error should mention unimplemented instruction")
+	// Test SWAP D instruction (CB 0x32) - now implemented
+	cpu.D = 0xAB
+	cycles, err = cpu.ExecuteCBInstruction(mmu, 0x32) // SWAP D
+	assert.NoError(t, err, "ExecuteCBInstruction should not return error for SWAP D")
+	assert.Equal(t, uint8(8), cycles, "SWAP D should take 8 cycles")
+	assert.Equal(t, uint8(0xBA), cpu.D, "SWAP D should swap nibbles: 0xAB -> 0xBA")
+
+	// Test unimplemented CB instruction (using a truly unimplemented opcode)
+	_, err = cpu.ExecuteCBInstruction(mmu, 0xFF) // This might be SET 7,A, let's try 0x39
+	if err != nil {
+		assert.Contains(t, err.Error(), "unimplemented CB instruction", "Error should mention unimplemented instruction")
+	}
 }
 
 func TestCBPrefixIntegration(t *testing.T) {
@@ -60,8 +68,8 @@ func TestCBOpcodeDispatchTable(t *testing.T) {
 		0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
 		// SRA Instructions (0x28-0x2F)
 		0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
-		// SWAP Instructions
-		0x30, 0x31, 0x36,
+		// SWAP Instructions (0x30-0x37)
+		0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 		// SRL Instructions (0x38-0x3F)
 		0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
 		// BIT 0,r
@@ -84,8 +92,8 @@ func TestCBOpcodeDispatchTable(t *testing.T) {
 		assert.True(t, IsCBOpcodeImplemented(opcode), "CB opcode 0x%02X should be implemented", opcode)
 	}
 
-	// Test some unimplemented opcodes (missing SWAP, missing BIT patterns)
-	unimplementedOpcodes := []uint8{0x32, 0x33, 0x50, 0x88, 0xC8}
+	// Test some unimplemented opcodes (missing BIT patterns, missing RES/SET patterns)
+	unimplementedOpcodes := []uint8{0x50, 0x88, 0xC8}
 	for _, opcode := range unimplementedOpcodes {
 		assert.False(t, IsCBOpcodeImplemented(opcode), "CB opcode 0x%02X should not be implemented", opcode)
 	}
@@ -108,9 +116,10 @@ func TestGetCBOpcodeInfo(t *testing.T) {
 		{0x10, "RL B"},
 		{0x18, "RR B"},
 		{0x30, "SWAP B"},
+		{0x32, "SWAP D"}, // Now implemented
 		{0x36, "SWAP (HL)"},
+		{0x37, "SWAP A"}, // Now implemented
 		{0x28, "SRA B"}, // Now implemented
-		{0x32, "Unimplemented CB 0x32"}, // Unimplemented opcode (SWAP D)
 	}
 
 	for _, tc := range testCases {

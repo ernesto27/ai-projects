@@ -1555,6 +1555,46 @@ func (cpu *CPU) SWAP_C() uint8 {
 	return 8
 }
 
+// SWAP_D swaps upper and lower nibbles of register D (CB 0x32)
+func (cpu *CPU) SWAP_D() uint8 {
+	cpu.D = ((cpu.D & 0x0F) << 4) | ((cpu.D & 0xF0) >> 4)
+	cpu.SetFlag(FlagZ, cpu.D == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, false)
+	return 8
+}
+
+// SWAP_E swaps upper and lower nibbles of register E (CB 0x33)
+func (cpu *CPU) SWAP_E() uint8 {
+	cpu.E = ((cpu.E & 0x0F) << 4) | ((cpu.E & 0xF0) >> 4)
+	cpu.SetFlag(FlagZ, cpu.E == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, false)
+	return 8
+}
+
+// SWAP_H swaps upper and lower nibbles of register H (CB 0x34)
+func (cpu *CPU) SWAP_H() uint8 {
+	cpu.H = ((cpu.H & 0x0F) << 4) | ((cpu.H & 0xF0) >> 4)
+	cpu.SetFlag(FlagZ, cpu.H == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, false)
+	return 8
+}
+
+// SWAP_L swaps upper and lower nibbles of register L (CB 0x35)
+func (cpu *CPU) SWAP_L() uint8 {
+	cpu.L = ((cpu.L & 0x0F) << 4) | ((cpu.L & 0xF0) >> 4)
+	cpu.SetFlag(FlagZ, cpu.L == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, false)
+	return 8
+}
+
 // SWAP_HL swaps upper and lower nibbles of value at memory address HL (CB 0x36)
 func (cpu *CPU) SWAP_HL(mmu memory.MemoryInterface) uint8 {
 	address := cpu.GetHL()
@@ -1566,6 +1606,16 @@ func (cpu *CPU) SWAP_HL(mmu memory.MemoryInterface) uint8 {
 	cpu.SetFlag(FlagH, false)
 	cpu.SetFlag(FlagC, false)
 	return 16
+}
+
+// SWAP_A swaps upper and lower nibbles of register A (CB 0x37)
+func (cpu *CPU) SWAP_A() uint8 {
+	cpu.A = ((cpu.A & 0x0F) << 4) | ((cpu.A & 0xF0) >> 4)
+	cpu.SetFlag(FlagZ, cpu.A == 0)
+	cpu.SetFlag(FlagN, false)
+	cpu.SetFlag(FlagH, false)
+	cpu.SetFlag(FlagC, false)
+	return 8
 }
 
 // === SLA Instructions (0x20-0x27) ===
