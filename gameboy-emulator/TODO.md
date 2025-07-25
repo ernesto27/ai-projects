@@ -542,11 +542,11 @@ gameboy-emulator/
 5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:**
-- **Total Instructions**: 409/512 (79.9%) - **Updated after ADC instructions implementation (+9 instructions) - APPROACHING 80%!** 🎉
-- **Base Instructions**: 153/256 (60%) - **All core operations + ADC complete**
+- **Total Instructions**: 418/512 (81.6%) - **Updated after SBC instructions implementation (+9 instructions) - OVER 80%!** 🎉
+- **Base Instructions**: 162/256 (63%) - **All core operations + ADC + SBC complete**
 - **CB Instructions**: 256/256 (100%) - **COMPLETE! All rotation + bit manipulation + shift + BIT + RES + SET operations**
 - **Load Instructions**: 63/80 (79%) - **All register-to-register loads complete + ALL memory operations**
-- **Arithmetic Instructions**: 31/60 (52%) - **Basic arithmetic + ADC operations + 16-bit inc/dec + memory inc/dec**
+- **Arithmetic Instructions**: 40/60 (67%) - **Basic arithmetic + ADC + SBC operations + 16-bit inc/dec + memory inc/dec**
 - **Logical Instructions**: 27/36 (75%) - **AND, OR, XOR, CP operations complete**
 - **Control Instructions**: 12/50 (24%) - **Jump instructions completed, CALL/RET complete**
 - **Memory Instructions**: 15/15 (100%) - **ALL HL-based memory operations complete**
@@ -557,9 +557,19 @@ gameboy-emulator/
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Continue Phase 1 - High-Impact Arithmetic → Phase 1.2: SBC Instructions (103 base instructions remaining, 79.9% → ~82% total coverage)
+**Next Task**: Continue Phase 1 - High-Impact Arithmetic → Phase 1.3: Next High-Impact Instructions (94 base instructions remaining, 82.0% → ~85% total coverage)
 
 **Recently Completed**: 
+- ✅ **SBC Instructions COMPLETED** (July 25, 2025) - All 9 SBC (Subtract with Carry) instructions implemented
+  - ✅ **All SBC register operations**: SBC A,B/C/D/E/H/L/A (8 instructions) - 4 cycles each
+  - ✅ **SBC memory operation**: SBC A,(HL) (1 instruction) - 8 cycles
+  - ✅ **SBC immediate operation**: SBC A,n (1 instruction) - 8 cycles
+  - ✅ **Proper carry flag handling**: All instructions correctly use previous carry flag in subtraction
+  - ✅ **Complete opcode dispatch integration**: All SBC instructions callable via ExecuteInstruction
+  - ✅ **Comprehensive testing**: 60+ test cases covering all SBC operations, edge cases, and flag behavior
+  - ✅ **Accurate flag behavior**: Z/N/H/C flags correctly set according to Game Boy specification
+  - ✅ **Multi-byte arithmetic support**: Essential for multi-precision subtraction operations
+  - ✅ **Phase 1.2 milestone**: Second part of Phase 1 (High-Impact Arithmetic) complete
 - ✅ **ADC Instructions COMPLETED** (July 23, 2025) - All 9 ADC (Add with Carry) instructions implemented
   - ✅ **All ADC register operations**: ADC A,B/C/D/E/H/L/A (8 instructions) - 4 cycles each
   - ✅ **ADC memory operation**: ADC A,(HL) (1 instruction) - 8 cycles

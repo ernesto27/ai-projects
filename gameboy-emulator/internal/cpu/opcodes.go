@@ -197,14 +197,14 @@ var opcodeTable = [256]InstructionFunc{
 	0x95: wrapSUB_A_L,  // SUB A,L
 	0x96: wrapSUB_A_HL, // SUB A,(HL)
 	0x97: wrapSUB_A_A,  // SUB A,A
-	0x98: nil,          // SBC A,B (not yet implemented)
-	0x99: nil,          // SBC A,C (not yet implemented)
-	0x9A: nil,          // SBC A,D (not yet implemented)
-	0x9B: nil,          // SBC A,E (not yet implemented)
-	0x9C: nil,          // SBC A,H (not yet implemented)
-	0x9D: nil,          // SBC A,L (not yet implemented)
-	0x9E: nil,          // SBC A,(HL) (not yet implemented)
-	0x9F: nil,          // SBC A,A (not yet implemented)
+	0x98: wrapSBC_A_B,  // SBC A,B
+	0x99: wrapSBC_A_C,  // SBC A,C
+	0x9A: wrapSBC_A_D,  // SBC A,D
+	0x9B: wrapSBC_A_E,  // SBC A,E
+	0x9C: wrapSBC_A_H,  // SBC A,H
+	0x9D: wrapSBC_A_L,  // SBC A,L
+	0x9E: wrapSBC_A_HL, // SBC A,(HL)
+	0x9F: wrapSBC_A_A,  // SBC A,A
 
 	// 0xA0-0xAF: AND operations
 	0xA0: wrapAND_A_B,  // AND B
@@ -275,7 +275,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xDB: nil,            // Invalid opcode
 	0xDC: wrapCALL_C_nn,  // CALL C,nn
 	0xDD: nil,            // Invalid opcode
-	0xDE: nil,            // SBC A,n (not yet implemented)
+	0xDE: wrapSBC_A_n,    // SBC A,n
 	0xDF: wrapRST_18H,    // RST 18H
 
 	// 0xE0-0xEF: I/O operations
