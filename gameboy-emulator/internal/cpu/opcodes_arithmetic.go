@@ -67,6 +67,13 @@ func wrapADD_A_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	return cycles, nil
 }
 
+// wrapADD_A_HL wraps the ADD A,(HL) instruction (0x86)
+// Add memory value at address HL to register A
+func wrapADD_A_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.ADD_A_HL(mmu)
+	return cycles, nil
+}
+
 // === SUB Operations Wrappers ===
 // These wrapper functions handle all SUB (subtraction) operations
 // SUB operations subtract a value from register A and store result in A

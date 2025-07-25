@@ -177,7 +177,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x83: wrapADD_A_E, // ADD A,E
 	0x84: wrapADD_A_H, // ADD A,H
 	0x85: wrapADD_A_L, // ADD A,L
-	0x86: nil,         // ADD A,(HL) (not yet implemented)
+	0x86: wrapADD_A_HL, // ADD A,(HL)
 	0x87: wrapADD_A_A, // ADD A,A
 	0x88: wrapADC_A_B, // ADC A,B
 	0x89: wrapADC_A_C, // ADC A,C

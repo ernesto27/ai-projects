@@ -693,7 +693,7 @@ func (cpu *CPU) ADD_A_L() uint8 {
 // H: Set if half-carry from bit 3 to bit 4
 // C: Set if carry from bit 7
 // Cycles: 8
-func (cpu *CPU) ADD_A_HL(mmu *memory.MMU) uint8 {
+func (cpu *CPU) ADD_A_HL(mmu memory.MemoryInterface) uint8 {
 	oldA := cpu.A
 	value := mmu.ReadByte(cpu.GetHL())
 	result := uint16(cpu.A) + uint16(value)
