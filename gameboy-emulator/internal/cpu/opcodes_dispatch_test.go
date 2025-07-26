@@ -140,19 +140,21 @@ func TestExecuteInstruction(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "Unimplemented instruction (0x07)",
-			opcode: 0x07, // RLCA - not yet implemented
+			name:   "RLCA instruction (0x07)",
+			opcode: 0x07, // RLCA - now implemented!
 			params: []uint8{},
 			setupCPU: func(cpu *CPU) {
-				// Setup doesn't matter for unimplemented instruction
+				cpu.A = 0b10110101 // Test pattern
 			},
 			setupMMU: func(mmu *memory.MMU) {
-				// Setup doesn't matter for unimplemented instruction
+				// RLCA doesn't require MMU setup
 			},
 			checkResult: func(t *testing.T, cpu *CPU, mmu *memory.MMU, cycles uint8) {
-				assert.Equal(t, uint8(0), cycles, "Unimplemented instruction should return 0 cycles")
+				assert.Equal(t, uint8(4), cycles, "RLCA should take 4 cycles")
+				assert.Equal(t, uint8(0b01101011), cpu.A, "RLCA should rotate A left")
+				assert.True(t, cpu.GetFlag(FlagC), "RLCA should set carry flag")
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 
@@ -230,26 +232,35 @@ func TestOpcodeTable(t *testing.T) {
 		0xD2, // JP NC,nn
 		0xDA, // JP C,nn
 		0xE9, // JP (HL)
+		// Phase 1 additions
+		0x07, // RLCA
+		0x0F, // RRCA
+		0x17, // RLA
+		0x1F, // RRA
+		0x09, // ADD HL,BC
+		0x19, // ADD HL,DE
+		0x29, // ADD HL,HL
+		0x39, // ADD HL,SP
+		0x22, // LD (HL+),A
+		0x2A, // LD A,(HL+)
+		0x32, // LD (HL-),A
+		0x3A, // LD A,(HL-)
 	}
 
 	for _, opcode := range implementedOpcodes {
 		assert.NotNil(t, opcodeTable[opcode], "Opcode 0x%02X should be implemented", opcode)
 	}
 
-	// Test some specific unimplemented opcodes
+
+	// Test some specific unimplemented opcodes (remaining)
 	unimplementedOpcodes := []uint8{
-		0x07, // RLCA
 		0x08, // LD (nn),SP
-		0x0F, // RRCA
 		0x10, // STOP
-		0x17, // RLA
-		0x1F, // RRA
-		0x27, // DAA
-		0x2F, // CPL
-		0x37, // SCF
-		0x3F, // CCF
 		0x76, // HALT
-		// 0xCB is now implemented as PREFIX CB
+		0xF3, // DI
+		0xFB, // EI
+		0xF8, // LD HL,SP+n
+		0xF9, // LD SP,HL
 	}
 
 	for _, opcode := range unimplementedOpcodes {
@@ -262,7 +273,20 @@ func TestUtilityFunctions(t *testing.T) {
 	// Test IsOpcodeImplemented
 	assert.True(t, IsOpcodeImplemented(0x00), "NOP should be implemented")
 	assert.True(t, IsOpcodeImplemented(0x3E), "LD A,n should be implemented")
-	assert.False(t, IsOpcodeImplemented(0x07), "RLCA should not be implemented")
+	assert.True(t, IsOpcodeImplemented(0x07), "RLCA should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x0F), "RRCA should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x09), "ADD HL,BC should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x22), "LD (HL+),A should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x27), "DAA should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x2F), "CPL should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x37), "SCF should be implemented")
+	assert.True(t, IsOpcodeImplemented(0x3F), "CCF should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xE0), "LDH (n),A should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xF0), "LDH A,(n) should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xE2), "LD (C),A should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xF2), "LD A,(C) should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xEA), "LD (nn),A should be implemented")
+	assert.True(t, IsOpcodeImplemented(0xFA), "LD A,(nn) should be implemented")
 	assert.True(t, IsOpcodeImplemented(0xCB), "PREFIX CB should be implemented")
 
 	// Test GetImplementedOpcodes
@@ -284,8 +308,8 @@ func TestUtilityFunctions(t *testing.T) {
 	assert.Equal(t, "LD A,n", name, "LD A,n should have correct name")
 
 	name, isImplemented = GetOpcodeInfo(0x07)
-	assert.False(t, isImplemented, "RLCA should not be implemented")
-	assert.Equal(t, "Not implemented", name, "Unimplemented opcode should return 'Not implemented'")
+	assert.True(t, isImplemented, "RLCA should be implemented (Phase 1)")
+	assert.Equal(t, "Implemented", name, "RLCA should return 'Implemented'")
 
 	// Test an opcode that's implemented but not in the name map
 	name, isImplemented = GetOpcodeInfo(0x41) // LD B,C

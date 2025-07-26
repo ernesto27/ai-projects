@@ -70,7 +70,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x24: wrapINC_H,    // INC H
 	0x25: wrapDEC_H,    // DEC H
 	0x26: wrapLD_H_n,   // LD H,n
-	0x27: nil,          // DAA (not yet implemented)
+	0x27: wrapDAA,      // DAA
 	0x28: wrapJR_Z_n,   // JR Z,n
 	0x29: wrapADD_HL_HL, // ADD HL,HL
 	0x2A: wrapLD_A_HL_INC, // LD A,(HL+)
@@ -78,7 +78,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x2C: wrapINC_L,    // INC L
 	0x2D: wrapDEC_L,    // DEC L
 	0x2E: wrapLD_L_n,   // LD L,n
-	0x2F: nil,          // CPL (not yet implemented)
+	0x2F: wrapCPL,      // CPL
 
 	// 0x30-0x3F: More jumps and 8-bit operations
 	0x30: wrapJR_NC_n,     // JR NC,n
@@ -88,7 +88,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x34: wrapINC_HL_mem,  // INC (HL)
 	0x35: wrapDEC_HL_mem,  // DEC (HL)
 	0x36: wrapLD_HL_mem_n, // LD (HL),n
-	0x37: nil,             // SCF (not yet implemented)
+	0x37: wrapSCF,         // SCF
 	0x38: wrapJR_C_n,      // JR C,n
 	0x39: wrapADD_HL_SP,   // ADD HL,SP
 	0x3A: wrapLD_A_HL_DEC, // LD A,(HL-)
@@ -96,7 +96,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x3C: wrapINC_A,       // INC A
 	0x3D: wrapDEC_A,       // DEC A
 	0x3E: wrapLD_A_n,      // LD A,n
-	0x3F: nil,             // CCF (not yet implemented)
+	0x3F: wrapCCF,         // CCF
 
 	// 0x40-0x4F: 8-bit register-to-register loads (LD r,r)
 	0x40: nil,         // LD B,B (effectively NOP, not implemented)
@@ -279,9 +279,9 @@ var opcodeTable = [256]InstructionFunc{
 	0xDF: wrapRST_18H,    // RST 18H
 
 	// 0xE0-0xEF: I/O operations
-	0xE0: nil,         // LDH (n),A (not yet implemented)
-	0xE1: wrapPOP_HL,  // POP HL
-	0xE2: nil,         // LD (C),A (not yet implemented)
+	0xE0: wrapLDH_n_A,  // LDH (n),A
+	0xE1: wrapPOP_HL,   // POP HL
+	0xE2: wrapLD_IO_C_A, // LD (C),A
 	0xE3: nil,         // Invalid opcode
 	0xE4: nil,         // Invalid opcode
 	0xE5: wrapPUSH_HL, // PUSH HL
@@ -289,7 +289,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xE7: wrapRST_20H, // RST 20H
 	0xE8: nil,         // ADD SP,n (not yet implemented)
 	0xE9: wrapJP_HL,   // JP (HL)
-	0xEA: nil,         // LD (nn),A (not yet implemented)
+	0xEA: wrapLD_nn_A, // LD (nn),A
 	0xEB: nil,         // Invalid opcode
 	0xEC: nil,         // Invalid opcode
 	0xED: nil,         // Invalid opcode
@@ -297,9 +297,9 @@ var opcodeTable = [256]InstructionFunc{
 	0xEF: wrapRST_28H, // RST 28H
 
 	// 0xF0-0xFF: More I/O and operations
-	0xF0: nil,         // LDH A,(n) (not yet implemented)
-	0xF1: wrapPOP_AF,  // POP AF
-	0xF2: nil,         // LD A,(C) (not yet implemented)
+	0xF0: wrapLDH_A_n,  // LDH A,(n)
+	0xF1: wrapPOP_AF,   // POP AF
+	0xF2: wrapLD_A_IO_C, // LD A,(C)
 	0xF3: nil,         // DI (not yet implemented)
 	0xF4: nil,         // Invalid opcode
 	0xF5: wrapPUSH_AF, // PUSH AF
@@ -307,7 +307,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xF7: wrapRST_30H, // RST 30H
 	0xF8: nil,         // LD HL,SP+n (not yet implemented)
 	0xF9: nil,         // LD SP,HL (not yet implemented)
-	0xFA: nil,         // LD A,(nn) (not yet implemented)
+	0xFA: wrapLD_A_nn, // LD A,(nn)
 	0xFB: nil,         // EI (not yet implemented)
 	0xFC: nil,         // Invalid opcode
 	0xFD: nil,         // Invalid opcode
