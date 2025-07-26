@@ -34,15 +34,15 @@ var opcodeTable = [256]InstructionFunc{
 	0x04: wrapINC_B,    // INC B
 	0x05: wrapDEC_B,    // DEC B
 	0x06: wrapLD_B_n,   // LD B,n
-	0x07: nil,          // RLCA (not yet implemented)
+	0x07: wrapRLCA,     // RLCA
 	0x08: nil,          // LD (nn),SP (not yet implemented)
-	0x09: nil,          // ADD HL,BC (not yet implemented)
+	0x09: wrapADD_HL_BC, // ADD HL,BC
 	0x0A: wrapLD_A_BC,  // LD A,(BC)
 	0x0B: wrapDEC_BC,   // DEC BC
 	0x0C: wrapINC_C,    // INC C
 	0x0D: wrapDEC_C,    // DEC C
 	0x0E: wrapLD_C_n,   // LD C,n
-	0x0F: nil,          // RRCA (not yet implemented)
+	0x0F: wrapRRCA,     // RRCA
 
 	// 0x10-0x1F: More 8-bit loads and operations
 	0x10: nil,          // STOP (not yet implemented)
@@ -52,28 +52,28 @@ var opcodeTable = [256]InstructionFunc{
 	0x14: wrapINC_D,    // INC D
 	0x15: wrapDEC_D,    // DEC D
 	0x16: wrapLD_D_n,   // LD D,n
-	0x17: nil,          // RLA (not yet implemented)
+	0x17: wrapRLA,      // RLA
 	0x18: wrapJR_n,     // JR n
-	0x19: nil,          // ADD HL,DE (not yet implemented)
+	0x19: wrapADD_HL_DE, // ADD HL,DE
 	0x1A: wrapLD_A_DE,  // LD A,(DE)
 	0x1B: wrapDEC_DE,   // DEC DE
 	0x1C: wrapINC_E,    // INC E
 	0x1D: wrapDEC_E,    // DEC E
 	0x1E: wrapLD_E_n,   // LD E,n
-	0x1F: nil,          // RRA (not yet implemented)
+	0x1F: wrapRRA,      // RRA
 
 	// 0x20-0x2F: Jump and 8-bit loads
 	0x20: wrapJR_NZ_n,  // JR NZ,n
 	0x21: wrapLD_HL_nn, // LD HL,nn
-	0x22: nil,          // LD (HL+),A (not yet implemented)
+	0x22: wrapLD_HL_INC_A, // LD (HL+),A
 	0x23: wrapINC_HL,   // INC HL
 	0x24: wrapINC_H,    // INC H
 	0x25: wrapDEC_H,    // DEC H
 	0x26: wrapLD_H_n,   // LD H,n
 	0x27: nil,          // DAA (not yet implemented)
 	0x28: wrapJR_Z_n,   // JR Z,n
-	0x29: nil,          // ADD HL,HL (not yet implemented)
-	0x2A: nil,          // LD A,(HL+) (not yet implemented)
+	0x29: wrapADD_HL_HL, // ADD HL,HL
+	0x2A: wrapLD_A_HL_INC, // LD A,(HL+)
 	0x2B: wrapDEC_HL,   // DEC HL
 	0x2C: wrapINC_L,    // INC L
 	0x2D: wrapDEC_L,    // DEC L
@@ -83,15 +83,15 @@ var opcodeTable = [256]InstructionFunc{
 	// 0x30-0x3F: More jumps and 8-bit operations
 	0x30: wrapJR_NC_n,     // JR NC,n
 	0x31: wrapLD_SP_nn,    // LD SP,nn
-	0x32: nil,             // LD (HL-),A (not yet implemented)
+	0x32: wrapLD_HL_DEC_A, // LD (HL-),A
 	0x33: wrapINC_SP,      // INC SP
 	0x34: wrapINC_HL_mem,  // INC (HL)
 	0x35: wrapDEC_HL_mem,  // DEC (HL)
 	0x36: wrapLD_HL_mem_n, // LD (HL),n
 	0x37: nil,             // SCF (not yet implemented)
 	0x38: wrapJR_C_n,      // JR C,n
-	0x39: nil,             // ADD HL,SP (not yet implemented)
-	0x3A: nil,             // LD A,(HL-) (not yet implemented)
+	0x39: wrapADD_HL_SP,   // ADD HL,SP
+	0x3A: wrapLD_A_HL_DEC, // LD A,(HL-)
 	0x3B: wrapDEC_SP,      // DEC SP
 	0x3C: wrapINC_A,       // INC A
 	0x3D: wrapDEC_A,       // DEC A
