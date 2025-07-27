@@ -565,3 +565,55 @@ func wrapEI(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error
 	return cycles, nil
 }
 
+// === Register Self-Load Operation Wrappers (Effectively NOPs) ===
+// These wrapper functions handle register self-load operations
+
+// wrapLD_B_B wraps the LD B,B instruction (0x40)
+// Load B into B (effectively NOP)
+func wrapLD_B_B(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_B_B(mmu)
+	return cycles, nil
+}
+
+// wrapLD_C_C wraps the LD C,C instruction (0x49)
+// Load C into C (effectively NOP)
+func wrapLD_C_C(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_C_C(mmu)
+	return cycles, nil
+}
+
+// wrapLD_D_D wraps the LD D,D instruction (0x52)
+// Load D into D (effectively NOP)
+func wrapLD_D_D(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_D_D(mmu)
+	return cycles, nil
+}
+
+// wrapLD_E_E wraps the LD E,E instruction (0x5B)
+// Load E into E (effectively NOP)
+func wrapLD_E_E(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_E_E(mmu)
+	return cycles, nil
+}
+
+// wrapLD_H_H wraps the LD H,H instruction (0x64)
+// Load H into H (effectively NOP)
+func wrapLD_H_H(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_H_H(mmu)
+	return cycles, nil
+}
+
+// wrapLD_L_L wraps the LD L,L instruction (0x6D)
+// Load L into L (effectively NOP)
+func wrapLD_L_L(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_L_L(mmu)
+	return cycles, nil
+}
+
+// wrapLD_A_A wraps the LD A,A instruction (0x7F)
+// Load A into A (effectively NOP)
+func wrapLD_A_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_A_A(mmu)
+	return cycles, nil
+}
+
