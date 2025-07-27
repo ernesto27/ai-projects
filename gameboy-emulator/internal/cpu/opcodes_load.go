@@ -533,3 +533,35 @@ func wrapLD_HL_SP_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint
 	cycles := cpu.LD_HL_SP_n(params[0])
 	return cycles, nil
 }
+
+// === Control/Interrupt Operation Wrappers ===
+// These wrapper functions handle CPU control and interrupt operations
+
+// wrapHALT wraps the HALT instruction (0x76)
+// Halt CPU until interrupt occurs
+func wrapHALT(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.HALT(mmu)
+	return cycles, nil
+}
+
+// wrapSTOP wraps the STOP instruction (0x10)
+// Stop CPU and LCD until button press
+func wrapSTOP(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.STOP(mmu)
+	return cycles, nil
+}
+
+// wrapDI wraps the DI instruction (0xF3)
+// Disable interrupts
+func wrapDI(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.DI(mmu)
+	return cycles, nil
+}
+
+// wrapEI wraps the EI instruction (0xFB)
+// Enable interrupts
+func wrapEI(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.EI(mmu)
+	return cycles, nil
+}
+

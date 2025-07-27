@@ -508,7 +508,7 @@ gameboy-emulator/
 
 **Overall Progress**: 6/14 major milestones completed
 
-**Instruction Progress**: 228/256 base instructions (89.1%) + 256/256 CB-prefixed (100%) = **484/512 total (94.5%)** - **🚀 MAJOR MILESTONE: APPROACHING 95% TOTAL COVERAGE!** 🏆
+**Instruction Progress**: 232/256 base instructions (90.6%) + 256/256 CB-prefixed (100%) = **488/512 total (95.3%)** - **🚀 MAJOR MILESTONE: 95% TOTAL COVERAGE ACHIEVED!** 🏆
 
 **MMU Progress**: ✅ COMPLETE - Full interface + CPU integration implemented with 100+ tests
 
@@ -517,7 +517,7 @@ gameboy-emulator/
 ## 📊 **DETAILED PROGRESS TRACKING**
 **Last Updated**: January 27, 2025
 
-### 🧠 **CPU Instructions Progress** (228/256 = 89.1% Complete) 🚀
+### 🧠 **CPU Instructions Progress** (232/256 = 90.6% Complete) 🚀
 
 #### ✅ **Completed Instruction Categories:**
 
@@ -546,8 +546,8 @@ gameboy-emulator/
 5. ✅ **Jump Instructions**: JP_nn, JR_n, conditional jumps (JP_NZ, JP_Z, JP_NC, JP_C, JR_NZ, JR_Z, JR_NC, JR_C), JP_HL (11 instructions) - **COMPLETED**
 
 #### 📈 **Progress Metrics:** 
-- **Total Instructions**: 484/512 (94.5%) - **🚀 MAJOR BREAKTHROUGH: Stack Pointer Operations Complete (+4 instructions)** 🎉
-- **Base Instructions**: 228/256 (89.1%) - **89.1% COMPLETE! Only 28 instructions remaining!**
+- **Total Instructions**: 488/512 (95.3%) - **🚀 MAJOR BREAKTHROUGH: Control Instructions Complete (+4 instructions)** 🎉
+- **Base Instructions**: 232/256 (90.6%) - **90.6% COMPLETE! Only 24 instructions remaining!**
 - **CB Instructions**: 256/256 (100%) - **COMPLETE! All rotation + bit manipulation + shift + BIT + RES + SET operations**
 - **Load Instructions**: 67/80 (84%) - **All register-to-register loads + memory operations + auto-inc/dec complete**
 - **Arithmetic Instructions**: 45/60 (75%) - **All basic arithmetic + ADC + SBC + 16-bit ADD HL operations complete**
@@ -562,11 +562,23 @@ gameboy-emulator/
 ---
 
 ## 🎯 Current Focus
-**Next Task**: Complete remaining 28 base instructions (89.1% → 100% base coverage) - Final push to complete CPU instruction set!
+**Next Task**: Complete remaining 24 base instructions (90.6% → 100% base coverage) - Final push to complete CPU instruction set!
 
-**Current Priority**: Implement remaining critical instructions: Flag operations (DAA, CPL, SCF, CCF), I/O operations (LDH), and control instructions (HALT, STOP, DI, EI)
+**Current Priority**: Implement remaining critical instructions: Flag operations (DAA, CPL, SCF, CCF) and I/O operations (LDH)
 
 **Recently Completed**: 
+- ✅ **🚀 CONTROL INSTRUCTIONS COMPLETED** (January 27, 2025) - Major milestone with 4 critical control operations implemented
+  - ✅ **HALT (0x76)**: Halt CPU until interrupt - 4 cycles - Essential for power saving and event waiting
+  - ✅ **STOP (0x10)**: Stop CPU and LCD until button press - 4 cycles - Critical for maximum power saving
+  - ✅ **DI (0xF3)**: Disable interrupts - 4 cycles - Essential for critical sections and atomic operations
+  - ✅ **EI (0xFB)**: Enable interrupts - 4 cycles - Critical for interrupt handling and system responsiveness
+  - ✅ **90.6% Base Instruction Coverage**: Only 24 instructions remaining for 100% CPU completion!
+  - ✅ **95.3% Total Coverage**: MAJOR MILESTONE - 95% total instruction set completion achieved!
+  - ✅ **New Implementation Files**: cpu_control.go with comprehensive CPU state management
+  - ✅ **Complete Integration**: All control operations fully integrated into opcode dispatch system
+  - ✅ **Comprehensive Testing**: 100+ new tests covering state management, power patterns, and Game Boy behaviors
+  - ✅ **Interrupt handling foundation**: InterruptsEnabled field added to CPU struct for future interrupt system
+  - ✅ **CPU state management**: Added IsHalted, IsStopped, AreInterruptsEnabled query functions
 - ✅ **🚀 STACK POINTER OPERATIONS COMPLETED** (January 27, 2025) - Major milestone with 4 critical stack operations implemented
   - ✅ **LD (nn),SP (0x08)**: Store SP at 16-bit memory address - 20 cycles - Essential for SP save/restore
   - ✅ **ADD SP,n (0xE8)**: Add signed 8-bit offset to SP - 16 cycles - Critical for stack frame allocation

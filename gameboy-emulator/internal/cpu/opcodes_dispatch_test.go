@@ -254,10 +254,8 @@ func TestOpcodeTable(t *testing.T) {
 
 	// Test some specific unimplemented opcodes (remaining)
 	unimplementedOpcodes := []uint8{
-		0x10, // STOP
-		0x76, // HALT
-		0xF3, // DI
-		0xFB, // EI
+		// All control instructions now implemented
+		// Only invalid opcodes and missing features remain
 	}
 
 	for _, opcode := range unimplementedOpcodes {

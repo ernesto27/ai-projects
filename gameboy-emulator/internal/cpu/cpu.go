@@ -22,8 +22,9 @@ type CPU struct {
 	PC uint16 // Program Counter - points to next instruction to execute
 
 	// CPU state
-	Halted  bool // CPU is in halt state
-	Stopped bool // CPU is in stop state
+	Halted           bool // CPU is in halt state
+	Stopped          bool // CPU is in stop state
+	InterruptsEnabled bool // Interrupt Master Enable (IME) flag
 }
 
 // NewCPU creates a new CPU instance with initial state
@@ -31,18 +32,19 @@ type CPU struct {
 func NewCPU() *CPU {
 	return &CPU{
 		// Initialize registers to Game Boy boot values
-		A:       0x01,
-		F:       0xB0,
-		B:       0x00,
-		C:       0x13,
-		D:       0x00,
-		E:       0xD8,
-		H:       0x01,
-		L:       0x4D,
-		SP:      0xFFFE, // Stack starts at top of memory
-		PC:      0x0100, // Program starts after boot ROM
-		Halted:  false,
-		Stopped: false,
+		A:                0x01,
+		F:                0xB0,
+		B:                0x00,
+		C:                0x13,
+		D:                0x00,
+		E:                0xD8,
+		H:                0x01,
+		L:                0x4D,
+		SP:               0xFFFE, // Stack starts at top of memory
+		PC:               0x0100, // Program starts after boot ROM
+		Halted:           false,
+		Stopped:          false,
+		InterruptsEnabled: false, // Interrupts disabled at boot
 	}
 }
 
@@ -61,6 +63,7 @@ func (cpu *CPU) Reset() {
 	cpu.PC = 0x0100
 	cpu.Halted = false
 	cpu.Stopped = false
+	cpu.InterruptsEnabled = false
 }
 
 // === CPU Instructions ===

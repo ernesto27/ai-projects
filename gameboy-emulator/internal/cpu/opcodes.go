@@ -45,7 +45,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x0F: wrapRRCA,     // RRCA
 
 	// 0x10-0x1F: More 8-bit loads and operations
-	0x10: nil,          // STOP (not yet implemented)
+	0x10: wrapSTOP,     // STOP
 	0x11: wrapLD_DE_nn, // LD DE,nn
 	0x12: wrapLD_DE_A,  // LD (DE),A
 	0x13: wrapINC_DE,   // INC DE
@@ -159,7 +159,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x73: wrapLD_HL_mem_E, // LD (HL),E
 	0x74: wrapLD_HL_mem_H, // LD (HL),H
 	0x75: wrapLD_HL_mem_L, // LD (HL),L
-	0x76: nil,         // HALT (not yet implemented)
+	0x76: wrapHALT,    // HALT
 	0x77: wrapLD_HL_A, // LD (HL),A
 	0x78: wrapLD_A_B,  // LD A,B
 	0x79: wrapLD_A_C,  // LD A,C
@@ -300,7 +300,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xF0: wrapLDH_A_n,  // LDH A,(n)
 	0xF1: wrapPOP_AF,   // POP AF
 	0xF2: wrapLD_A_IO_C, // LD A,(C)
-	0xF3: nil,         // DI (not yet implemented)
+	0xF3: wrapDI,      // DI
 	0xF4: nil,         // Invalid opcode
 	0xF5: wrapPUSH_AF, // PUSH AF
 	0xF6: wrapOR_A_n,  // OR A,n
@@ -308,7 +308,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xF8: wrapLD_HL_SP_n, // LD HL,SP+n
 	0xF9: wrapLD_SP_HL,   // LD SP,HL
 	0xFA: wrapLD_A_nn, // LD A,(nn)
-	0xFB: nil,         // EI (not yet implemented)
+	0xFB: wrapEI,      // EI
 	0xFC: nil,         // Invalid opcode
 	0xFD: nil,         // Invalid opcode
 	0xFE: wrapCP_A_n,  // CP n
@@ -392,13 +392,17 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0x24: "INC H",
 		0x25: "DEC H",
 		0x26: "LD H,n",
+		0x27: "DAA",
 		0x28: "JR Z,n",
 		0x2C: "INC L",
 		0x2D: "DEC L",
 		0x2E: "LD L,n",
+		0x2F: "CPL",
 		0x30: "JR NC,n",
 		0x31: "LD SP,nn",
+		0x37: "SCF",
 		0x38: "JR C,n",
+		0x3F: "CCF",
 		0x3C: "INC A",
 		0x3D: "DEC A",
 		0x3E: "LD A,n",
@@ -456,9 +460,13 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0xF1: "POP AF",
 		0xF5: "PUSH AF",
 		0xF7: "RST 30H",
+		0x10: "STOP",
+		0x76: "HALT",
 		0xE8: "ADD SP,n",
+		0xF3: "DI",
 		0xF8: "LD HL,SP+n",
 		0xF9: "LD SP,HL",
+		0xFB: "EI",
 		0xFE: "CP n",
 		0xFF: "RST 38H",
 	}

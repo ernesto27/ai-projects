@@ -168,3 +168,4 @@ gameboy-emulator/
 
 ## Development Workflow Memories
 - when finish a task, update todo.md
+- after finish task,  explain with details and examples
