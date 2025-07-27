@@ -165,3 +165,6 @@ gameboy-emulator/
 - Game Boy CPU Manual (Sharp LR35902 documentation)
 - Blargg's Test ROMs for validation
 - Mooneye GB test suite for accuracy testing
+
+## Development Workflow Memories
+- when finish a task, update todo.md

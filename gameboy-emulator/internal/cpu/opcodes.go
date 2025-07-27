@@ -35,7 +35,7 @@ var opcodeTable = [256]InstructionFunc{
 	0x05: wrapDEC_B,    // DEC B
 	0x06: wrapLD_B_n,   // LD B,n
 	0x07: wrapRLCA,     // RLCA
-	0x08: nil,          // LD (nn),SP (not yet implemented)
+	0x08: wrapLD_nn_SP, // LD (nn),SP
 	0x09: wrapADD_HL_BC, // ADD HL,BC
 	0x0A: wrapLD_A_BC,  // LD A,(BC)
 	0x0B: wrapDEC_BC,   // DEC BC
@@ -287,7 +287,7 @@ var opcodeTable = [256]InstructionFunc{
 	0xE5: wrapPUSH_HL, // PUSH HL
 	0xE6: wrapAND_A_n, // AND n
 	0xE7: wrapRST_20H, // RST 20H
-	0xE8: nil,         // ADD SP,n (not yet implemented)
+	0xE8: wrapADD_SP_n, // ADD SP,n
 	0xE9: wrapJP_HL,   // JP (HL)
 	0xEA: wrapLD_nn_A, // LD (nn),A
 	0xEB: nil,         // Invalid opcode
@@ -305,8 +305,8 @@ var opcodeTable = [256]InstructionFunc{
 	0xF5: wrapPUSH_AF, // PUSH AF
 	0xF6: wrapOR_A_n,  // OR A,n
 	0xF7: wrapRST_30H, // RST 30H
-	0xF8: nil,         // LD HL,SP+n (not yet implemented)
-	0xF9: nil,         // LD SP,HL (not yet implemented)
+	0xF8: wrapLD_HL_SP_n, // LD HL,SP+n
+	0xF9: wrapLD_SP_HL,   // LD SP,HL
 	0xFA: wrapLD_A_nn, // LD A,(nn)
 	0xFB: nil,         // EI (not yet implemented)
 	0xFC: nil,         // Invalid opcode
@@ -367,6 +367,7 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 	// Map some common opcodes to their names for demonstration
 	opcodeNames := map[uint8]string{
 		0x00: "NOP",
+		0x08: "LD (nn),SP",
 		0x01: "LD BC,nn",
 		0x02: "LD (BC),A",
 		0x04: "INC B",
@@ -455,6 +456,9 @@ func GetOpcodeInfo(opcode uint8) (string, bool) {
 		0xF1: "POP AF",
 		0xF5: "PUSH AF",
 		0xF7: "RST 30H",
+		0xE8: "ADD SP,n",
+		0xF8: "LD HL,SP+n",
+		0xF9: "LD SP,HL",
 		0xFE: "CP n",
 		0xFF: "RST 38H",
 	}

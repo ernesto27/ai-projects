@@ -493,3 +493,43 @@ func wrapLD_DE_A(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, 
 	cycles := cpu.LD_DE_A(mmu)
 	return cycles, nil
 }
+
+// === Stack Pointer Operation Wrappers ===
+// These wrapper functions handle stack pointer operations
+
+// wrapLD_nn_SP wraps the LD (nn),SP instruction (0x08)
+// Store SP at 16-bit memory address
+func wrapLD_nn_SP(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 2 {
+		return 0, fmt.Errorf("LD (nn),SP requires 2 parameters, got %d", len(params))
+	}
+	cycles := cpu.LD_nn_SP(mmu, params[0], params[1]) // low, high
+	return cycles, nil
+}
+
+// wrapLD_SP_HL wraps the LD SP,HL instruction (0xF9)
+// Copy HL register pair to stack pointer
+func wrapLD_SP_HL(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	cycles := cpu.LD_SP_HL(mmu)
+	return cycles, nil
+}
+
+// wrapADD_SP_n wraps the ADD SP,n instruction (0xE8)
+// Add signed 8-bit offset to stack pointer
+func wrapADD_SP_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("ADD SP,n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.ADD_SP_n(params[0])
+	return cycles, nil
+}
+
+// wrapLD_HL_SP_n wraps the LD HL,SP+n instruction (0xF8)
+// Load SP plus signed offset into HL register pair
+func wrapLD_HL_SP_n(cpu *CPU, mmu memory.MemoryInterface, params ...uint8) (uint8, error) {
+	if len(params) < 1 {
+		return 0, fmt.Errorf("LD HL,SP+n requires 1 parameter, got %d", len(params))
+	}
+	cycles := cpu.LD_HL_SP_n(params[0])
+	return cycles, nil
+}
