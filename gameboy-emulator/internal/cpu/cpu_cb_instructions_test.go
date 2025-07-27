@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -76,7 +75,7 @@ func TestBIT_7_A(t *testing.T) {
 
 func TestBIT_0_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x8000)
@@ -102,7 +101,7 @@ func TestBIT_0_HL(t *testing.T) {
 
 func TestBIT_7_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x9000)
@@ -172,7 +171,7 @@ func TestSET_7_A(t *testing.T) {
 
 func TestSET_0_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x8000)
@@ -193,7 +192,7 @@ func TestSET_0_HL(t *testing.T) {
 
 func TestSET_7_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x9000)
@@ -257,7 +256,7 @@ func TestRES_7_A(t *testing.T) {
 
 func TestRES_0_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x8000)
@@ -278,7 +277,7 @@ func TestRES_0_HL(t *testing.T) {
 
 func TestRES_7_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x9000)
@@ -409,7 +408,7 @@ func TestSWAP_C(t *testing.T) {
 
 func TestSWAP_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to a test address
 	cpu.SetHL(0x8000)
@@ -617,7 +616,7 @@ func TestBIT_3_Instructions(t *testing.T) {
 
 func TestBIT_5_Instructions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test BIT 5 on register E (bit position 5 = value 0x20)
 	cpu.E = 0x20 // Binary: 00100000, bit 5 = 1
@@ -658,7 +657,7 @@ func TestRES_2_Instructions(t *testing.T) {
 
 func TestRES_4_Instructions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test RES 4 on register H - clear bit 4 (value 0x10)
 	cpu.H = 0x1F // Binary: 00011111, has bit 4 set
@@ -697,7 +696,7 @@ func TestSET_3_Instructions(t *testing.T) {
 
 func TestSET_5_Instructions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test SET 5 on register L - set bit 5 (value 0x20)
 	cpu.L = 0x00 // All bits clear
@@ -706,13 +705,13 @@ func TestSET_5_Instructions(t *testing.T) {
 	assert.Equal(t, uint8(8), cycles, "SET 5,L should take 8 cycles")
 	assert.Equal(t, uint8(0x20), cpu.L, "Bit 5 should be set: 0x00 -> 0x20")
 
-	// Test SET 5 on memory location (HL)
-	cpu.SetHL(0xA000)
-	mmu.WriteByte(0xA000, 0x00) // All bits clear
+	// Test SET 5 on memory location (HL) - use WRAM instead of External RAM
+	cpu.SetHL(0xC000)
+	mmu.WriteByte(0xC000, 0x00) // All bits clear
 	cycles = cpu.SET_5_HL(mmu)
 
 	assert.Equal(t, uint8(16), cycles, "SET 5,(HL) should take 16 cycles")
-	assert.Equal(t, uint8(0x20), mmu.ReadByte(0xA000), "Bit 5 should be set in memory")
+	assert.Equal(t, uint8(0x20), mmu.ReadByte(0xC000), "Bit 5 should be set in memory")
 }
 
 func TestSET_6_Instructions(t *testing.T) {

@@ -1,5 +1,7 @@
 package memory
 
+import "gameboy-emulator/internal/cartridge"
+
 // Game Boy Memory Map Constants
 // These define the address ranges for different memory regions in the Game Boy's 64KB address space
 
@@ -100,45 +102,108 @@ type MemoryInterface interface {
 
 // MMU represents the Memory Management Unit for the Game Boy
 // Manages access to the entire 64KB address space (0x0000-0xFFFF)
+// Routes ROM/RAM requests to cartridge MBC, handles internal memory regions
 type MMU struct {
-	memory [0x10000]uint8 // 64KB total memory space
+	memory    [0x10000]uint8   // 64KB total memory space for internal regions
+	cartridge cartridge.MBC    // Memory Bank Controller for ROM/RAM access
 }
 
-// NewMMU creates and initializes a new MMU instance
-// Returns a pointer to MMU with zeroed memory (64KB of 0x00 bytes)
-func NewMMU() *MMU {
+// NewMMU creates and initializes a new MMU instance with cartridge integration
+// Parameters:
+//   - mbc: Memory Bank Controller from cartridge for ROM/RAM access
+// Returns a pointer to MMU with zeroed internal memory and cartridge reference
+func NewMMU(mbc cartridge.MBC) *MMU {
 	return &MMU{
-		memory: [0x10000]uint8{}, // Initialize all 65536 bytes to 0x00
+		memory:    [0x10000]uint8{}, // Initialize all 65536 bytes to 0x00
+		cartridge: mbc,              // Store cartridge MBC reference
 	}
 }
 
 // ReadByte reads a single byte from memory at the specified address
+// Routes ROM/RAM reads to cartridge, uses internal memory for other regions
 // Address range: 0x0000-0xFFFF (full 64KB Game Boy address space)
 func (mmu *MMU) ReadByte(address uint16) uint8 {
+	// ROM Bank 0 & 1: Route to cartridge (0x0000-0x7FFF)
+	if address >= ROMBank0Start && address <= ROMBank1End {
+		return mmu.cartridge.ReadByte(address)
+	}
+	
+	// External RAM: Route to cartridge (0xA000-0xBFFF)
+	if address >= ExternalRAMStart && address <= ExternalRAMEnd {
+		return mmu.cartridge.ReadByte(address)
+	}
+	
+	// Echo RAM: Mirror of WRAM (0xE000-0xFDFF mirrors 0xC000-0xDDFF)
+	if address >= EchoRAMStart && address <= EchoRAMEnd {
+		// Map echo RAM to corresponding WRAM address
+		mirrorAddress := WRAMStart + (address - EchoRAMStart)
+		return mmu.memory[mirrorAddress]
+	}
+	
+	// Prohibited area: Return 0xFF (0xFEA0-0xFEFF)
+	if address >= ProhibitedStart && address <= ProhibitedEnd {
+		return 0xFF
+	}
+	
+	// All other regions: Use internal memory
+	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
+	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE), IE (0xFFFF)
 	return mmu.memory[address]
 }
 
 // WriteByte writes a single byte to memory at the specified address
+// Routes ROM/RAM writes to cartridge, uses internal memory for other regions
 // Address range: 0x0000-0xFFFF (full 64KB Game Boy address space)
 func (mmu *MMU) WriteByte(address uint16, value uint8) {
+	// ROM Bank 0 & 1: Route to cartridge for bank switching (0x0000-0x7FFF)
+	if address >= ROMBank0Start && address <= ROMBank1End {
+		mmu.cartridge.WriteByte(address, value)
+		return
+	}
+	
+	// External RAM: Route to cartridge (0xA000-0xBFFF)
+	if address >= ExternalRAMStart && address <= ExternalRAMEnd {
+		mmu.cartridge.WriteByte(address, value)
+		return
+	}
+	
+	// Echo RAM: Mirror write to WRAM (0xE000-0xFDFF mirrors 0xC000-0xDDFF)
+	if address >= EchoRAMStart && address <= EchoRAMEnd {
+		// Map echo RAM to corresponding WRAM address and write to both
+		mirrorAddress := WRAMStart + (address - EchoRAMStart)
+		mmu.memory[mirrorAddress] = value
+		mmu.memory[address] = value  // Also write to echo RAM area
+		return
+	}
+	
+	// Prohibited area: Ignore writes (0xFEA0-0xFEFF)
+	if address >= ProhibitedStart && address <= ProhibitedEnd {
+		return // Writes to prohibited area are ignored
+	}
+	
+	// All other regions: Use internal memory
+	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
+	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE), IE (0xFFFF)
 	mmu.memory[address] = value
 }
 
 // ReadWord reads a 16-bit word from memory (little-endian)
 // Game Boy stores 16-bit values with low byte first, high byte second
+// Uses ReadByte method to ensure proper routing to cartridge
 // Address range: 0x0000-0xFFFE (reads 2 consecutive bytes)
 func (mmu *MMU) ReadWord(address uint16) uint16 {
-	low := uint16(mmu.memory[address])
-	high := uint16(mmu.memory[address+1])
+	low := uint16(mmu.ReadByte(address))
+	high := uint16(mmu.ReadByte(address + 1))
 	return (high << 8) | low
 }
 
 // WriteWord writes a 16-bit word to memory (little-endian)
 // Game Boy stores 16-bit values with low byte first, high byte second
+// Uses WriteByte method to ensure proper routing to cartridge
 // Address range: 0x0000-0xFFFE (writes 2 consecutive bytes)
 func (mmu *MMU) WriteWord(address uint16, value uint16) {
-	mmu.memory[address] = uint8(value & 0xFF)          // Low byte
-	mmu.memory[address+1] = uint8((value >> 8) & 0xFF) // High byte
+	mmu.WriteByte(address, uint8(value&0xFF))         // Low byte
+	mmu.WriteByte(address+1, uint8((value>>8)&0xFF)) // High byte
 }
 
 // isValidAddress checks if the given address is accessible

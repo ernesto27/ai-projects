@@ -11,7 +11,7 @@ import (
 // TestExecuteInstruction tests the opcode dispatch table functionality
 func TestExecuteInstruction(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	tests := []struct {
 		name        string
@@ -162,7 +162,7 @@ func TestExecuteInstruction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset CPU and MMU for each test
 			cpu = NewCPU()
-			mmu = memory.NewMMU()
+			mmu = createTestMMU()
 
 			// Setup CPU and MMU
 			tt.setupCPU(cpu)
@@ -315,7 +315,7 @@ func TestUtilityFunctions(t *testing.T) {
 // TestOpcodeDispatchWithRealInstructions tests the dispatch with actual instruction execution
 func TestOpcodeDispatchWithRealInstructions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test a sequence of instructions
 	// Note: Game Boy CPU starts with specific boot values (not all zeros)
@@ -509,7 +509,7 @@ func TestORInstructionDispatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// Setup test conditions
 			tt.setupCPU(cpu)
@@ -557,7 +557,7 @@ func TestORInstructionBitPatterns(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.desc, func(t *testing.T) {
 				cpu := NewCPU()
-				mmu := memory.NewMMU()
+				mmu := createTestMMU()
 
 				cpu.A = tc.aValue
 				switch tc.opcode {

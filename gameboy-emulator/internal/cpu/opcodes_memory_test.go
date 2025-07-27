@@ -14,7 +14,7 @@ import (
 
 func TestWrapLD_A_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up HL to point to a memory location
 	cpu.SetHL(0x8000)
@@ -31,7 +31,7 @@ func TestWrapLD_A_HL(t *testing.T) {
 
 func TestWrapLD_A_BC(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up BC to point to a memory location
 	cpu.SetBC(0x9000)
@@ -48,11 +48,11 @@ func TestWrapLD_A_BC(t *testing.T) {
 
 func TestWrapLD_A_DE(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
-	// Set up DE to point to a memory location
-	cpu.SetDE(0xA000)
-	mmu.WriteByte(0xA000, 0xAA)
+	// Set up DE to point to a memory location (use WRAM instead of External RAM)
+	cpu.SetDE(0xC000)
+	mmu.WriteByte(0xC000, 0xAA)
 
 	// Test the wrapper
 	cycles, err := wrapLD_A_DE(cpu, mmu)
@@ -60,14 +60,14 @@ func TestWrapLD_A_DE(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(8), cycles, "LD A,(DE) should return 8 cycles")
 	assert.Equal(t, uint8(0xAA), cpu.A, "A should contain value from memory")
-	assert.Equal(t, uint16(0xA000), cpu.GetDE(), "DE should remain unchanged")
+	assert.Equal(t, uint16(0xC000), cpu.GetDE(), "DE should remain unchanged")
 }
 
 // === Test Memory Store Wrapper Functions ===
 
 func TestWrapLD_HL_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up A with a value and HL pointing to memory
 	cpu.A = 0x99
@@ -85,7 +85,7 @@ func TestWrapLD_HL_A(t *testing.T) {
 
 func TestWrapLD_BC_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up A with a value and BC pointing to memory
 	cpu.A = 0x77
@@ -103,27 +103,27 @@ func TestWrapLD_BC_A(t *testing.T) {
 
 func TestWrapLD_DE_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
-	// Set up A with a value and DE pointing to memory
+	// Set up A with a value and DE pointing to memory (use WRAM instead of External RAM)
 	cpu.A = 0x33
-	cpu.SetDE(0xA000)
+	cpu.SetDE(0xC100)
 
 	// Test the wrapper
 	cycles, err := wrapLD_DE_A(cpu, mmu)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(8), cycles, "LD (DE),A should return 8 cycles")
-	assert.Equal(t, uint8(0x33), mmu.ReadByte(0xA000), "Memory should contain A's value")
+	assert.Equal(t, uint8(0x33), mmu.ReadByte(0xC100), "Memory should contain A's value")
 	assert.Equal(t, uint8(0x33), cpu.A, "A should remain unchanged")
-	assert.Equal(t, uint16(0xA000), cpu.GetDE(), "DE should remain unchanged")
+	assert.Equal(t, uint16(0xC100), cpu.GetDE(), "DE should remain unchanged")
 }
 
 // === Test Memory Operations with Different Memory Regions ===
 
 func TestMemoryRegionOperations(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	memoryTests := []struct {
 		name    string
@@ -131,12 +131,12 @@ func TestMemoryRegionOperations(t *testing.T) {
 		value   uint8
 		region  string
 	}{
-		{"ROM Bank 0", 0x0100, 0x10, "ROM"},
-		{"ROM Bank 1", 0x4000, 0x40, "ROM"},
+		// Skip ROM regions as they route to cartridge and don't behave like regular memory
 		{"VRAM", 0x8000, 0x80, "VRAM"},
-		{"External RAM", 0xA000, 0xA0, "External RAM"},
 		{"Work RAM", 0xC000, 0xC0, "Work RAM"},
+		{"Work RAM High", 0xD000, 0xD0, "Work RAM"},
 		{"High RAM", 0xFF80, 0xFF, "High RAM"},
+		{"I/O Register", 0xFF40, 0x91, "I/O Register"},
 	}
 
 	for _, tt := range memoryTests {
@@ -167,7 +167,7 @@ func TestMemoryRegionOperations(t *testing.T) {
 
 func TestMemoryRoundTrip(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	testCases := []struct {
 		name          string
@@ -201,7 +201,7 @@ func TestMemoryRoundTrip(t *testing.T) {
 			setRegPair:    (*CPU).SetDE,
 			wrapLoad:      wrapLD_A_DE,
 			wrapStore:     wrapLD_DE_A,
-			address:       0xA000,
+			address:       0xC200,  // Use WRAM instead of External RAM
 			originalValue: 0x33,
 			newValue:      0xCC,
 		},
@@ -301,8 +301,8 @@ func TestMemoryWrappersVsOriginals(t *testing.T) {
 			wrapper:  wrapLD_A_DE,
 			original: (*CPU).LD_A_DE,
 			setup: func(cpu *CPU, mmu memory.MemoryInterface) {
-				cpu.SetDE(0xA000)
-				mmu.WriteByte(0xA000, 0xAA)
+				cpu.SetDE(0xD000)
+				mmu.WriteByte(0xD000, 0xAA)
 			},
 			check: func(cpu1, cpu2 *CPU, mmu memory.MemoryInterface) bool {
 				return cpu1.A == cpu2.A
@@ -314,7 +314,7 @@ func TestMemoryWrappersVsOriginals(t *testing.T) {
 			original: (*CPU).LD_DE_A,
 			setup: func(cpu *CPU, mmu memory.MemoryInterface) {
 				cpu.A = 0x33
-				cpu.SetDE(0xA000)
+				cpu.SetDE(0xD000)
 			},
 			check: func(cpu1, cpu2 *CPU, mmu memory.MemoryInterface) bool {
 				return cpu1.A == cpu2.A && cpu1.GetDE() == cpu2.GetDE()
@@ -327,8 +327,8 @@ func TestMemoryWrappersVsOriginals(t *testing.T) {
 			// Create two identical CPUs and MMUs
 			cpu1 := NewCPU()
 			cpu2 := NewCPU()
-			mmu1 := memory.NewMMU()
-			mmu2 := memory.NewMMU()
+			mmu1 := createTestMMU()
+			mmu2 := createTestMMU()
 
 			// Set them up identically
 			tt.setup(cpu1, mmu1)
@@ -344,7 +344,7 @@ func TestMemoryWrappersVsOriginals(t *testing.T) {
 			assert.True(t, tt.check(cpu1, cpu2, mmu1), "CPU state should match")
 
 			// Memory should also be identical
-			for addr := uint16(0x8000); addr <= 0xA000; addr += 0x1000 {
+			for addr := uint16(0x8000); addr <= 0xD000; addr += 0x1000 {
 				assert.Equal(t, mmu1.ReadByte(addr), mmu2.ReadByte(addr), "Memory at 0x%04X should match", addr)
 			}
 		})
@@ -355,7 +355,7 @@ func TestMemoryWrappersVsOriginals(t *testing.T) {
 
 func TestMemoryEdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("Memory boundaries", func(t *testing.T) {
 		// Test at memory boundaries

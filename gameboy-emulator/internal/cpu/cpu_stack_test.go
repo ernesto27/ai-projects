@@ -15,7 +15,7 @@ import (
 
 func TestPUSH_BC(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic PUSH BC operation
 	cpu.B = 0x12
@@ -43,7 +43,7 @@ func TestPUSH_BC(t *testing.T) {
 
 func TestPUSH_DE(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.D = 0x56
 	cpu.E = 0x78
@@ -59,7 +59,7 @@ func TestPUSH_DE(t *testing.T) {
 
 func TestPUSH_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.H = 0x9A
 	cpu.L = 0xBC
@@ -75,7 +75,7 @@ func TestPUSH_HL(t *testing.T) {
 
 func TestPUSH_AF(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0xDE
 	cpu.F = 0xF0
@@ -95,7 +95,7 @@ func TestPUSH_AF(t *testing.T) {
 
 func TestPOP_BC(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup stack with test data
 	cpu.SP = 0xFFFC
@@ -117,7 +117,7 @@ func TestPOP_BC(t *testing.T) {
 
 func TestPOP_DE(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	mmu.WriteByte(0xFFFC, 0x78) // Low byte (E)
@@ -133,7 +133,7 @@ func TestPOP_DE(t *testing.T) {
 
 func TestPOP_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	mmu.WriteByte(0xFFFC, 0xBC) // Low byte (L)
@@ -149,7 +149,7 @@ func TestPOP_HL(t *testing.T) {
 
 func TestPOP_AF(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	mmu.WriteByte(0xFFFC, 0xF0) // Low byte (F) - flags
@@ -169,7 +169,7 @@ func TestPOP_AF(t *testing.T) {
 
 func TestCALL_nn(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup: PC=0x8000, SP=0xFFFE, target address=0x4000
 	cpu.PC = 0x8000
@@ -198,7 +198,7 @@ func TestCALL_nn(t *testing.T) {
 
 func TestCALL_NZ_nn_WhenZClear(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.PC = 0x8000
 	cpu.SP = 0xFFFE
@@ -217,7 +217,7 @@ func TestCALL_NZ_nn_WhenZClear(t *testing.T) {
 
 func TestCALL_NZ_nn_WhenZSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.PC = 0x8000
 	cpu.SP = 0xFFFE
@@ -237,7 +237,7 @@ func TestCALL_NZ_nn_WhenZSet(t *testing.T) {
 
 func TestCALL_Z_nn_WhenZSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.PC = 0x8000
 	cpu.SP = 0xFFFE
@@ -255,7 +255,7 @@ func TestCALL_Z_nn_WhenZSet(t *testing.T) {
 
 func TestCALL_NC_nn_WhenCClear(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.PC = 0x8000
 	cpu.SP = 0xFFFE
@@ -273,7 +273,7 @@ func TestCALL_NC_nn_WhenCClear(t *testing.T) {
 
 func TestCALL_C_nn_WhenCSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.PC = 0x8000
 	cpu.SP = 0xFFFE
@@ -295,7 +295,7 @@ func TestCALL_C_nn_WhenCSet(t *testing.T) {
 
 func TestRET(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup stack with return address 0x8003
 	cpu.SP = 0xFFFC
@@ -315,7 +315,7 @@ func TestRET(t *testing.T) {
 
 func TestRET_NZ_WhenZClear(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	cpu.SetFlag(FlagZ, false) // Clear Z flag
@@ -334,7 +334,7 @@ func TestRET_NZ_WhenZClear(t *testing.T) {
 
 func TestRET_NZ_WhenZSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	originalPC := cpu.PC
 	cpu.SP = 0xFFFC
@@ -356,7 +356,7 @@ func TestRET_NZ_WhenZSet(t *testing.T) {
 
 func TestRET_Z_WhenZSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	cpu.SetFlag(FlagZ, true) // Set Z flag
@@ -375,7 +375,7 @@ func TestRET_Z_WhenZSet(t *testing.T) {
 
 func TestRET_NC_WhenCClear(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	cpu.SetFlag(FlagC, false) // Clear C flag
@@ -394,7 +394,7 @@ func TestRET_NC_WhenCClear(t *testing.T) {
 
 func TestRET_C_WhenCSet(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFC
 	cpu.SetFlag(FlagC, true) // Set C flag
@@ -413,7 +413,7 @@ func TestRET_C_WhenCSet(t *testing.T) {
 
 func TestRETI(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup stack with return address
 	cpu.SP = 0xFFFC
@@ -442,7 +442,7 @@ func TestRETI(t *testing.T) {
 
 func TestPushByte(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set initial stack pointer
 	cpu.SP = 0xFFFE
@@ -471,7 +471,7 @@ func TestPushByte(t *testing.T) {
 
 func TestPopByte(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up stack with data
 	cpu.SP = 0xFFFC
@@ -491,7 +491,7 @@ func TestPopByte(t *testing.T) {
 
 func TestPushPopByteRoundTrip(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SP = 0xFFFE
 	originalSP := cpu.SP
@@ -514,7 +514,7 @@ func TestPushPopByteRoundTrip(t *testing.T) {
 
 func TestGetStackTop(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test with empty stack
 	cpu.SP = 0xFFFE
@@ -569,7 +569,7 @@ func TestIsStackEmpty(t *testing.T) {
 
 func TestStackHelperIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Start with empty stack
 	cpu.SP = 0xFFFE
@@ -621,7 +621,7 @@ func TestRST_Instructions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// Set initial state
 			initialPC := uint16(0x1234)
@@ -658,7 +658,7 @@ func TestRST_Instructions(t *testing.T) {
 func TestRST_StackBehavior(t *testing.T) {
 	// Test RST instruction stack behavior in detail
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup initial state
 	cpu.PC = 0x5678
@@ -698,7 +698,7 @@ func TestRST_EdgeCases(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			cpu.PC = tc.initialPC
 			cpu.SP = 0xFFFE
@@ -722,7 +722,7 @@ func TestRST_EdgeCases(t *testing.T) {
 func TestRST_FlagPreservation(t *testing.T) {
 	// Test that RST instructions preserve all flags
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.SetFlag(FlagZ, true)

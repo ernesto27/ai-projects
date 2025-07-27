@@ -92,9 +92,9 @@ func runEmulator(romFile string) error {
 		return fmt.Errorf("failed to create MBC: %w", err)
 	}
 
-	// Step 4: Initialize MMU (Memory Management Unit)
-	mmu := memory.NewMMU()
-	fmt.Println("MMU initialized")
+	// Step 4: Initialize MMU (Memory Management Unit) with cartridge
+	mmu := memory.NewMMU(mbc)
+	fmt.Println("MMU initialized with cartridge integration")
 
 	// Step 5: Initialize CPU
 	gameCPU := cpu.NewCPU()
@@ -110,10 +110,15 @@ func runEmulator(romFile string) error {
 	fmt.Println()
 	fmt.Println("=== Basic Emulation Demo ===")
 	
-	// Demonstrate reading from ROM
-	fmt.Printf("Reading ROM at 0x0000: 0x%02X\n", mbc.ReadByte(0x0000))
-	fmt.Printf("Reading ROM at 0x0100: 0x%02X\n", mbc.ReadByte(0x0100))
-	fmt.Printf("Reading ROM at 0x4000: 0x%02X\n", mbc.ReadByte(0x4000))
+	// Demonstrate reading from ROM through MMU (now integrated!)
+	fmt.Printf("Reading ROM via MMU at 0x0000: 0x%02X\n", mmu.ReadByte(0x0000))
+	fmt.Printf("Reading ROM via MMU at 0x0100: 0x%02X\n", mmu.ReadByte(0x0100))
+	fmt.Printf("Reading ROM via MMU at 0x4000: 0x%02X\n", mmu.ReadByte(0x4000))
+	
+	// Compare with direct MBC access (should be identical)
+	fmt.Printf("Direct MBC read at 0x0000:  0x%02X\n", mbc.ReadByte(0x0000))
+	fmt.Printf("Direct MBC read at 0x0100:  0x%02X\n", mbc.ReadByte(0x0100))
+	fmt.Printf("Direct MBC read at 0x4000:  0x%02X\n", mbc.ReadByte(0x4000))
 	
 	// Demonstrate CPU state
 	fmt.Printf("CPU Register A: 0x%02X\n", gameCPU.A)

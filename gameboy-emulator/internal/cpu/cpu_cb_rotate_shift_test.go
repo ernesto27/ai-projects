@@ -55,7 +55,7 @@ func TestRLC_Instructions(t *testing.T) {
 
 func TestRLC_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0x85) // 10000101
@@ -120,7 +120,7 @@ func TestRRC_Instructions(t *testing.T) {
 
 func TestRRC_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0x85) // 10000101
@@ -186,7 +186,7 @@ func TestRL_Instructions(t *testing.T) {
 
 func TestRL_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	cpu.SetFlag(FlagC, true) // Initial carry = 1
@@ -253,7 +253,7 @@ func TestRR_Instructions(t *testing.T) {
 
 func TestRR_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	cpu.SetFlag(FlagC, true) // Initial carry = 1
@@ -312,7 +312,7 @@ func TestCB_Rotation_Dispatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			
 			tt.setup(cpu, mmu)
 			
@@ -406,7 +406,7 @@ func BenchmarkRL_Register(b *testing.B) {
 
 func BenchmarkRLC_Memory(b *testing.B) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	cpu.SetHL(0x8000)
 	
 	b.ResetTimer()

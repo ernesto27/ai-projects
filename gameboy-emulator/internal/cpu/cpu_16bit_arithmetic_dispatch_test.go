@@ -2,7 +2,6 @@ package cpu
 
 import (
 	"fmt"
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +10,7 @@ import (
 // Test16BitOpcodeDispatch tests the 16-bit arithmetic instructions through the opcode dispatch system
 func Test16BitOpcodeDispatch(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	tests := []struct {
 		name        string
@@ -99,7 +98,7 @@ func Test16BitOpcodeDispatch(t *testing.T) {
 // Test16BitOpcodeWrapBoundary tests wrap-around behavior through opcode dispatch
 func Test16BitOpcodeWrapBoundary(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test INC BC wrap around
 	cpu.SetBC(0xFFFF)
@@ -133,7 +132,7 @@ func Test16BitOpcodeWrapBoundary(t *testing.T) {
 // Test16BitOpcodeFlagPreservation tests that flags are not affected by 16-bit operations
 func Test16BitOpcodeFlagPreservation(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags to a known state
 	cpu.SetFlag(FlagZ, true)
@@ -197,7 +196,7 @@ func Test16BitOpcodeImplementationStatus(t *testing.T) {
 
 	// Test that they actually execute without error
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	for _, opcode := range expectedOpcodes {
 		t.Run(fmt.Sprintf("Opcode 0x%02X should execute without error", opcode), func(t *testing.T) {

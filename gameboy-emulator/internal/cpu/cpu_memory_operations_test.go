@@ -2,7 +2,6 @@ package cpu
 
 import (
 	"fmt"
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 
 func TestINC_HL_mem(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test 1: Normal increment in memory
 	cpu.SetHL(0x8000)
@@ -58,7 +57,7 @@ func TestINC_HL_mem(t *testing.T) {
 
 func TestDEC_HL_mem(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test 1: Normal decrement in memory
 	cpu.SetHL(0x8000)
@@ -116,7 +115,7 @@ func TestDEC_HL_mem(t *testing.T) {
 
 func TestLD_HL_mem_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test 1: Store immediate value to memory
 	cpu.SetHL(0x8000)
@@ -154,7 +153,7 @@ func TestLD_HL_mem_n(t *testing.T) {
 
 func TestLD_B_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test 1: Load from memory to register B
 	cpu.SetHL(0x8000)
@@ -191,7 +190,7 @@ func TestLD_B_HL(t *testing.T) {
 
 func TestLD_C_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0xAA)
@@ -205,7 +204,7 @@ func TestLD_C_HL(t *testing.T) {
 
 func TestLD_D_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0xBB)
@@ -219,7 +218,7 @@ func TestLD_D_HL(t *testing.T) {
 
 func TestLD_E_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0xCC)
@@ -233,7 +232,7 @@ func TestLD_E_HL(t *testing.T) {
 
 func TestLD_H_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: This is an interesting case - we read from the address formed by H and L,
 	// then store the result in H
@@ -251,7 +250,7 @@ func TestLD_H_HL(t *testing.T) {
 
 func TestLD_L_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Similar to LD_H_HL - we read from the address formed by H and L,
 	// then store the result in L
@@ -271,7 +270,7 @@ func TestLD_L_HL(t *testing.T) {
 
 func TestWrapINC_HL_mem(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0x10)
@@ -290,7 +289,7 @@ func TestWrapINC_HL_mem(t *testing.T) {
 
 func TestWrapLD_HL_mem_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 
@@ -309,7 +308,7 @@ func TestWrapLD_HL_mem_n(t *testing.T) {
 
 func TestWrapLD_B_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	mmu.WriteByte(0x8000, 0x33)
@@ -326,7 +325,7 @@ func TestWrapLD_B_HL(t *testing.T) {
 
 func TestMemoryOperationsIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test a sequence of memory operations
 	cpu.SetHL(0x8000)
@@ -351,10 +350,10 @@ func TestMemoryOperationsIntegration(t *testing.T) {
 
 func TestMemoryOperationsBoundaryConditions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
-	// Test operations at different memory addresses
-	addresses := []uint16{0x0000, 0x7FFF, 0x8000, 0x9FFF, 0xC000, 0xFFFE}
+	// Test operations at different internal memory addresses (skip ROM areas)
+	addresses := []uint16{0x8000, 0x9FFF, 0xC000, 0xD000, 0xFF80, 0xFFFE}
 
 	for _, addr := range addresses {
 		t.Run(fmt.Sprintf("Memory operations at 0x%04X", addr), func(t *testing.T) {
@@ -375,7 +374,7 @@ func TestMemoryOperationsBoundaryConditions(t *testing.T) {
 
 func TestAllMemoryLoadOperations(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test all LD r,(HL) operations work correctly
 	cpu.SetHL(0x8000)
@@ -411,7 +410,7 @@ func TestAllMemoryLoadOperations(t *testing.T) {
 
 func TestLD_HL_mem_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test store B to memory
 	cpu.SetHL(0x8000)
@@ -443,7 +442,7 @@ func TestLD_HL_mem_B(t *testing.T) {
 
 func TestLD_HL_mem_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.C = 0x33
@@ -456,7 +455,7 @@ func TestLD_HL_mem_C(t *testing.T) {
 
 func TestLD_HL_mem_D(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.D = 0x44
@@ -469,7 +468,7 @@ func TestLD_HL_mem_D(t *testing.T) {
 
 func TestLD_HL_mem_E(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.E = 0x55
@@ -482,7 +481,7 @@ func TestLD_HL_mem_E(t *testing.T) {
 
 func TestLD_HL_mem_H(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000) // H=0x80, L=0x00
 	originalH := cpu.H
@@ -497,7 +496,7 @@ func TestLD_HL_mem_H(t *testing.T) {
 
 func TestLD_HL_mem_L(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8055) // H=0x80, L=0x55
 	originalL := cpu.L
@@ -512,11 +511,11 @@ func TestLD_HL_mem_L(t *testing.T) {
 
 func TestAllMemoryStoreOperations(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test all LD (HL),r operations work correctly
 	cpu.SetHL(0x8000)
-	
+
 	// Set up test register values
 	cpu.B = 0x11
 	cpu.C = 0x22
@@ -543,7 +542,7 @@ func TestAllMemoryStoreOperations(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Clear memory location
 			mmu.WriteByte(0x8000, 0xFF)
-			
+
 			cycles := test.storeFunc()
 			assert.Equal(t, uint8(8), cycles, "%s should take 8 cycles", test.name)
 			assert.Equal(t, test.expected, mmu.ReadByte(0x8000), "%s should store 0x%02X to memory", test.name, test.expected)
@@ -556,7 +555,7 @@ func TestAllMemoryStoreOperations(t *testing.T) {
 
 func TestWrapLD_HL_mem_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.B = 0x77
@@ -570,7 +569,7 @@ func TestWrapLD_HL_mem_B(t *testing.T) {
 
 func TestWrapLD_HL_mem_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.C = 0x88
@@ -584,7 +583,7 @@ func TestWrapLD_HL_mem_C(t *testing.T) {
 
 func TestAllStoreWrapperFunctions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x8000)
 	cpu.B = 0x10

@@ -14,7 +14,7 @@ import (
 
 func TestWrapDEC_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set A to a known value
 	cpu.A = 0x42
@@ -31,7 +31,7 @@ func TestWrapDEC_A(t *testing.T) {
 
 func TestWrapDEC_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.B = 0x42
 	expectedB := cpu.B - 1
@@ -46,7 +46,7 @@ func TestWrapDEC_B(t *testing.T) {
 
 func TestWrapDEC_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.C = 0x42
 	expectedC := cpu.C - 1
@@ -61,7 +61,7 @@ func TestWrapDEC_C(t *testing.T) {
 
 func TestWrapDEC_D(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.D = 0x42
 	expectedD := cpu.D - 1
@@ -76,7 +76,7 @@ func TestWrapDEC_D(t *testing.T) {
 
 func TestWrapDEC_E(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.E = 0x42
 	expectedE := cpu.E - 1
@@ -91,7 +91,7 @@ func TestWrapDEC_E(t *testing.T) {
 
 func TestWrapDEC_H(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.H = 0x42
 	expectedH := cpu.H - 1
@@ -106,7 +106,7 @@ func TestWrapDEC_H(t *testing.T) {
 
 func TestWrapDEC_L(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.L = 0x42
 	expectedL := cpu.L - 1
@@ -123,7 +123,7 @@ func TestWrapDEC_L(t *testing.T) {
 
 func TestWrapINC_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.B = 0x42
 	expectedB := cpu.B + 1
@@ -138,7 +138,7 @@ func TestWrapINC_B(t *testing.T) {
 
 func TestWrapINC_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.C = 0x42
 	expectedC := cpu.C + 1
@@ -153,7 +153,7 @@ func TestWrapINC_C(t *testing.T) {
 
 func TestWrapINC_D(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.D = 0x42
 	expectedD := cpu.D + 1
@@ -168,7 +168,7 @@ func TestWrapINC_D(t *testing.T) {
 
 func TestWrapINC_E(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.E = 0x42
 	expectedE := cpu.E + 1
@@ -183,7 +183,7 @@ func TestWrapINC_E(t *testing.T) {
 
 func TestWrapINC_H(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.H = 0x42
 	expectedH := cpu.H + 1
@@ -198,7 +198,7 @@ func TestWrapINC_H(t *testing.T) {
 
 func TestWrapINC_L(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.L = 0x42
 	expectedL := cpu.L + 1
@@ -215,7 +215,7 @@ func TestWrapINC_L(t *testing.T) {
 
 func TestWrapLD_A_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x00
 	cpu.B = 0x42
@@ -230,7 +230,7 @@ func TestWrapLD_A_B(t *testing.T) {
 
 func TestWrapLD_A_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x00
 	cpu.C = 0x55
@@ -245,7 +245,7 @@ func TestWrapLD_A_C(t *testing.T) {
 
 func TestWrapLD_B_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x99
 	cpu.B = 0x00
@@ -262,7 +262,7 @@ func TestWrapLD_B_A(t *testing.T) {
 
 func TestWrapADD_A_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x10
 	cpu.B = 0x20
@@ -278,7 +278,7 @@ func TestWrapADD_A_B(t *testing.T) {
 
 func TestWrapADD_A_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x21
 
@@ -331,7 +331,7 @@ func TestWrappersVsOriginals(t *testing.T) {
 			// Create two identical CPUs
 			cpu1 := NewCPU()
 			cpu2 := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// Set them up identically
 			tt.setup(cpu1)

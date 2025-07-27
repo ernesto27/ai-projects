@@ -2,8 +2,8 @@ package cpu
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
-	"gameboy-emulator/internal/memory"
 )
 
 func TestLDH_n_A(t *testing.T) {
@@ -54,17 +54,17 @@ func TestLDH_n_A(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = tt.a
 
 			cycles := cpu.LDH_n_A(mmu, tt.offset)
 
 			assert.Equal(t, uint8(12), cycles, "LDH (n),A should take 12 cycles")
-			
+
 			// Verify the data was written to the correct address
 			storedData := mmu.ReadByte(tt.wantAddr)
 			assert.Equal(t, tt.wantData, storedData, "Data should be stored at I/O address")
-			
+
 			// Verify A register is unchanged
 			assert.Equal(t, tt.a, cpu.A, "A register should be unchanged")
 		})
@@ -119,7 +119,7 @@ func TestLDH_A_n(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = 0xCC // Different initial value
 
 			// Pre-store the test data
@@ -174,18 +174,18 @@ func TestLD_IO_C_A(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = tt.a
 			cpu.C = tt.c
 
 			cycles := cpu.LD_IO_C_A(mmu)
 
 			assert.Equal(t, uint8(8), cycles, "LD (C),A should take 8 cycles")
-			
+
 			// Verify the data was written to the correct address
 			storedData := mmu.ReadByte(tt.wantAddr)
 			assert.Equal(t, tt.wantData, storedData, "Data should be stored at I/O address")
-			
+
 			// Verify registers are unchanged
 			assert.Equal(t, tt.a, cpu.A, "A register should be unchanged")
 			assert.Equal(t, tt.c, cpu.C, "C register should be unchanged")
@@ -234,7 +234,7 @@ func TestLD_A_IO_C(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = 0xAA // Different initial value
 			cpu.C = tt.c
 
@@ -282,9 +282,9 @@ func TestLD_nn_A(t *testing.T) {
 			wantData: 0x1F,
 		},
 		{
-			name:     "Write A to ROM area (should work for test)",
+			name:     "Write A to VRAM area",
 			a:        0x99,
-			address:  0x0100,
+			address:  0x8100,
 			wantData: 0x99,
 		},
 	}
@@ -292,17 +292,17 @@ func TestLD_nn_A(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = tt.a
 
 			cycles := cpu.LD_nn_A(mmu, tt.address)
 
 			assert.Equal(t, uint8(16), cycles, "LD (nn),A should take 16 cycles")
-			
+
 			// Verify the data was written to the correct address
 			storedData := mmu.ReadByte(tt.address)
 			assert.Equal(t, tt.wantData, storedData, "Data should be stored at absolute address")
-			
+
 			// Verify A register is unchanged
 			assert.Equal(t, tt.a, cpu.A, "A register should be unchanged")
 		})
@@ -351,7 +351,7 @@ func TestLD_A_nn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			cpu.A = 0xCC // Different initial value
 
 			// Pre-store the test data
@@ -368,10 +368,10 @@ func TestLD_A_nn(t *testing.T) {
 func TestIOOperationSequence(t *testing.T) {
 	// Test a realistic I/O operation sequence
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Scenario: Game checking joypad input and updating LCD control
-	
+
 	// 1. Read joypad input
 	mmu.WriteByte(0xFF00, 0x0F) // All buttons pressed
 	cpu.C = 0x00
@@ -379,32 +379,32 @@ func TestIOOperationSequence(t *testing.T) {
 	assert.Equal(t, uint8(0x0F), cpu.A, "Should read joypad input")
 
 	// 2. Process input and set LCD control via immediate offset
-	cpu.A = 0x91 // LCD on, BG on, sprites on
+	cpu.A = 0x91           // LCD on, BG on, sprites on
 	cpu.LDH_n_A(mmu, 0x40) // LDH (0x40),A - write to LCD control
 	storedLCD := mmu.ReadByte(0xFF40)
 	assert.Equal(t, uint8(0x91), storedLCD, "Should write to LCD control")
 
 	// 3. Store player state to absolute memory address
-	cpu.A = 0x55 // Player state data
+	cpu.A = 0x55             // Player state data
 	cpu.LD_nn_A(mmu, 0xC010) // LD (0xC010),A - store to WRAM
 	playerState := mmu.ReadByte(0xC010)
 	assert.Equal(t, uint8(0x55), playerState, "Should store player state")
 
 	// 4. Read back LCD Y-coordinate for timing
 	mmu.WriteByte(0xFF44, 0x90) // VBlank period
-	cpu.LDH_A_n(mmu, 0x44) // LDH A,(0x44) - read LCD Y-coordinate
+	cpu.LDH_A_n(mmu, 0x44)      // LDH A,(0x44) - read LCD Y-coordinate
 	assert.Equal(t, uint8(0x90), cpu.A, "Should read LCD Y-coordinate")
 
 	// 5. Load sprite data from absolute address
 	mmu.WriteByte(0x8010, 0xAA) // Sprite data in VRAM
-	cpu.LD_A_nn(mmu, 0x8010) // LD A,(0x8010) - load sprite data
+	cpu.LD_A_nn(mmu, 0x8010)    // LD A,(0x8010) - load sprite data
 	assert.Equal(t, uint8(0xAA), cpu.A, "Should load sprite data")
 }
 
 func TestIOAddressCalculation(t *testing.T) {
 	// Test edge cases for address calculation
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test boundary cases for I/O operations
 	testCases := []struct {
@@ -424,11 +424,11 @@ func TestIOAddressCalculation(t *testing.T) {
 		t.Run(tc.operation, func(t *testing.T) {
 			cpu.A = 0xDD
 			cpu.LDH_n_A(mmu, tc.offset)
-			
+
 			// Verify data was written to correct address
 			stored := mmu.ReadByte(tc.expected)
 			assert.Equal(t, uint8(0xDD), stored, "Data should be at correct I/O address")
-			
+
 			// Test reading back
 			cpu.A = 0x00 // Clear A
 			cpu.LDH_A_n(mmu, tc.offset)
@@ -440,7 +440,7 @@ func TestIOAddressCalculation(t *testing.T) {
 func TestIOFlagBehavior(t *testing.T) {
 	// Test that I/O operations don't affect flags
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.SetFlag(FlagZ, true)
@@ -452,13 +452,13 @@ func TestIOFlagBehavior(t *testing.T) {
 
 	// Perform various I/O operations
 	cpu.A = 0x42
-	cpu.LDH_n_A(mmu, 0x40)    // LDH (n),A
-	cpu.LDH_A_n(mmu, 0x40)    // LDH A,(n)
+	cpu.LDH_n_A(mmu, 0x40) // LDH (n),A
+	cpu.LDH_A_n(mmu, 0x40) // LDH A,(n)
 	cpu.C = 0x26
-	cpu.LD_IO_C_A(mmu)        // LD (C),A
-	cpu.LD_A_IO_C(mmu)        // LD A,(C)
-	cpu.LD_nn_A(mmu, 0x8000)  // LD (nn),A
-	cpu.LD_A_nn(mmu, 0x8000)  // LD A,(nn)
+	cpu.LD_IO_C_A(mmu)       // LD (C),A
+	cpu.LD_A_IO_C(mmu)       // LD A,(C)
+	cpu.LD_nn_A(mmu, 0x8000) // LD (nn),A
+	cpu.LD_A_nn(mmu, 0x8000) // LD A,(nn)
 
 	// Verify flags are unchanged
 	assert.Equal(t, originalFlags, cpu.F, "I/O operations should not affect flags")

@@ -138,7 +138,7 @@ func TestIOOpcodeDispatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// Setup test conditions
 			tt.setupCPU(cpu)
@@ -175,7 +175,7 @@ func TestIOOpcodeImplementation(t *testing.T) {
 
 func TestIOOpcodeParameterValidation(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test parameter validation for each I/O instruction
 	tests := []struct {

@@ -14,7 +14,7 @@ import (
 
 func TestWrapLD_BC_nn(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_BC_nn(cpu, mmu, 0x34, 0x12) // low=0x34, high=0x12
@@ -38,7 +38,7 @@ func TestWrapLD_BC_nn(t *testing.T) {
 
 func TestWrapLD_DE_nn(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_DE_nn(cpu, mmu, 0xAD, 0xDE) // low=0xAD, high=0xDE
@@ -61,7 +61,7 @@ func TestWrapLD_DE_nn(t *testing.T) {
 
 func TestWrapLD_HL_nn(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_HL_nn(cpu, mmu, 0xEF, 0xBE) // low=0xEF, high=0xBE
@@ -84,7 +84,7 @@ func TestWrapLD_HL_nn(t *testing.T) {
 
 func TestWrapLD_SP_nn(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_SP_nn(cpu, mmu, 0xFE, 0xFF) // low=0xFE, high=0xFF
@@ -107,7 +107,7 @@ func TestWrapLD_SP_nn(t *testing.T) {
 
 func TestSixteenBitParameterHandling(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	tests := []struct {
 		name      string
@@ -227,7 +227,7 @@ func TestSixteenBitWrappersVsOriginals(t *testing.T) {
 			// Create two identical CPUs
 			cpu1 := NewCPU()
 			cpu2 := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// Call original on cpu1, wrapper on cpu2
 			originalCycles := tt.original(cpu1, tt.lowByte, tt.highByte)
@@ -245,7 +245,7 @@ func TestSixteenBitWrappersVsOriginals(t *testing.T) {
 
 func TestSixteenBitEndianness(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test that we understand Game Boy's little-endian format
 	// In little-endian: the first byte is the LOW byte, second byte is HIGH byte
@@ -291,7 +291,7 @@ func TestSixteenBitEndianness(t *testing.T) {
 
 func TestSixteenBitErrorHandling(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	wrappers := []struct {
 		name    string

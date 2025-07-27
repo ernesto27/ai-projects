@@ -3,14 +3,13 @@ package cpu
 import (
 	"testing"
 
-	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test HALT instruction (0x76)
 func TestHALT(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Verify initial state
 	assert.False(t, cpu.IsHalted(), "CPU should not be halted initially")
@@ -30,7 +29,7 @@ func TestHALT(t *testing.T) {
 
 func TestHALTFlagsUnaffected(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.F = 0xFF
@@ -46,7 +45,7 @@ func TestHALTFlagsUnaffected(t *testing.T) {
 // Test STOP instruction (0x10)
 func TestSTOP(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Verify initial state
 	assert.False(t, cpu.IsStopped(), "CPU should not be stopped initially")
@@ -67,7 +66,7 @@ func TestSTOP(t *testing.T) {
 
 func TestSTOPFlagsUnaffected(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.F = 0xFF
@@ -83,7 +82,7 @@ func TestSTOPFlagsUnaffected(t *testing.T) {
 // Test DI instruction (0xF3)
 func TestDI(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Enable interrupts first
 	cpu.InterruptsEnabled = true
@@ -105,7 +104,7 @@ func TestDI(t *testing.T) {
 
 func TestDIFlagsUnaffected(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.F = 0xFF
@@ -121,7 +120,7 @@ func TestDIFlagsUnaffected(t *testing.T) {
 // Test EI instruction (0xFB)
 func TestEI(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Verify initial state (interrupts disabled at boot)
 	assert.False(t, cpu.AreInterruptsEnabled(), "Interrupts should be disabled initially")
@@ -142,7 +141,7 @@ func TestEI(t *testing.T) {
 
 func TestEIFlagsUnaffected(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags
 	cpu.F = 0xFF
@@ -158,7 +157,7 @@ func TestEIFlagsUnaffected(t *testing.T) {
 // Test DI/EI sequence
 func TestDI_EI_Sequence(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test initial state
 	assert.False(t, cpu.AreInterruptsEnabled(), "Should start with interrupts disabled")
@@ -224,7 +223,7 @@ func TestStateQueryFunctions(t *testing.T) {
 // Test control instructions don't affect registers
 func TestControlInstructionsRegisterPreservation(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set distinctive register values
 	cpu.A = 0xAA
@@ -271,7 +270,7 @@ func TestControlInstructionsRegisterPreservation(t *testing.T) {
 // Test edge cases and combinations
 func TestControlInstructionEdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("Multiple HALT calls", func(t *testing.T) {
 		cpu.HALT(mmu)

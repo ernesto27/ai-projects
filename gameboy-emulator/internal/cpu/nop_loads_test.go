@@ -3,14 +3,14 @@ package cpu
 import (
 	"fmt"
 	"testing"
-	"gameboy-emulator/internal/memory"
+
 	"github.com/stretchr/testify/assert"
 )
 
 // Test register self-load (NOP-like) operations via opcode dispatch
 func TestNOPLoadOpcodeDispatch(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	testCases := []struct {
 		name     string
@@ -93,7 +93,7 @@ func TestNOPLoadOpcodeInfo(t *testing.T) {
 // Test that NOP loads don't affect flags
 func TestNOPLoadsFlagPreservation(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set all flags to distinctive pattern
 	cpu.F = 0xF0
@@ -113,7 +113,7 @@ func TestNOPLoadsFlagPreservation(t *testing.T) {
 // Test NOP loads with edge case values
 func TestNOPLoadsEdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	edgeValues := []uint8{0x00, 0xFF, 0x80, 0x7F}
 

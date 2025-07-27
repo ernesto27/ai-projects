@@ -2,20 +2,20 @@ package cpu
 
 import (
 	"testing"
-	"gameboy-emulator/internal/memory"
+
 	"github.com/stretchr/testify/assert"
 )
 
 // Test flag operations via opcode dispatch
 func TestFlagOpcodeDispatch(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("DAA opcode 0x27", func(t *testing.T) {
 		// Simple DAA test - just verify it executes and returns correct cycles
 		cpu.A = 0x0A
 		cpu.SetFlag(FlagN, false) // Addition mode
-		cpu.SetFlag(FlagH, false)  
+		cpu.SetFlag(FlagH, false)
 		cpu.SetFlag(FlagC, false)
 
 		cycles, err := cpu.ExecuteInstruction(mmu, 0x27) // DAA

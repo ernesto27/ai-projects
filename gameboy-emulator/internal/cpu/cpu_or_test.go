@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -244,7 +243,7 @@ func TestOR_A_L(t *testing.T) {
 func TestOR_A_HL(t *testing.T) {
 	t.Run("OR A,(HL) - Memory operation", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set up HL to point to an address
 		cpu.SetHL(0x8000)
@@ -272,7 +271,7 @@ func TestOR_A_HL(t *testing.T) {
 
 	t.Run("OR A,(HL) - Zero result from memory", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set up HL to point to an address
 		cpu.SetHL(0x9000)

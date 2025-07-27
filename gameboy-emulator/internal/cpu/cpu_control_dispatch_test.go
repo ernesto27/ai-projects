@@ -3,14 +3,13 @@ package cpu
 import (
 	"testing"
 
-	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test opcode dispatch integration for control instructions
 func TestControlOpcodeDispatch(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("HALT opcode 0x76", func(t *testing.T) {
 		// Reset state
@@ -87,7 +86,7 @@ func TestControlOpcodeInfo(t *testing.T) {
 // Test Game Boy power management patterns
 func TestPowerManagementPatterns(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("Power saving sequence", func(t *testing.T) {
 		// Typical power saving: disable interrupts, then halt
@@ -143,7 +142,7 @@ func TestPowerManagementPatterns(t *testing.T) {
 // Test control instructions with different CPU states
 func TestControlInstructionsWithDifferentStates(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("HALT when already halted", func(t *testing.T) {
 		// First HALT
@@ -198,7 +197,7 @@ func TestControlInstructionsWithDifferentStates(t *testing.T) {
 // Test that control instructions preserve all registers and flags
 func TestControlInstructionsPreservation(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set up distinctive CPU state
 	cpu.A = 0x12

@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,58 +8,58 @@ import (
 
 func TestSBC_A_A(t *testing.T) {
 	tests := []struct {
-		name         string
-		initialA     uint8
-		carryFlag    bool
-		expectedA    uint8
-		expectedZ    bool
-		expectedN    bool
-		expectedH    bool
-		expectedC    bool
+		name           string
+		initialA       uint8
+		carryFlag      bool
+		expectedA      uint8
+		expectedZ      bool
+		expectedN      bool
+		expectedH      bool
+		expectedC      bool
 		expectedCycles uint8
 	}{
 		{
-			name:         "SBC A,A with no carry - results in 0",
-			initialA:     0x42,
-			carryFlag:    false,
-			expectedA:    0x00,
-			expectedZ:    true,
-			expectedN:    true,
-			expectedH:    false,
-			expectedC:    false,
+			name:           "SBC A,A with no carry - results in 0",
+			initialA:       0x42,
+			carryFlag:      false,
+			expectedA:      0x00,
+			expectedZ:      true,
+			expectedN:      true,
+			expectedH:      false,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,A with carry - results in 0xFF (underflow)",
-			initialA:     0x42,
-			carryFlag:    true,
-			expectedA:    0xFF,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    true,
-			expectedC:    true,
+			name:           "SBC A,A with carry - results in 0xFF (underflow)",
+			initialA:       0x42,
+			carryFlag:      true,
+			expectedA:      0xFF,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      true,
+			expectedC:      true,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,A with A=0 and no carry",
-			initialA:     0x00,
-			carryFlag:    false,
-			expectedA:    0x00,
-			expectedZ:    true,
-			expectedN:    true,
-			expectedH:    false,
-			expectedC:    false,
+			name:           "SBC A,A with A=0 and no carry",
+			initialA:       0x00,
+			carryFlag:      false,
+			expectedA:      0x00,
+			expectedZ:      true,
+			expectedN:      true,
+			expectedH:      false,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,A with A=0 and carry",
-			initialA:     0x00,
-			carryFlag:    true,
-			expectedA:    0xFF,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    true,
-			expectedC:    true,
+			name:           "SBC A,A with A=0 and carry",
+			initialA:       0x00,
+			carryFlag:      true,
+			expectedA:      0xFF,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      true,
+			expectedC:      true,
 			expectedCycles: 4,
 		},
 	}
@@ -85,87 +84,87 @@ func TestSBC_A_A(t *testing.T) {
 
 func TestSBC_A_B(t *testing.T) {
 	tests := []struct {
-		name         string
-		initialA     uint8
-		initialB     uint8
-		carryFlag    bool
-		expectedA    uint8
-		expectedZ    bool
-		expectedN    bool
-		expectedH    bool
-		expectedC    bool
+		name           string
+		initialA       uint8
+		initialB       uint8
+		carryFlag      bool
+		expectedA      uint8
+		expectedZ      bool
+		expectedN      bool
+		expectedH      bool
+		expectedC      bool
 		expectedCycles uint8
 	}{
 		{
-			name:         "SBC A,B basic subtraction with no carry",
-			initialA:     0x50,
-			initialB:     0x30,
-			carryFlag:    false,
-			expectedA:    0x20,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    false,
-			expectedC:    false,
+			name:           "SBC A,B basic subtraction with no carry",
+			initialA:       0x50,
+			initialB:       0x30,
+			carryFlag:      false,
+			expectedA:      0x20,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      false,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,B basic subtraction with carry",
-			initialA:     0x50,
-			initialB:     0x30,
-			carryFlag:    true,
-			expectedA:    0x1F,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    true,
-			expectedC:    false,
+			name:           "SBC A,B basic subtraction with carry",
+			initialA:       0x50,
+			initialB:       0x30,
+			carryFlag:      true,
+			expectedA:      0x1F,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      true,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,B underflow with no carry",
-			initialA:     0x20,
-			initialB:     0x30,
-			carryFlag:    false,
-			expectedA:    0xF0,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    false,
-			expectedC:    true,
+			name:           "SBC A,B underflow with no carry",
+			initialA:       0x20,
+			initialB:       0x30,
+			carryFlag:      false,
+			expectedA:      0xF0,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      false,
+			expectedC:      true,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,B underflow with carry",
-			initialA:     0x20,
-			initialB:     0x30,
-			carryFlag:    true,
-			expectedA:    0xEF,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    true,
-			expectedC:    true,
+			name:           "SBC A,B underflow with carry",
+			initialA:       0x20,
+			initialB:       0x30,
+			carryFlag:      true,
+			expectedA:      0xEF,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      true,
+			expectedC:      true,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,B resulting in zero",
-			initialA:     0x42,
-			initialB:     0x42,
-			carryFlag:    false,
-			expectedA:    0x00,
-			expectedZ:    true,
-			expectedN:    true,
-			expectedH:    false,
-			expectedC:    false,
+			name:           "SBC A,B resulting in zero",
+			initialA:       0x42,
+			initialB:       0x42,
+			carryFlag:      false,
+			expectedA:      0x00,
+			expectedZ:      true,
+			expectedN:      true,
+			expectedH:      false,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 		{
-			name:         "SBC A,B half-carry test",
-			initialA:     0x10,
-			initialB:     0x01,
-			carryFlag:    true,
-			expectedA:    0x0E,
-			expectedZ:    false,
-			expectedN:    true,
-			expectedH:    true,
-			expectedC:    false,
+			name:           "SBC A,B half-carry test",
+			initialA:       0x10,
+			initialB:       0x01,
+			carryFlag:      true,
+			expectedA:      0x0E,
+			expectedZ:      false,
+			expectedN:      true,
+			expectedH:      true,
+			expectedC:      false,
 			expectedCycles: 4,
 		},
 	}
@@ -191,15 +190,15 @@ func TestSBC_A_B(t *testing.T) {
 
 func TestSBC_A_C(t *testing.T) {
 	tests := []struct {
-		name         string
-		initialA     uint8
-		initialC     uint8
-		carryFlag    bool
-		expectedA    uint8
-		expectedZ    bool
-		expectedN    bool
-		expectedH    bool
-		expectedC    bool
+		name      string
+		initialA  uint8
+		initialC  uint8
+		carryFlag bool
+		expectedA uint8
+		expectedZ bool
+		expectedN bool
+		expectedH bool
+		expectedC bool
 	}{
 		{
 			name:      "SBC A,C with carry produces correct result",
@@ -310,15 +309,15 @@ func TestSBC_A_L(t *testing.T) {
 
 func TestSBC_A_HL(t *testing.T) {
 	tests := []struct {
-		name         string
-		initialA     uint8
-		memoryValue  uint8
-		carryFlag    bool
-		expectedA    uint8
-		expectedZ    bool
-		expectedN    bool
-		expectedH    bool
-		expectedC    bool
+		name        string
+		initialA    uint8
+		memoryValue uint8
+		carryFlag   bool
+		expectedA   uint8
+		expectedZ   bool
+		expectedN   bool
+		expectedH   bool
+		expectedC   bool
 	}{
 		{
 			name:        "SBC A,(HL) basic memory operation",
@@ -358,8 +357,8 @@ func TestSBC_A_HL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
-			
+			mmu := createTestMMU()
+
 			cpu.A = tt.initialA
 			cpu.SetHL(0x8000)
 			cpu.SetFlag(FlagC, tt.carryFlag)
@@ -379,15 +378,15 @@ func TestSBC_A_HL(t *testing.T) {
 
 func TestSBC_A_n(t *testing.T) {
 	tests := []struct {
-		name         string
-		initialA     uint8
-		value        uint8
-		carryFlag    bool
-		expectedA    uint8
-		expectedZ    bool
-		expectedN    bool
-		expectedH    bool
-		expectedC    bool
+		name      string
+		initialA  uint8
+		value     uint8
+		carryFlag bool
+		expectedA uint8
+		expectedZ bool
+		expectedN bool
+		expectedH bool
+		expectedC bool
 	}{
 		{
 			name:      "SBC A,n basic immediate operation",

@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -321,7 +320,7 @@ func TestCP_A_HL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			cpu.A = tt.setupA
 			cpu.SetHL(tt.memoryAddr)
@@ -428,7 +427,7 @@ func TestCP_A_n(t *testing.T) {
 func TestCP_EdgeCases(t *testing.T) {
 	t.Run("All registers preserve their values", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set up all registers with specific values
 		cpu.A = 0x42

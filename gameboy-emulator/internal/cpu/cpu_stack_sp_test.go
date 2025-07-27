@@ -3,14 +3,13 @@ package cpu
 import (
 	"testing"
 
-	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test LD (nn),SP instruction (0x08)
 func TestLD_nn_SP(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic operation
 	cpu.SP = 0x1234
@@ -20,8 +19,8 @@ func TestLD_nn_SP(t *testing.T) {
 	assert.Equal(t, uint8(20), cycles, "LD (nn),SP should take 20 cycles")
 
 	// Verify little-endian storage
-	lowByte := mmu.ReadByte(0x8000)   // Should be 0x34 (low byte of SP)
-	highByte := mmu.ReadByte(0x8001)  // Should be 0x12 (high byte of SP)
+	lowByte := mmu.ReadByte(0x8000)  // Should be 0x34 (low byte of SP)
+	highByte := mmu.ReadByte(0x8001) // Should be 0x12 (high byte of SP)
 	assert.Equal(t, uint8(0x34), lowByte, "Low byte should be stored first")
 	assert.Equal(t, uint8(0x12), highByte, "High byte should be stored second")
 
@@ -31,20 +30,20 @@ func TestLD_nn_SP(t *testing.T) {
 
 func TestLD_nn_SP_EdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	testCases := []struct {
-		name     string
-		sp       uint16
-		low      uint8
-		high     uint8
-		address  uint16
+		name         string
+		sp           uint16
+		low          uint8
+		high         uint8
+		address      uint16
 		expectedLow  uint8
 		expectedHigh uint8
 	}{
 		{"Zero SP", 0x0000, 0x00, 0x90, 0x9000, 0x00, 0x00},
 		{"Max SP", 0xFFFF, 0xFF, 0x8F, 0x8FFF, 0xFF, 0xFF},
-		{"Random values", 0xABCD, 0x34, 0x12, 0x1234, 0xCD, 0xAB},
+		{"Random values", 0xABCD, 0x34, 0xC1, 0xC134, 0xCD, 0xAB},
 		{"High memory", 0x5678, 0xFE, 0xFF, 0xFFFE, 0x78, 0x56},
 	}
 
@@ -64,7 +63,7 @@ func TestLD_nn_SP_EdgeCases(t *testing.T) {
 // Test LD SP,HL instruction (0xF9)
 func TestLD_SP_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic operation
 	cpu.SetHL(0x5678)
@@ -80,7 +79,7 @@ func TestLD_SP_HL(t *testing.T) {
 
 func TestLD_SP_HL_EdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	testCases := []struct {
 		name string
@@ -131,7 +130,7 @@ func TestADD_SP_n_Flags(t *testing.T) {
 
 	// Test half-carry flag (carry from bit 3 to bit 4)
 	cpu.SP = 0x100F
-	cpu.F = 0xFF // Set all flags initially
+	cpu.F = 0xFF       // Set all flags initially
 	cpu.ADD_SP_n(0x01) // Should cause half-carry
 
 	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set")
@@ -140,7 +139,7 @@ func TestADD_SP_n_Flags(t *testing.T) {
 
 	// Test carry flag (carry from bit 7 to bit 8)
 	cpu.SP = 0x10FF
-	cpu.F = 0x00 // Clear all flags
+	cpu.F = 0x00       // Clear all flags
 	cpu.ADD_SP_n(0x01) // Should cause carry
 
 	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be set")
@@ -149,7 +148,7 @@ func TestADD_SP_n_Flags(t *testing.T) {
 
 	// Test no flags set
 	cpu.SP = 0x1000
-	cpu.F = 0xFF // Set all flags initially
+	cpu.F = 0xFF       // Set all flags initially
 	cpu.ADD_SP_n(0x01) // Should not cause any flags
 
 	assert.False(t, cpu.GetFlag(FlagH), "Half-carry flag should be clear")
@@ -188,7 +187,7 @@ func TestLD_HL_SP_n_Flags(t *testing.T) {
 
 	// Test half-carry flag (same logic as ADD_SP_n)
 	cpu.SP = 0x100F
-	cpu.F = 0xFF // Set all flags initially
+	cpu.F = 0xFF         // Set all flags initially
 	cpu.LD_HL_SP_n(0x01) // Should cause half-carry
 
 	assert.True(t, cpu.GetFlag(FlagH), "Half-carry flag should be set")
@@ -197,7 +196,7 @@ func TestLD_HL_SP_n_Flags(t *testing.T) {
 
 	// Test carry flag
 	cpu.SP = 0x10FF
-	cpu.F = 0x00 // Clear all flags
+	cpu.F = 0x00         // Clear all flags
 	cpu.LD_HL_SP_n(0x01) // Should cause carry
 
 	assert.True(t, cpu.GetFlag(FlagC), "Carry flag should be set")
@@ -219,11 +218,11 @@ func TestStackPointerSignedArithmetic(t *testing.T) {
 		offset   uint8
 		expected uint16
 	}{
-		{"Max positive offset", 0x1000, 0x7F, 0x107F},   // +127
-		{"Max negative offset", 0x1000, 0x80, 0x0F80},   // -128
-		{"Zero offset", 0x1234, 0x00, 0x1234},           // +0
-		{"Wrap around positive", 0xFFFF, 0x01, 0x0000},  // Overflow
-		{"Wrap around negative", 0x0000, 0xFF, 0xFFFF},  // Underflow
+		{"Max positive offset", 0x1000, 0x7F, 0x107F},  // +127
+		{"Max negative offset", 0x1000, 0x80, 0x0F80},  // -128
+		{"Zero offset", 0x1234, 0x00, 0x1234},          // +0
+		{"Wrap around positive", 0xFFFF, 0x01, 0x0000}, // Overflow
+		{"Wrap around negative", 0x0000, 0xFF, 0xFFFF}, // Underflow
 	}
 
 	for _, tc := range testCases {

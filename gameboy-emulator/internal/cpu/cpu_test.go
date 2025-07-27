@@ -3,10 +3,34 @@ package cpu
 import (
 	"testing"
 
+	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/memory"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// createTestMMU creates an MMU with a dummy MBC for testing
+func createTestMMU() *memory.MMU {
+	// Create a simple ROM-only cartridge for testing
+	romData := make([]byte, 32*1024)
+	
+	// Add minimal header
+	copy(romData[0x0134:], "TEST")
+	romData[0x0147] = uint8(cartridge.ROM_ONLY)
+	romData[0x0148] = 0x00 // 32KB
+	romData[0x0149] = 0x00 // No RAM
+	
+	// Calculate checksum
+	var checksum uint8 = 0
+	for addr := 0x0134; addr <= 0x014C; addr++ {
+		checksum = checksum - romData[addr] - 1
+	}
+	romData[0x014D] = checksum
+	
+	cart, _ := cartridge.NewCartridge(romData)
+	mbc, _ := cartridge.CreateMBC(cart)
+	return memory.NewMMU(mbc)
+}
 
 // TestLD_D_n tests the LD D,n instruction
 func TestLD_D_n(t *testing.T) {
@@ -136,7 +160,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Basic memory read", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set up test scenario
 		cpu.SetHL(0x8000)           // HL points to VRAM start
@@ -154,7 +178,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Read from different memory regions", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Test reading from Work RAM (WRAM)
 		cpu.SetHL(0xC000)           // HL points to WRAM start
@@ -169,7 +193,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Read zero value", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Memory is initialized to zero by default
 		cpu.SetHL(0xD000) // HL points to middle of WRAM
@@ -183,7 +207,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Read maximum value", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		cpu.SetHL(0xE000)           // HL points to Echo RAM
 		mmu.WriteByte(0xE000, 0xFF) // Write maximum 8-bit value
@@ -197,7 +221,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Flags are not affected", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set all flags to specific values
 		cpu.SetFlag(FlagZ, true)
@@ -219,7 +243,7 @@ func TestLD_A_HL(t *testing.T) {
 
 	t.Run("Other registers preserved", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		// Set all registers to known values
 		cpu.B = 0x11
@@ -249,23 +273,23 @@ func TestLD_A_HL(t *testing.T) {
 		assert.Equal(t, uint8(0x99), cpu.A, "A should contain value from memory")
 	})
 
-	t.Run("Edge case - read from address 0x0000", func(t *testing.T) {
+	t.Run("Edge case - read from VRAM start", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
-		cpu.SetHL(0x0000)           // HL points to start of ROM
-		mmu.WriteByte(0x0000, 0x31) // Write value to ROM area
+		cpu.SetHL(0x8000)           // HL points to start of VRAM
+		mmu.WriteByte(0x8000, 0x31) // Write value to VRAM area
 		cpu.A = 0x00
 
 		cycles := cpu.LD_A_HL(mmu)
 
-		assert.Equal(t, uint8(0x31), cpu.A, "Should read from ROM area")
+		assert.Equal(t, uint8(0x31), cpu.A, "Should read from VRAM area")
 		assert.Equal(t, uint8(8), cycles, "Should take 8 cycles")
 	})
 
 	t.Run("Edge case - read from address 0xFFFF", func(t *testing.T) {
 		cpu := NewCPU()
-		mmu := memory.NewMMU()
+		mmu := createTestMMU()
 
 		cpu.SetHL(0xFFFF)           // HL points to end of address space
 		mmu.WriteByte(0xFFFF, 0x88) // Write value to high RAM

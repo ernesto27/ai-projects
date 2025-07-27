@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +10,7 @@ import (
 
 func TestExecuteCBInstruction(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test BIT 0,B instruction (CB 0x40)
 	cpu.B = 0x01 // Set bit 0
@@ -37,7 +36,7 @@ func TestExecuteCBInstruction(t *testing.T) {
 
 func TestCBPrefixIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test CB prefix wrapper with BIT 0,B (CB 0x40)
 	cpu.B = 0x01 // Set bit 0
@@ -153,7 +152,7 @@ func TestGetCBOpcodeInfo(t *testing.T) {
 		{0x32, "SWAP D"}, // Now implemented
 		{0x36, "SWAP (HL)"},
 		{0x37, "SWAP A"}, // Now implemented
-		{0x28, "SRA B"}, // Now implemented
+		{0x28, "SRA B"},  // Now implemented
 	}
 
 	for _, tc := range testCases {
@@ -166,7 +165,7 @@ func TestGetCBOpcodeInfo(t *testing.T) {
 
 func TestCBBitInstructionsIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test BIT instruction sequence: set a bit, test it, clear it, test again
 	cpu.B = 0x00 // Start with all bits clear
@@ -197,7 +196,7 @@ func TestCBBitInstructionsIntegration(t *testing.T) {
 
 func TestCBMemoryInstructionsIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set HL to test address
 	cpu.SetHL(0x8000)
@@ -225,7 +224,7 @@ func TestCBMemoryInstructionsIntegration(t *testing.T) {
 
 func TestCBRotateInstructionsIntegration(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test RLC B (CB 0x00)
 	cpu.B = 0x80 // Binary: 10000000
@@ -248,7 +247,7 @@ func TestCBRotateInstructionsIntegration(t *testing.T) {
 
 func TestAllImplementedCBInstructions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Setup test environment
 	cpu.A = 0xAA
@@ -281,7 +280,7 @@ func TestAllImplementedCBInstructions(t *testing.T) {
 
 func TestCBInstructionTiming(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	cpu.SetHL(0x8000)
 
 	testCases := []struct {

@@ -47,7 +47,7 @@ func TestWrapLD_A_L(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			cpu.L = tt.initialL
 			cpu.A = tt.initialA
@@ -65,7 +65,7 @@ func TestWrapLD_A_L(t *testing.T) {
 // TestWrapLD_B_L tests the wrapLD_B_L wrapper function (0x45)
 func TestWrapLD_B_L(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.L = 0x78
 	cpu.B = 0x12
@@ -81,7 +81,7 @@ func TestWrapLD_B_L(t *testing.T) {
 // TestWrapLD_C_L tests the wrapLD_C_L wrapper function (0x4D)
 func TestWrapLD_C_L(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.L = 0x56
 	cpu.C = 0x13 // Default value from NewCPU
@@ -97,7 +97,7 @@ func TestWrapLD_C_L(t *testing.T) {
 // TestWrapLD_L_A tests the wrapLD_L_A wrapper function (0x6F)
 func TestWrapLD_L_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.A = 0x34
 	cpu.L = 0x4D // Default value from NewCPU
@@ -113,7 +113,7 @@ func TestWrapLD_L_A(t *testing.T) {
 // TestWrapLD_L_B tests the wrapLD_L_B wrapper function (0x68)
 func TestWrapLD_L_B(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.B = 0x90
 	cpu.L = 0x00
@@ -129,7 +129,7 @@ func TestWrapLD_L_B(t *testing.T) {
 // TestWrapLD_L_C tests the wrapLD_L_C wrapper function (0x69)
 func TestWrapLD_L_C(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.C = 0xAB
 	cpu.L = 0xFF
@@ -145,7 +145,7 @@ func TestWrapLD_L_C(t *testing.T) {
 // TestWrapLD_L_D tests the wrapLD_L_D wrapper function (0x6A)
 func TestWrapLD_L_D(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.D = 0xCD
 	cpu.L = 0x11
@@ -161,7 +161,7 @@ func TestWrapLD_L_D(t *testing.T) {
 // TestWrapLD_L_E tests the wrapLD_L_E wrapper function (0x6B)
 func TestWrapLD_L_E(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.E = 0xEF
 	cpu.L = 0x22
@@ -177,7 +177,7 @@ func TestWrapLD_L_E(t *testing.T) {
 // TestWrapLD_L_H tests the wrapLD_L_H wrapper function (0x6C)
 func TestWrapLD_L_H(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.H = 0x12
 	cpu.L = 0x34
@@ -264,7 +264,7 @@ func TestL_WrapperVsOriginal_Comparison(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test wrapper function
 			cpu1 := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			tt.setupFunc(cpu1)
 
 			cycles1, err := tt.wrapperFunc(cpu1, mmu)
@@ -399,7 +399,7 @@ func TestL_DispatchIntegration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			tt.setup(cpu)
 
@@ -437,7 +437,7 @@ func TestL_OpcodeImplementationStatus(t *testing.T) {
 
 	// Test that they actually work
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	for _, opcode := range expectedOpcodes {
 		t.Run(fmt.Sprintf("Opcode 0x%02X should execute without error", opcode), func(t *testing.T) {

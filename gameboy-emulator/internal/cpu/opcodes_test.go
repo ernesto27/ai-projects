@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"gameboy-emulator/internal/memory"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ func TestWrapNOP(t *testing.T) {
 	cpu := NewCPU()
 
 	// Create an MMU instance - like setting up the filing cabinet
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Store the initial state to compare later
 	initialA := cpu.A
@@ -60,7 +59,7 @@ func TestWrapNOPVsOriginal(t *testing.T) {
 	// Create two identical CPUs
 	cpu1 := NewCPU()
 	cpu2 := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Call the original function on cpu1
 	originalCycles := cpu1.NOP()
@@ -84,7 +83,7 @@ func TestWrapNOPVsOriginal(t *testing.T) {
 func TestWrapINC_A(t *testing.T) {
 	// === Setup ===
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set A to a known value to test increment
 	cpu.A = 0x42
@@ -137,7 +136,7 @@ func TestWrapINC_AVsOriginal(t *testing.T) {
 	// Create two identical CPUs
 	cpu1 := NewCPU()
 	cpu2 := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set both to same starting value
 	cpu1.A = 0x42

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"gameboy-emulator/internal/memory"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -443,7 +441,7 @@ func TestLD_B_E(t *testing.T) {
 
 func TestLD_HL_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Store A to memory at HL
 	cpu.A = 0x42
@@ -511,7 +509,7 @@ func TestLD_HL_A(t *testing.T) {
 
 func TestLD_A_BC(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Load A from memory at BC
 	cpu.SetBC(0x8000)
@@ -537,7 +535,7 @@ func TestLD_A_BC(t *testing.T) {
 		{"Load 0xFF", 0x8002, 0xFF, 0xFF},
 		{"Load 0x55", 0x9000, 0x55, 0x55},
 		{"Load 0xAA", 0x9FFF, 0xAA, 0xAA},
-		{"Load from ROM area", 0x0100, 0x33, 0x33},
+		{"Load from WRAM area", 0xC100, 0x33, 0x33},
 		{"Load from high memory", 0xFF80, 0x77, 0x77},
 	}
 
@@ -596,7 +594,7 @@ func TestLD_A_BC(t *testing.T) {
 
 func TestLD_A_DE(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Load A from memory at DE
 	cpu.SetDE(0x8000)
@@ -622,9 +620,9 @@ func TestLD_A_DE(t *testing.T) {
 		{"Load 0xFF", 0x8002, 0xFF, 0xFF},
 		{"Load 0x55", 0x9000, 0x55, 0x55},
 		{"Load 0xAA", 0x9FFF, 0xAA, 0xAA},
-		{"Load from ROM area", 0x0200, 0x88, 0x88},
+		{"Load from WRAM area", 0xC200, 0x88, 0x88},
 		{"Load from high memory", 0xFF90, 0x99, 0x99},
-		{"Load from cartridge RAM", 0xA000, 0xCC, 0xCC},
+		{"Load from WRAM high", 0xD000, 0xCC, 0xCC},
 	}
 
 	for _, tc := range testCases {
@@ -686,12 +684,12 @@ func TestLD_A_DE(t *testing.T) {
 		address uint16
 		value   uint8
 	}{
-		{"ROM Bank 0", 0x0000, 0x01},
-		{"ROM Bank 1", 0x4000, 0x02},
+		// Skip ROM and External RAM as they route to cartridge
 		{"VRAM", 0x8000, 0x03},
-		{"External RAM", 0xA000, 0x04},
 		{"Work RAM", 0xC000, 0x05},
+		{"Work RAM High", 0xD000, 0x04},
 		{"High RAM", 0xFF80, 0x06},
+		{"I/O Register", 0xFF40, 0x07},
 	}
 
 	for _, region := range memoryRegions {
@@ -710,7 +708,7 @@ func TestLD_A_DE(t *testing.T) {
 
 func TestLD_BC_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Store A to memory at BC
 	cpu.A = 0x42
@@ -739,7 +737,7 @@ func TestLD_BC_A(t *testing.T) {
 		{"Store 0xAA", 0xAA, 0x9FFF, 0xAA},
 		{"Store to Work RAM", 0x33, 0xC000, 0x33},
 		{"Store to High RAM", 0x77, 0xFF80, 0x77},
-		{"Store to External RAM", 0xCC, 0xA000, 0xCC},
+		{"Store to WRAM high", 0xCC, 0xD000, 0xCC},
 	}
 
 	for _, tc := range testCases {
@@ -808,7 +806,7 @@ func TestLD_BC_A(t *testing.T) {
 
 func TestLD_DE_A(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test: Store A to memory at DE
 	cpu.A = 0x42
@@ -837,7 +835,7 @@ func TestLD_DE_A(t *testing.T) {
 		{"Store 0xAA", 0xAA, 0x9FFF, 0xAA},
 		{"Store to Work RAM", 0x33, 0xC000, 0x33},
 		{"Store to High RAM", 0x77, 0xFF80, 0x77},
-		{"Store to External RAM", 0xCC, 0xA000, 0xCC},
+		{"Store to WRAM high", 0xCC, 0xD000, 0xCC},
 		{"Store to Echo RAM", 0x88, 0xE000, 0x88},
 	}
 
@@ -912,7 +910,7 @@ func TestLD_DE_A(t *testing.T) {
 	}{
 		{"Work RAM", 0xC000, 0x01},
 		{"VRAM", 0x8000, 0x02},
-		{"External RAM", 0xA000, 0x03},
+		{"WRAM High", 0xD000, 0x03},
 		{"High RAM", 0xFF80, 0x04},
 		{"Echo RAM", 0xE000, 0x05},
 		{"Work RAM Bank 1", 0xD000, 0x06},
@@ -939,7 +937,7 @@ func TestLD_DE_A(t *testing.T) {
 	}{
 		{0x8000, 0x11},
 		{0xC000, 0x22},
-		{0xA000, 0x33},
+		{0xD000, 0x33},
 		{0xFF80, 0x44},
 	}
 

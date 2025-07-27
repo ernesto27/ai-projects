@@ -227,7 +227,7 @@ func TestDEC_SP(t *testing.T) {
 
 func TestWrapINC_BC(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetBC(0x1000)
 	cycles, err := wrapINC_BC(cpu, mmu)
@@ -244,7 +244,7 @@ func TestWrapINC_BC(t *testing.T) {
 
 func TestWrapDEC_HL(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cpu.SetHL(0x2000)
 	cycles, err := wrapDEC_HL(cpu, mmu)
@@ -355,7 +355,7 @@ func Test16BitArithmeticBoundaryConditions(t *testing.T) {
 
 func TestAllWrapperFunctions(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test all wrapper functions work correctly
 	wrapperTests := []struct {

@@ -3,14 +3,13 @@ package cpu
 import (
 	"testing"
 
-	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test opcode dispatch integration for new stack pointer instructions
 func TestStackPointerOpcodeDispatch(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("LD (nn),SP opcode 0x08", func(t *testing.T) {
 		cpu.SP = 0x1234
@@ -18,7 +17,7 @@ func TestStackPointerOpcodeDispatch(t *testing.T) {
 
 		assert.NoError(t, err, "Should execute without error")
 		assert.Equal(t, uint8(20), cycles, "Should return correct cycles")
-		
+
 		// Verify memory contents
 		assert.Equal(t, uint8(0x34), mmu.ReadByte(0x8000), "Low byte stored correctly")
 		assert.Equal(t, uint8(0x12), mmu.ReadByte(0x8001), "High byte stored correctly")
@@ -58,7 +57,7 @@ func TestStackPointerOpcodeDispatch(t *testing.T) {
 // Test wrapper function error handling
 func TestStackPointerWrapperErrors(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("LD (nn),SP missing parameters", func(t *testing.T) {
 		// Test with no parameters
@@ -108,18 +107,18 @@ func TestStackPointerOpcodeInfo(t *testing.T) {
 // Test real Game Boy usage patterns
 func TestStackPointerGameBoyPatterns(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	t.Run("Function call setup pattern", func(t *testing.T) {
 		// Common pattern: set up stack frame with HL offset
 		cpu.SP = 0xFFFE // Normal stack start
-		
+
 		// LD HL,SP+n - create stack frame pointer
 		cycles1, err1 := cpu.ExecuteInstruction(mmu, 0xF8, 0xFC) // SP-4
 		assert.NoError(t, err1)
 		assert.Equal(t, uint8(12), cycles1)
 		assert.Equal(t, uint16(0xFFFA), cpu.GetHL(), "HL should point to stack frame")
-		
+
 		// LD SP,HL - adjust stack pointer
 		cycles2, err2 := cpu.ExecuteInstruction(mmu, 0xF9)
 		assert.NoError(t, err2)
@@ -133,10 +132,10 @@ func TestStackPointerGameBoyPatterns(t *testing.T) {
 		cycles1, err1 := cpu.ExecuteInstruction(mmu, 0x08, 0x00, 0x80) // LD (0x8000),SP
 		assert.NoError(t, err1)
 		assert.Equal(t, uint8(20), cycles1)
-		
+
 		// Modify SP
 		cpu.SP = 0x5678
-		
+
 		// Restore SP from memory (would need to implement LD SP,(nn) for complete pattern)
 		// For now, verify the save worked
 		storedSP := mmu.ReadWord(0x8000)

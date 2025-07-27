@@ -451,7 +451,7 @@ func TestLD_HL_nn(t *testing.T) {
 		{"ROM start", 0x00, 0x00, 0x0000, "Start of ROM"},
 		{"ROM bank 1", 0x00, 0x40, 0x4000, "Start of ROM bank 1"},
 		{"VRAM start", 0x00, 0x80, 0x8000, "Start of VRAM"},
-		{"External RAM", 0x00, 0xA0, 0xA000, "Start of External RAM"},
+		{"WRAM High", 0x00, 0xD0, 0xD000, "Start of WRAM High"},
 		{"Work RAM", 0x00, 0xC0, 0xC000, "Start of Work RAM"},
 		{"High RAM", 0x80, 0xFF, 0xFF80, "Start of High RAM"},
 		{"Stack area", 0xFE, 0xFF, 0xFFFE, "Default stack pointer"},

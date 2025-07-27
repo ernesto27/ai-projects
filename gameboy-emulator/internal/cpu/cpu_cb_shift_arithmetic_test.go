@@ -63,7 +63,7 @@ func TestSRA_Instructions(t *testing.T) {
 
 func TestSRA_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	
@@ -142,7 +142,7 @@ func TestSRL_Instructions(t *testing.T) {
 
 func TestSRL_HL_Memory(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	
 	cpu.SetHL(0x8000)
 	
@@ -239,7 +239,7 @@ func TestCB_Shift_Dispatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 			
 			tt.setup(cpu, mmu)
 			
@@ -330,7 +330,7 @@ func BenchmarkSRL_Register(b *testing.B) {
 
 func BenchmarkSRA_Memory(b *testing.B) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 	cpu.SetHL(0x8000)
 	
 	b.ResetTimer()

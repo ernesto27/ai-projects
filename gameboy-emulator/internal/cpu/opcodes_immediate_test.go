@@ -14,7 +14,7 @@ import (
 
 func TestWrapLD_A_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_A_n(cpu, mmu, 0x99)
@@ -31,7 +31,7 @@ func TestWrapLD_A_n(t *testing.T) {
 
 func TestWrapLD_B_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test basic functionality
 	cycles, err := wrapLD_B_n(cpu, mmu, 0x55)
@@ -48,7 +48,7 @@ func TestWrapLD_B_n(t *testing.T) {
 
 func TestWrapLD_C_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cycles, err := wrapLD_C_n(cpu, mmu, 0xAA)
 
@@ -63,7 +63,7 @@ func TestWrapLD_C_n(t *testing.T) {
 
 func TestWrapLD_D_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cycles, err := wrapLD_D_n(cpu, mmu, 0x33)
 
@@ -78,7 +78,7 @@ func TestWrapLD_D_n(t *testing.T) {
 
 func TestWrapLD_E_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cycles, err := wrapLD_E_n(cpu, mmu, 0x77)
 
@@ -93,7 +93,7 @@ func TestWrapLD_E_n(t *testing.T) {
 
 func TestWrapLD_H_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cycles, err := wrapLD_H_n(cpu, mmu, 0x11)
 
@@ -108,7 +108,7 @@ func TestWrapLD_H_n(t *testing.T) {
 
 func TestWrapLD_L_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	cycles, err := wrapLD_L_n(cpu, mmu, 0xEE)
 
@@ -125,7 +125,7 @@ func TestWrapLD_L_n(t *testing.T) {
 
 func TestWrapADD_A_n(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Set A to a known value
 	cpu.A = 0x10
@@ -148,7 +148,7 @@ func TestWrapADD_A_n(t *testing.T) {
 
 func TestImmediateParameterHandling(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test that extra parameters are ignored (should only use first one)
 	cycles, err := wrapLD_A_n(cpu, mmu, 0x42, 0x99, 0x11) // Extra params ignored
@@ -213,7 +213,7 @@ func TestImmediateWrappersVsOriginals(t *testing.T) {
 			// Create two identical CPUs
 			cpu1 := NewCPU()
 			cpu2 := NewCPU()
-			mmu := memory.NewMMU()
+			mmu := createTestMMU()
 
 			// For ADD operations, set initial A value
 			if tt.name == "ADD A,n comparison" {
@@ -242,7 +242,7 @@ func TestImmediateWrappersVsOriginals(t *testing.T) {
 
 func TestImmediateEdgeCases(t *testing.T) {
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// Test with boundary values
 	testCases := []struct {

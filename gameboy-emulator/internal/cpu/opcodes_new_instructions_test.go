@@ -1,16 +1,16 @@
 package cpu
 
 import (
-	"testing"
 	"fmt"
-	"gameboy-emulator/internal/memory"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 	// Test that all new instructions work through the opcode dispatch system
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	tests := []struct {
 		name        string
@@ -64,7 +64,7 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 				assert.Equal(t, uint16(0x4000), cpu.GetHL())
 			},
 		},
-		
+
 		// Rotation Instructions
 		{
 			name:   "RLCA (0x07)",
@@ -113,7 +113,7 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 				assert.False(t, cpu.GetFlag(FlagC))       // bit 0 was 0
 			},
 		},
-		
+
 		// Memory Auto-Increment/Decrement Instructions
 		{
 			name:   "LD (HL+),A (0x22)",
@@ -136,7 +136,7 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 				cpu.A = 0x00 // Different value
 			},
 			verify: func() {
-				assert.Equal(t, uint8(0x55), cpu.A)         // A loaded from memory
+				assert.Equal(t, uint8(0x55), cpu.A)          // A loaded from memory
 				assert.Equal(t, uint16(0x9001), cpu.GetHL()) // HL incremented
 			},
 		},
@@ -161,7 +161,7 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 				cpu.A = 0x00
 			},
 			verify: func() {
-				assert.Equal(t, uint8(0x77), cpu.A)         // A loaded from memory
+				assert.Equal(t, uint8(0x77), cpu.A)          // A loaded from memory
 				assert.Equal(t, uint16(0x900F), cpu.GetHL()) // HL decremented
 			},
 		},
@@ -171,22 +171,22 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset CPU state
 			cpu = NewCPU()
-			mmu = memory.NewMMU()
-			
+			mmu = createTestMMU()
+
 			// Setup test conditions
 			tt.setup()
-			
+
 			// Execute instruction via opcode dispatch
 			cycles, err := cpu.ExecuteInstruction(mmu, tt.opcode)
-			
+
 			if tt.expectError {
 				assert.Error(t, err)
 				return
 			}
-			
+
 			assert.NoError(t, err)
 			assert.Greater(t, cycles, uint8(0), "Should return positive cycle count")
-			
+
 			// Verify results
 			tt.verify()
 		})
@@ -196,10 +196,10 @@ func TestNewInstructionsOpcodeDispatch(t *testing.T) {
 func TestNewInstructionsCycleCounts(t *testing.T) {
 	// Test that all new instructions return correct cycle counts
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	tests := []struct {
-		opcode       uint8
+		opcode         uint8
 		expectedCycles uint8
 	}{
 		{0x07, 4}, // RLCA
@@ -219,11 +219,11 @@ func TestNewInstructionsCycleCounts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("Opcode 0x%02X cycle count", tt.opcode), func(t *testing.T) {
 			cpu = NewCPU() // Reset for each test
-			
+
 			cycles, err := cpu.ExecuteInstruction(mmu, tt.opcode)
-			
+
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedCycles, cycles, 
+			assert.Equal(t, tt.expectedCycles, cycles,
 				"Opcode 0x%02X should take %d cycles", tt.opcode, tt.expectedCycles)
 		})
 	}
@@ -232,17 +232,17 @@ func TestNewInstructionsCycleCounts(t *testing.T) {
 func TestNewInstructionsErrorHandling(t *testing.T) {
 	// Test that wrapper functions properly handle parameter validation
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
+	mmu := createTestMMU()
 
 	// All new instructions should not accept any parameters
 	opcodes := []uint8{0x07, 0x09, 0x0F, 0x17, 0x19, 0x1F, 0x22, 0x29, 0x2A, 0x32, 0x39, 0x3A}
-	
+
 	for _, opcode := range opcodes {
 		t.Run(fmt.Sprintf("Opcode 0x%02X parameter validation", opcode), func(t *testing.T) {
 			// Should work with no parameters
 			_, err := cpu.ExecuteInstruction(mmu, opcode)
 			assert.NoError(t, err, "Should work with no parameters")
-			
+
 			// Should fail with parameters (simulate invalid usage)
 			instruction := opcodeTable[opcode]
 			_, err = instruction(cpu, mmu, 0x12) // Pass invalid parameter
@@ -254,24 +254,24 @@ func TestNewInstructionsErrorHandling(t *testing.T) {
 func TestNewInstructionsIntegration(t *testing.T) {
 	// Test a realistic sequence using multiple new instructions
 	cpu := NewCPU()
-	mmu := memory.NewMMU()
-	
-	// Simulate array processing: 
+	mmu := createTestMMU()
+
+	// Simulate array processing:
 	// 1. Set up base address in HL
 	// 2. Use ADD HL,BC to calculate offset
 	// 3. Use LD (HL+),A to store values
 	// 4. Use rotation to modify values
-	
+
 	// Set up: HL = base address, BC = offset
 	cpu.SetHL(0x8000)
 	cpu.SetBC(0x0010)
-	
+
 	// ADD HL,BC - calculate array[16] address
 	cycles, err := cpu.ExecuteInstruction(mmu, 0x09) // ADD HL,BC
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(8), cycles)
 	assert.Equal(t, uint16(0x8010), cpu.GetHL())
-	
+
 	// Store initial value
 	cpu.A = 0b10101010
 	cycles, err = cpu.ExecuteInstruction(mmu, 0x22) // LD (HL+),A
@@ -279,24 +279,24 @@ func TestNewInstructionsIntegration(t *testing.T) {
 	assert.Equal(t, uint8(8), cycles)
 	assert.Equal(t, uint8(0b10101010), mmu.ReadByte(0x8010))
 	assert.Equal(t, uint16(0x8011), cpu.GetHL())
-	
+
 	// Rotate value and store again
 	cycles, err = cpu.ExecuteInstruction(mmu, 0x07) // RLCA
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(4), cycles)
 	assert.Equal(t, uint8(0b01010101), cpu.A) // Rotated left
-	
+
 	cycles, err = cpu.ExecuteInstruction(mmu, 0x22) // LD (HL+),A
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(0b01010101), mmu.ReadByte(0x8011))
 	assert.Equal(t, uint16(0x8012), cpu.GetHL())
-	
+
 	// Read back and verify
-	cpu.SetHL(0x8010) // Reset to start
+	cpu.SetHL(0x8010)                               // Reset to start
 	cycles, err = cpu.ExecuteInstruction(mmu, 0x2A) // LD A,(HL+)
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(0b10101010), cpu.A) // Original value
-	
+
 	cycles, err = cpu.ExecuteInstruction(mmu, 0x2A) // LD A,(HL+)
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(0b01010101), cpu.A) // Rotated value
