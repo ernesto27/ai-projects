@@ -1,6 +1,9 @@
 package memory
 
-import "gameboy-emulator/internal/cartridge"
+import (
+	"gameboy-emulator/internal/cartridge"
+	"gameboy-emulator/internal/timer"
+)
 
 // Game Boy Memory Map Constants
 // These define the address ranges for different memory regions in the Game Boy's 64KB address space
@@ -106,16 +109,18 @@ type MemoryInterface interface {
 type MMU struct {
 	memory    [0x10000]uint8   // 64KB total memory space for internal regions
 	cartridge cartridge.MBC    // Memory Bank Controller for ROM/RAM access
+	timer     *timer.Timer     // Timer system for DIV, TIMA, TMA, TAC registers
 }
 
-// NewMMU creates and initializes a new MMU instance with cartridge integration
+// NewMMU creates and initializes a new MMU instance with cartridge and timer integration
 // Parameters:
 //   - mbc: Memory Bank Controller from cartridge for ROM/RAM access
-// Returns a pointer to MMU with zeroed internal memory and cartridge reference
+// Returns a pointer to MMU with zeroed internal memory, cartridge reference, and initialized timer
 func NewMMU(mbc cartridge.MBC) *MMU {
 	return &MMU{
 		memory:    [0x10000]uint8{}, // Initialize all 65536 bytes to 0x00
 		cartridge: mbc,              // Store cartridge MBC reference
+		timer:     timer.NewTimer(), // Initialize timer system
 	}
 }
 
@@ -143,6 +148,11 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 	// Prohibited area: Return 0xFF (0xFEA0-0xFEFF)
 	if address >= ProhibitedStart && address <= ProhibitedEnd {
 		return 0xFF
+	}
+	
+	// Timer registers: Route to timer system (0xFF04-0xFF07)
+	if timer.IsTimerRegister(address) {
+		return mmu.timer.ReadRegister(address)
 	}
 	
 	// All other regions: Use internal memory
@@ -179,6 +189,12 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 	// Prohibited area: Ignore writes (0xFEA0-0xFEFF)
 	if address >= ProhibitedStart && address <= ProhibitedEnd {
 		return // Writes to prohibited area are ignored
+	}
+	
+	// Timer registers: Route to timer system (0xFF04-0xFF07)
+	if timer.IsTimerRegister(address) {
+		mmu.timer.WriteRegister(address, value)
+		return
 	}
 	
 	// All other regions: Use internal memory
@@ -248,4 +264,31 @@ func (mmu *MMU) getMemoryRegion(address uint16) string {
 	default:
 		return "Unknown"
 	}
+}
+
+// Timer integration methods for CPU
+
+// UpdateTimer advances the timer system by the specified number of CPU cycles
+// This should be called after each CPU instruction execution
+// The timer system handles DIV and TIMA register updates and interrupt generation
+func (mmu *MMU) UpdateTimer(cycles uint8) {
+	mmu.timer.Update(cycles)
+}
+
+// HasTimerInterrupt returns true if the timer has generated an interrupt
+// This is used by the interrupt system to check for pending timer interrupts
+func (mmu *MMU) HasTimerInterrupt() bool {
+	return mmu.timer.HasTimerInterrupt()
+}
+
+// ClearTimerInterrupt clears the pending timer interrupt
+// This is called by the interrupt system after handling the timer interrupt
+func (mmu *MMU) ClearTimerInterrupt() {
+	mmu.timer.ClearTimerInterrupt()
+}
+
+// GetTimer returns a pointer to the timer for direct access (testing/debugging)
+// Provides access to internal timer state for debugging and comprehensive testing
+func (mmu *MMU) GetTimer() *timer.Timer {
+	return mmu.timer
 }

@@ -26,7 +26,7 @@ func TestLDH_n_A(t *testing.T) {
 			a:        0x55,
 			offset:   0x04, // Timer divider register
 			wantAddr: 0xFF04,
-			wantData: 0x55,
+			wantData: 0x00, // DIV resets to 0 on any write (authentic Game Boy behavior)
 		},
 		{
 			name:     "Write A to LCD control",
@@ -89,8 +89,8 @@ func TestLDH_A_n(t *testing.T) {
 		{
 			name:     "Read from timer divider",
 			offset:   0x04, // Timer divider register
-			data:     0x12,
-			wantA:    0x12,
+			data:     0x00, // DIV starts at 0 and we won't advance timer in this test
+			wantA:    0x00,
 			wantAddr: 0xFF04,
 		},
 		{
@@ -122,8 +122,14 @@ func TestLDH_A_n(t *testing.T) {
 			mmu := createTestMMU()
 			cpu.A = 0xCC // Different initial value
 
-			// Pre-store the test data
-			mmu.WriteByte(tt.wantAddr, tt.data)
+			// Special handling for timer registers - can't pre-store data to DIV
+			if tt.wantAddr == 0xFF04 {
+				// DIV register - starts at 0, can't write to it (resets to 0)
+				// Just test reading the initial value
+			} else {
+				// Pre-store the test data for non-timer registers
+				mmu.WriteByte(tt.wantAddr, tt.data)
+			}
 
 			cycles := cpu.LDH_A_n(mmu, tt.offset)
 
@@ -218,8 +224,8 @@ func TestLD_A_IO_C(t *testing.T) {
 		{
 			name:     "Read using C=0x04 (timer divider)",
 			c:        0x04,
-			data:     0x34,
-			wantA:    0x34,
+			data:     0x00, // DIV starts at 0 and can't be written with data
+			wantA:    0x00,
 			wantAddr: 0xFF04,
 		},
 		{
@@ -238,8 +244,14 @@ func TestLD_A_IO_C(t *testing.T) {
 			cpu.A = 0xAA // Different initial value
 			cpu.C = tt.c
 
-			// Pre-store the test data
-			mmu.WriteByte(tt.wantAddr, tt.data)
+			// Special handling for timer registers - can't pre-store data to DIV
+			if tt.wantAddr == 0xFF04 {
+				// DIV register - starts at 0, can't write to it (resets to 0)
+				// Just test reading the initial value
+			} else {
+				// Pre-store the test data for non-timer registers
+				mmu.WriteByte(tt.wantAddr, tt.data)
+			}
 
 			cycles := cpu.LD_A_IO_C(mmu)
 
@@ -425,14 +437,21 @@ func TestIOAddressCalculation(t *testing.T) {
 			cpu.A = 0xDD
 			cpu.LDH_n_A(mmu, tc.offset)
 
+			// Special handling for timer registers
+			var expectedData uint8 = 0xDD
+			if tc.expected == 0xFF04 {
+				// DIV register resets to 0 on any write (authentic Game Boy behavior)
+				expectedData = 0x00
+			}
+
 			// Verify data was written to correct address
 			stored := mmu.ReadByte(tc.expected)
-			assert.Equal(t, uint8(0xDD), stored, "Data should be at correct I/O address")
+			assert.Equal(t, expectedData, stored, "Data should be at correct I/O address")
 
 			// Test reading back
 			cpu.A = 0x00 // Clear A
 			cpu.LDH_A_n(mmu, tc.offset)
-			assert.Equal(t, uint8(0xDD), cpu.A, "Should read back the same data")
+			assert.Equal(t, expectedData, cpu.A, "Should read back the same data")
 		})
 	}
 }
