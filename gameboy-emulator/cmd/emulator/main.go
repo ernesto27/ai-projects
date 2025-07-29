@@ -26,6 +26,9 @@ func main() {
 		showInfo  = flag.Bool("info", false, "Show ROM information only")
 		validate  = flag.Bool("validate", false, "Validate ROM file only")
 		maxSteps  = flag.Int("max-steps", 100, "Maximum steps in step mode (0 for unlimited)")
+		maxSpeed  = flag.Bool("max-speed", false, "Run at maximum speed (no timing delays)")
+		realTime  = flag.Bool("real-time", true, "Run at authentic Game Boy speed")
+		speedMult = flag.Float64("speed", 1.0, "Speed multiplier (1.0=normal, 2.0=double, 0.5=half)")
 	)
 	flag.Parse()
 
@@ -92,14 +95,14 @@ func main() {
 	}
 
 	// Load and run the ROM
-	if err := runEmulator(*romPath, *debugMode, *stepMode, *maxSteps); err != nil {
+	if err := runEmulator(*romPath, *debugMode, *stepMode, *maxSteps, *maxSpeed, *realTime, *speedMult); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 // runEmulator loads a ROM and starts the emulation
-func runEmulator(romFile string, debugMode, stepMode bool, maxSteps int) error {
+func runEmulator(romFile string, debugMode, stepMode bool, maxSteps int, maxSpeed, realTime bool, speedMult float64) error {
 	fmt.Printf("Loading ROM: %s\n", romFile)
 
 	// Create emulator
@@ -118,6 +121,24 @@ func runEmulator(romFile string, debugMode, stepMode bool, maxSteps int) error {
 	// Configure emulator
 	emu.SetDebugMode(debugMode)
 	emu.SetStepMode(stepMode)
+
+	// Configure timing mode
+	if maxSpeed {
+		emu.SetMaxSpeedMode(true)
+		fmt.Println("Timing: Maximum speed mode (no delays)")
+	} else if realTime {
+		emu.SetRealTimeMode(true)
+		emu.SetSpeedMultiplier(speedMult)
+		if speedMult == 1.0 {
+			fmt.Println("Timing: Authentic Game Boy speed (4.194304 MHz)")
+		} else {
+			fmt.Printf("Timing: %.1fx Game Boy speed\n", speedMult)
+		}
+	} else {
+		emu.SetRealTimeMode(false)
+		fmt.Println("Timing: No real-time control")
+	}
+	fmt.Println()
 
 	if stepMode {
 		return runStepMode(emu, maxSteps)
@@ -328,6 +349,9 @@ func showUsage() {
 	fmt.Println("  -debug             Enable debug mode")
 	fmt.Println("  -step              Enable step-by-step execution")
 	fmt.Println("  -max-steps int     Maximum steps in step mode (default 100, 0=unlimited)")
+	fmt.Println("  -max-speed         Run at maximum speed (no timing delays)")
+	fmt.Println("  -real-time         Run at authentic Game Boy speed (default true)")
+	fmt.Println("  -speed float       Speed multiplier (1.0=normal, 2.0=double, 0.5=half)")
 	fmt.Println("  -info              Show ROM information only")
 	fmt.Println("  -validate          Validate ROM file only")
 	fmt.Println()
@@ -339,10 +363,12 @@ func showUsage() {
 	fmt.Println("  scan <directory>   Scan directory for ROM files")
 	fmt.Println()
 	fmt.Println("Examples:")
-	fmt.Println("  gameboy-emulator tetris.gb           # Run Tetris normally")
+	fmt.Println("  gameboy-emulator tetris.gb           # Run Tetris at authentic speed")
 	fmt.Println("  gameboy-emulator -debug tetris.gb    # Run with debug output")
 	fmt.Println("  gameboy-emulator -step tetris.gb     # Run step-by-step")
-	fmt.Println("  gameboy-emulator -rom tetris.gb      # Run using -rom flag")
+	fmt.Println("  gameboy-emulator -max-speed game.gb  # Run at maximum speed")
+	fmt.Println("  gameboy-emulator -speed 2.0 game.gb  # Run at double speed")
+	fmt.Println("  gameboy-emulator -speed 0.5 game.gb  # Run at half speed")
 	fmt.Println("  gameboy-emulator info mario.gb       # Show ROM info")
 	fmt.Println("  gameboy-emulator validate game.gb    # Validate ROM")
 	fmt.Println("  gameboy-emulator scan roms/          # Scan for ROMs")

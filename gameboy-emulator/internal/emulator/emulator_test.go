@@ -48,7 +48,9 @@ func TestStep(t *testing.T) {
 	// PC should advance to 0x0101
 	assert.Equal(t, uint16(0x0101), emulator.CPU.PC)
 	assert.Equal(t, uint64(1), emulator.InstructionCount)
-	assert.Equal(t, uint64(4), emulator.TotalCycles) // NOP is 4 cycles
+	// Check cycles through clock system
+	_, cycles := emulator.GetStats()
+	assert.Equal(t, cycles, uint64(4)) // NOP is 4 cycles
 }
 
 func TestStepWithLDInstruction(t *testing.T) {
@@ -69,7 +71,9 @@ func TestStepWithLDInstruction(t *testing.T) {
 	// A register should contain 0x42
 	assert.Equal(t, uint8(0x42), emulator.CPU.A)
 	assert.Equal(t, uint64(1), emulator.InstructionCount)
-	assert.Equal(t, uint64(8), emulator.TotalCycles) // LD A,n is 8 cycles
+	// Check cycles through clock system
+	_, cycles := emulator.GetStats()
+	assert.Equal(t, cycles, uint64(8)) // LD A,n is 8 cycles
 }
 
 func TestStepWithCBInstruction(t *testing.T) {
@@ -93,7 +97,9 @@ func TestStepWithCBInstruction(t *testing.T) {
 	// A register should be rotated: 0x80 -> 0x01, carry flag set
 	assert.Equal(t, uint8(0x01), emulator.CPU.A)
 	assert.Equal(t, uint64(1), emulator.InstructionCount)
-	assert.Equal(t, uint64(12), emulator.TotalCycles) // CB RLC A is 8+4 cycles
+	// Check cycles through clock system
+	_, cycles := emulator.GetStats()
+	assert.Equal(t, cycles, uint64(12)) // CB RLC A is 8+4 cycles
 }
 
 func TestStateManagement(t *testing.T) {
@@ -153,7 +159,8 @@ func TestReset(t *testing.T) {
 	// Modify state
 	emulator.State = StateRunning
 	emulator.InstructionCount = 100
-	emulator.TotalCycles = 500
+	// Add some cycles through clock
+	emulator.Clock.AddCycles(500)
 	emulator.CPU.PC = 0x0200
 
 	// Reset
@@ -162,7 +169,9 @@ func TestReset(t *testing.T) {
 	// Verify reset state
 	assert.Equal(t, StateStopped, emulator.GetState())
 	assert.Equal(t, uint64(0), emulator.InstructionCount)
-	assert.Equal(t, uint64(0), emulator.TotalCycles)
+	// Check cycles through clock system
+	_, cycles := emulator.GetStats()
+	assert.Equal(t, cycles, uint64(0))
 	assert.Equal(t, uint16(0x0100), emulator.CPU.PC)
 }
 
@@ -263,7 +272,10 @@ func createTestEmulator(t *testing.T) *Emulator {
 		Cartridge:   mbc,
 		State:       StateStopped,
 		Breakpoints: make(map[uint16]bool),
-		TargetFPS:   60,
+		Clock:       NewClock(),
+		RealTimeMode:    true,
+		MaxSpeedMode:    false,
+		SpeedMultiplier: 1.0,
 	}
 
 	emulator.initializeGameBoyState()
@@ -288,7 +300,10 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 		Cartridge:   mbc,
 		State:       StateStopped,
 		Breakpoints: make(map[uint16]bool),
-		TargetFPS:   60,
+		Clock:       NewClock(),
+		RealTimeMode:    true,
+		MaxSpeedMode:    false,
+		SpeedMultiplier: 1.0,
 	}
 
 	emulator.initializeGameBoyState()

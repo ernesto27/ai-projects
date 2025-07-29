@@ -44,10 +44,10 @@ type Emulator struct {
 	CPU       *cpu.CPU
 	MMU       *memory.MMU
 	Cartridge cartridge.MBC
+	Clock     *Clock
 
 	// Emulator state
 	State           EmulatorState
-	TotalCycles     uint64
 	InstructionCount uint64
 
 	// Control flags
@@ -55,9 +55,10 @@ type Emulator struct {
 	StepMode    bool
 	Breakpoints map[uint16]bool
 
-	// Timing (basic for now)
-	LastUpdate time.Time
-	TargetFPS  int // 60 FPS for Game Boy
+	// Execution modes
+	RealTimeMode    bool
+	MaxSpeedMode    bool
+	SpeedMultiplier float64
 }
 
 // NewEmulator creates a new emulator instance with loaded ROM
@@ -80,16 +81,22 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	// Create CPU
 	cpu := cpu.NewCPU()
 
+	// Create clock
+	clock := NewClock()
+
 	// Initialize emulator
 	emulator := &Emulator{
-		CPU:         cpu,
-		MMU:         mmu,
-		Cartridge:   mbc,
-		State:       StateStopped,
-		DebugMode:   false,
-		StepMode:    false,
-		Breakpoints: make(map[uint16]bool),
-		TargetFPS:   60,
+		CPU:             cpu,
+		MMU:             mmu,
+		Cartridge:       mbc,
+		Clock:           clock,
+		State:           StateStopped,
+		DebugMode:       false,
+		StepMode:        false,
+		Breakpoints:     make(map[uint16]bool),
+		RealTimeMode:    true,
+		MaxSpeedMode:    false,
+		SpeedMultiplier: 1.0,
 	}
 
 	// Set initial Game Boy state (post-boot)
@@ -115,8 +122,8 @@ func (e *Emulator) initializeGameBoyState() {
 	e.CPU.InterruptsEnabled = true
 
 	// Reset counters
-	e.TotalCycles = 0
 	e.InstructionCount = 0
+	e.Clock.Reset()
 }
 
 // State Management Methods
@@ -128,7 +135,6 @@ func (e *Emulator) Run() error {
 	}
 
 	e.State = StateRunning
-	e.LastUpdate = time.Now()
 
 	defer func() {
 		e.State = StateStopped
@@ -161,9 +167,20 @@ func (e *Emulator) Run() error {
 			break
 		}
 
-		// Basic timing control (improved in Phase 3)
-		if e.InstructionCount%1000 == 0 {
-			time.Sleep(time.Microsecond) // Prevent tight loop
+		// Real-time timing control using Clock system
+		if waitTime := e.Clock.ShouldWaitForTiming(); waitTime > 0 {
+			time.Sleep(waitTime)
+		}
+
+		// Frame-based execution check (optional for frame-perfect timing)
+		if e.IsFrameComplete() {
+			// Handle frame completion (future: trigger PPU, interrupts)
+			e.NextFrame()
+			
+			// Optional frame-based waiting for smoother execution
+			if frameWait := e.Clock.ShouldWaitForFrame(); frameWait > 0 {
+				time.Sleep(frameWait)
+			}
 		}
 	}
 
@@ -182,8 +199,8 @@ func (e *Emulator) Step() error {
 		return err
 	}
 
-	// Update counters
-	e.TotalCycles += uint64(cycles)
+	// Update timing
+	e.Clock.AddCycles(cycles)
 	e.InstructionCount++
 
 	return nil
@@ -211,8 +228,8 @@ func (e *Emulator) Resume() {
 // Reset resets emulator to initial state
 func (e *Emulator) Reset() {
 	e.State = StateStopped
-	e.TotalCycles = 0
 	e.InstructionCount = 0
+	e.Clock.Reset()
 	e.initializeGameBoyState()
 }
 
@@ -243,7 +260,46 @@ func (e *Emulator) RemoveBreakpoint(address uint16) {
 
 // GetStats returns current emulator statistics
 func (e *Emulator) GetStats() (uint64, uint64) {
-	return e.InstructionCount, e.TotalCycles
+	totalCycles, _, _, _ := e.Clock.GetStats()
+	return e.InstructionCount, totalCycles
+}
+
+// GetDetailedStats returns comprehensive emulator statistics
+func (e *Emulator) GetDetailedStats() (instructions uint64, cycles uint64, frames uint64, fps float64, cps float64) {
+	totalCycles, frameCount, currentFPS, currentCPS := e.Clock.GetStats()
+	return e.InstructionCount, totalCycles, frameCount, currentFPS, currentCPS
+}
+
+// Speed Control Methods
+
+// SetRealTimeMode enables or disables real-time execution at Game Boy speed
+func (e *Emulator) SetRealTimeMode(enabled bool) {
+	e.RealTimeMode = enabled
+	e.MaxSpeedMode = !enabled
+	e.Clock.SetRealTimeMode(enabled)
+}
+
+// SetMaxSpeedMode enables or disables maximum speed execution (no timing delays)
+func (e *Emulator) SetMaxSpeedMode(enabled bool) {
+	e.MaxSpeedMode = enabled
+	e.RealTimeMode = !enabled
+	e.Clock.SetMaxSpeedMode(enabled)
+}
+
+// SetSpeedMultiplier sets execution speed (1.0 = normal, 2.0 = double, 0.5 = half)
+func (e *Emulator) SetSpeedMultiplier(multiplier float64) {
+	e.SpeedMultiplier = multiplier
+	e.Clock.SetSpeedMultiplier(multiplier)
+}
+
+// IsFrameComplete returns true if a complete frame (70224 cycles) has been executed
+func (e *Emulator) IsFrameComplete() bool {
+	return e.Clock.IsFrameComplete()
+}
+
+// NextFrame advances to the next frame and resets frame cycle counter
+func (e *Emulator) NextFrame() {
+	e.Clock.NextFrame()
 }
 
 // Fetch-Decode-Execute Implementation
