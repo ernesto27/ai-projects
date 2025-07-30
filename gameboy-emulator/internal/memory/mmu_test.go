@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"gameboy-emulator/internal/cartridge"
+	"gameboy-emulator/internal/interrupt"
 )
 
 // createDummyMBC creates a simple MBC for testing MMU functionality
@@ -32,7 +33,7 @@ func createDummyMBC() cartridge.MBC {
 func TestNewMMU(t *testing.T) {
 	// Test constructor creates valid MMU
 	mbc := createDummyMBC()
-	mmu := NewMMU(mbc)
+	mmu := NewMMU(mbc, interrupt.NewInterruptController())
 
 	// Verify MMU is not nil
 	if mmu == nil {
@@ -60,7 +61,7 @@ func TestNewMMU(t *testing.T) {
 }
 
 func TestReadByte(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test reading from initialized (zero) memory
 	tests := []struct {
@@ -101,13 +102,14 @@ func TestReadByte(t *testing.T) {
 		t.Errorf("ReadByte(0x8000) = 0x%02X, expected 0xFF", result)
 	}
 
-	if result := mmu.ReadByte(0xFFFF); result != 0xAB {
-		t.Errorf("ReadByte(0xFFFF) = 0x%02X, expected 0xAB", result)
+	// IE register (0xFFFF) is now routed to interrupt controller, which masks to valid bits
+	if result := mmu.ReadByte(0xFFFF); result != 0x0B {  // 0xAB masked to valid bits (0x1F) = 0x0B
+		t.Errorf("ReadByte(0xFFFF) = 0x%02X, expected 0x0B (IE register masked)", result)
 	}
 }
 
 func TestWriteByte(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test writing to different internal memory regions (avoid ROM which goes to cartridge)
 	tests := []struct {
@@ -119,7 +121,7 @@ func TestWriteByte(t *testing.T) {
 		{"RAM area", 0xC000, 0xAB},
 		{"WRAM middle", 0xD000, 0x42},
 		{"High RAM", 0xFF80, 0x12},
-		{"Last address", 0xFFFF, 0x34},
+		{"IE register", 0xFFFF, 0x34}, // Will be masked to 0x14 (valid interrupt bits only)
 		{"I/O Register", 0xFF40, 0x91},
 		{"OAM area", 0xFE00, 0x55},
 	}
@@ -131,16 +133,23 @@ func TestWriteByte(t *testing.T) {
 
 			// Read it back to verify
 			result := mmu.ReadByte(tt.address)
-			if result != tt.value {
+			expectedValue := tt.value
+			
+			// IE register (0xFFFF) masks to valid interrupt bits only
+			if tt.address == 0xFFFF {
+				expectedValue = tt.value & 0x1F // Mask to valid interrupt bits
+			}
+			
+			if result != expectedValue {
 				t.Errorf("After WriteByte(0x%04X, 0x%02X), ReadByte(0x%04X) = 0x%02X, expected 0x%02X",
-					tt.address, tt.value, tt.address, result, tt.value)
+					tt.address, tt.value, tt.address, result, expectedValue)
 			}
 		})
 	}
 }
 
 func TestReadWord(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test reading 16-bit words (little-endian) from internal memory regions
 	tests := []struct {
@@ -155,7 +164,7 @@ func TestReadWord(t *testing.T) {
 		{"High byte only", 0xC200, 0x00, 0x34, 0x3400},
 		{"Both bytes", 0xC300, 0x78, 0x56, 0x5678},
 		{"Max word", 0xC400, 0xFF, 0xFF, 0xFFFF},
-		{"Game Boy stack", 0xFFFE, 0xAB, 0xCD, 0xCDAB},
+		{"Game Boy stack", 0xFFFE, 0xAB, 0xCD, 0x0DAB}, // High byte 0xCD masked to 0x0D for IE register
 	}
 
 	for _, tt := range tests {
@@ -175,7 +184,7 @@ func TestReadWord(t *testing.T) {
 }
 
 func TestWriteWord(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test writing 16-bit words (little-endian) to internal memory regions
 	tests := []struct {
@@ -223,7 +232,7 @@ func TestWriteWord(t *testing.T) {
 }
 
 func TestWordReadWriteRoundTrip(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test round-trip: write word -> read word
 	testValues := []uint16{
@@ -254,7 +263,7 @@ func TestMMUImplementsInterface(t *testing.T) {
 	var _ MemoryInterface = (*MMU)(nil)
 
 	// Test actual interface usage
-	var mmu MemoryInterface = NewMMU(createDummyMBC())
+	var mmu MemoryInterface = NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test all interface methods work (use internal memory addresses)
 	mmu.WriteByte(0xC000, 0x42) // WRAM
@@ -391,7 +400,7 @@ func TestIORegisterConstants(t *testing.T) {
 }
 
 func TestIsValidAddress(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test valid addresses
 	validAddresses := []struct {
@@ -447,7 +456,7 @@ func TestIsValidAddress(t *testing.T) {
 }
 
 func TestGetMemoryRegion(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test all memory regions
 	regionTests := []struct {
@@ -500,7 +509,7 @@ func TestGetMemoryRegion(t *testing.T) {
 }
 
 func TestGetMemoryRegionForIORegisters(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test specific I/O registers return "I/O Registers"
 	ioRegisters := []struct {
@@ -526,7 +535,7 @@ func TestGetMemoryRegionForIORegisters(t *testing.T) {
 }
 
 func TestMemoryHelperMethods(t *testing.T) {
-	mmu := NewMMU(createDummyMBC())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
 
 	// Test that helper methods work together
 	testCases := []struct {

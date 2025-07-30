@@ -2,6 +2,7 @@ package memory
 
 import (
 	"gameboy-emulator/internal/cartridge"
+	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/timer"
 )
 
@@ -107,20 +108,23 @@ type MemoryInterface interface {
 // Manages access to the entire 64KB address space (0x0000-0xFFFF)
 // Routes ROM/RAM requests to cartridge MBC, handles internal memory regions
 type MMU struct {
-	memory    [0x10000]uint8   // 64KB total memory space for internal regions
-	cartridge cartridge.MBC    // Memory Bank Controller for ROM/RAM access
-	timer     *timer.Timer     // Timer system for DIV, TIMA, TMA, TAC registers
+	memory              [0x10000]uint8              // 64KB total memory space for internal regions
+	cartridge           cartridge.MBC               // Memory Bank Controller for ROM/RAM access
+	timer               *timer.Timer                // Timer system for DIV, TIMA, TMA, TAC registers
+	interruptController *interrupt.InterruptController // Interrupt system for IE, IF registers
 }
 
-// NewMMU creates and initializes a new MMU instance with cartridge and timer integration
+// NewMMU creates and initializes a new MMU instance with cartridge, timer, and interrupt integration
 // Parameters:
 //   - mbc: Memory Bank Controller from cartridge for ROM/RAM access
-// Returns a pointer to MMU with zeroed internal memory, cartridge reference, and initialized timer
-func NewMMU(mbc cartridge.MBC) *MMU {
+//   - interruptController: Interrupt controller for IE/IF register access
+// Returns a pointer to MMU with zeroed internal memory and all system references
+func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptController) *MMU {
 	return &MMU{
-		memory:    [0x10000]uint8{}, // Initialize all 65536 bytes to 0x00
-		cartridge: mbc,              // Store cartridge MBC reference
-		timer:     timer.NewTimer(), // Initialize timer system
+		memory:              [0x10000]uint8{},           // Initialize all 65536 bytes to 0x00
+		cartridge:           mbc,                        // Store cartridge MBC reference
+		timer:               timer.NewTimer(),           // Initialize timer system
+		interruptController: interruptController,        // Store interrupt controller reference
 	}
 }
 
@@ -155,9 +159,17 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 		return mmu.timer.ReadRegister(address)
 	}
 	
+	// Interrupt registers: Route to interrupt controller
+	if address == InterruptFlagRegister {     // IF - 0xFF0F
+		return mmu.interruptController.GetInterruptFlag()
+	}
+	if address == InterruptEnableRegister {   // IE - 0xFFFF
+		return mmu.interruptController.GetInterruptEnable()
+	}
+	
 	// All other regions: Use internal memory
 	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
-	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE), IE (0xFFFF)
+	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
 	return mmu.memory[address]
 }
 
@@ -197,9 +209,19 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 		return
 	}
 	
+	// Interrupt registers: Route to interrupt controller
+	if address == InterruptFlagRegister {     // IF - 0xFF0F
+		mmu.interruptController.SetInterruptFlag(value)
+		return
+	}
+	if address == InterruptEnableRegister {   // IE - 0xFFFF
+		mmu.interruptController.SetInterruptEnable(value)
+		return
+	}
+	
 	// All other regions: Use internal memory
 	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
-	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE), IE (0xFFFF)
+	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
 	mmu.memory[address] = value
 }
 

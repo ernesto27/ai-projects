@@ -263,7 +263,7 @@ func createTestEmulator(t *testing.T) *Emulator {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err)
 
-	mmu := memory.NewMMU(mbc)
+	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController)
 	cpu := cpu.NewCPU()
 
 	emulator := &Emulator{
@@ -291,7 +291,7 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err)
 
-	mmu := memory.NewMMU(mbc)
+	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController)
 	cpu := cpu.NewCPU()
 
 	emulator := &Emulator{

@@ -260,12 +260,12 @@ func TestXOR_A_HL(t *testing.T) {
 			expectedZ:   false,
 		},
 		{
-			name:        "XOR_A_HL - maximum values",
+			name:        "XOR_A_HL - IE register access",
 			setupA:      0xFF,
 			memoryValue: 0xFF,
-			hlAddress:   0xFFFF,
-			expectedA:   0x00, // 0xFF ^ 0xFF = 0x00
-			expectedZ:   true,
+			hlAddress:   0xFFFF, // IE register - will be masked to 0x1F
+			expectedA:   0xE0,   // 0xFF ^ 0x1F = 0xE0
+			expectedZ:   false,
 		},
 	}
 

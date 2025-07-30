@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gameboy-emulator/internal/cartridge"
+	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/memory"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,8 @@ func createTestMMU() *memory.MMU {
 	
 	cart, _ := cartridge.NewCartridge(romData)
 	mbc, _ := cartridge.CreateMBC(cart)
-	return memory.NewMMU(mbc)
+	ic := interrupt.NewInterruptController()
+	return memory.NewMMU(mbc, ic)
 }
 
 // TestLD_D_n tests the LD D,n instruction
@@ -291,13 +293,13 @@ func TestLD_A_HL(t *testing.T) {
 		cpu := NewCPU()
 		mmu := createTestMMU()
 
-		cpu.SetHL(0xFFFF)           // HL points to end of address space
-		mmu.WriteByte(0xFFFF, 0x88) // Write value to high RAM
+		cpu.SetHL(0xFFFF)           // HL points to IE register
+		mmu.WriteByte(0xFFFF, 0x88) // Write value to IE register (will be masked to 0x08)
 		cpu.A = 0x00
 
 		cycles := cpu.LD_A_HL(mmu)
 
-		assert.Equal(t, uint8(0x88), cpu.A, "Should read from high RAM")
+		assert.Equal(t, uint8(0x08), cpu.A, "Should read from IE register (0x88 masked to 0x08)")
 		assert.Equal(t, uint8(8), cycles, "Should take 8 cycles")
 	})
 }

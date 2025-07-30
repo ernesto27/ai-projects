@@ -1,6 +1,7 @@
 package cpu
 
 import (
+	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/memory"
 )
 
@@ -25,6 +26,9 @@ type CPU struct {
 	Halted           bool // CPU is in halt state
 	Stopped          bool // CPU is in stop state
 	InterruptsEnabled bool // Interrupt Master Enable (IME) flag
+	
+	// Interrupt system
+	InterruptController *interrupt.InterruptController // Handles interrupt processing
 }
 
 // NewCPU creates a new CPU instance with initial state
@@ -45,6 +49,7 @@ func NewCPU() *CPU {
 		Halted:           false,
 		Stopped:          false,
 		InterruptsEnabled: false, // Interrupts disabled at boot
+		InterruptController: interrupt.NewInterruptController(),
 	}
 }
 
@@ -64,6 +69,7 @@ func (cpu *CPU) Reset() {
 	cpu.Halted = false
 	cpu.Stopped = false
 	cpu.InterruptsEnabled = false
+	cpu.InterruptController.Reset()
 }
 
 // === CPU Instructions ===

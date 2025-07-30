@@ -181,7 +181,7 @@ func TestWrapAroundBehavior(t *testing.T) {
 
 		cpu.LD_HL_INC_A(mmu)
 
-		assert.Equal(t, uint8(0x99), mmu.ReadByte(0xFFFF))
+		assert.Equal(t, uint8(0x19), mmu.ReadByte(0xFFFF)) // IE register masks 0x99 to 0x19
 		assert.Equal(t, uint16(0x0000), cpu.GetHL()) // Should wrap to 0x0000
 	})
 

@@ -75,11 +75,11 @@ func NewEmulator(romPath string) (*Emulator, error) {
 		return nil, fmt.Errorf("failed to create MBC: %v", err)
 	}
 
-	// Create MMU with MBC
-	mmu := memory.NewMMU(mbc)
-
-	// Create CPU
+	// Create CPU first to get interrupt controller
 	cpu := cpu.NewCPU()
+
+	// Create MMU with MBC and interrupt controller
+	mmu := memory.NewMMU(mbc, cpu.InterruptController)
 
 	// Create clock
 	clock := NewClock()
