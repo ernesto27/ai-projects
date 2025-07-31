@@ -203,6 +203,9 @@ func (e *Emulator) Step() error {
 	e.Clock.AddCycles(cycles)
 	e.InstructionCount++
 
+	// Update DMA controller with instruction cycles
+	e.MMU.UpdateDMA(uint8(cycles))
+
 	return nil
 }
 
@@ -321,6 +324,16 @@ func (e *Emulator) fetchDecodeExecute() (int, error) {
 // fetchInstruction reads opcode at current PC and advances PC
 func (e *Emulator) fetchInstruction() uint8 {
 	pc := e.CPU.PC
+	
+	// Check if CPU can access this memory during DMA
+	dmaController := e.MMU.GetDMAController()
+	if !dmaController.CanCPUAccessMemory(pc) {
+		// During DMA, CPU reads 0xFF from blocked memory
+		opcode := uint8(0xFF)
+		e.CPU.PC = pc + 1
+		return opcode
+	}
+	
 	opcode := e.MMU.ReadByte(pc)
 	e.CPU.PC = pc + 1
 	return opcode

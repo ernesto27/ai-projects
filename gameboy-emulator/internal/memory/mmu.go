@@ -4,6 +4,7 @@ import (
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/timer"
+	"gameboy-emulator/internal/dma"
 )
 
 // Game Boy Memory Map Constants
@@ -112,6 +113,7 @@ type MMU struct {
 	cartridge           cartridge.MBC               // Memory Bank Controller for ROM/RAM access
 	timer               *timer.Timer                // Timer system for DIV, TIMA, TMA, TAC registers
 	interruptController *interrupt.InterruptController // Interrupt system for IE, IF registers
+	dmaController       *dma.DMAController          // DMA controller for sprite data transfers
 }
 
 // NewMMU creates and initializes a new MMU instance with cartridge, timer, and interrupt integration
@@ -125,6 +127,7 @@ func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptControlle
 		cartridge:           mbc,                        // Store cartridge MBC reference
 		timer:               timer.NewTimer(),           // Initialize timer system
 		interruptController: interruptController,        // Store interrupt controller reference
+		dmaController:       dma.NewDMAController(),     // Initialize DMA controller
 	}
 }
 
@@ -157,6 +160,11 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 	// Timer registers: Route to timer system (0xFF04-0xFF07)
 	if timer.IsTimerRegister(address) {
 		return mmu.timer.ReadRegister(address)
+	}
+	
+	// DMA register: Always returns 0xFF (write-only register)
+	if address == DMARegister {
+		return 0xFF
 	}
 	
 	// Interrupt registers: Route to interrupt controller
@@ -206,6 +214,12 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 	// Timer registers: Route to timer system (0xFF04-0xFF07)
 	if timer.IsTimerRegister(address) {
 		mmu.timer.WriteRegister(address, value)
+		return
+	}
+	
+	// DMA register: Route to DMA controller (0xFF46)
+	if address == DMARegister {
+		mmu.dmaController.StartTransfer(value)
 		return
 	}
 	
@@ -313,4 +327,17 @@ func (mmu *MMU) ClearTimerInterrupt() {
 // Provides access to internal timer state for debugging and comprehensive testing
 func (mmu *MMU) GetTimer() *timer.Timer {
 	return mmu.timer
+}
+
+// GetDMAController returns a pointer to the DMA controller for direct access
+// Provides access to DMA state for CPU integration and debugging
+func (mmu *MMU) GetDMAController() *dma.DMAController {
+	return mmu.dmaController
+}
+
+// UpdateDMA advances the DMA controller by the specified number of cycles
+// This should be called by the CPU after each instruction execution
+// Returns true if a DMA transfer completed during this update
+func (mmu *MMU) UpdateDMA(cycles uint8) bool {
+	return mmu.dmaController.Update(cycles, mmu)
 }

@@ -92,7 +92,9 @@ func TestReadByte(t *testing.T) {
 	// Test reading after setting memory values manually in internal memory regions
 	mmu.memory[0xC000] = 0x42  // WRAM instead of ROM
 	mmu.memory[0x8000] = 0xFF  // VRAM (this works as before)
-	mmu.memory[0xFFFF] = 0xAB  // Interrupt Enable Register (this works as before)
+	
+	// Set IE register through proper MMU write (which routes to interrupt controller)
+	mmu.WriteByte(0xFFFF, 0xAB)  // This will be masked to valid interrupt bits (0x1F)
 
 	if result := mmu.ReadByte(0xC000); result != 0x42 {
 		t.Errorf("ReadByte(0xC000) = 0x%02X, expected 0x42", result)
