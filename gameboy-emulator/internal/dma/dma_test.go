@@ -3,11 +3,28 @@ package dma
 import (
 	"testing"
 
-	"gameboy-emulator/internal/memory"
-	"gameboy-emulator/internal/cartridge"
-	"gameboy-emulator/internal/interrupt"
 	"github.com/stretchr/testify/assert"
 )
+
+// MockMemory provides a simple memory implementation for testing DMA operations
+// This avoids circular imports between dma and memory packages
+type MockMemory struct {
+	data map[uint16]uint8
+}
+
+func NewMockMemory() *MockMemory {
+	return &MockMemory{
+		data: make(map[uint16]uint8),
+	}
+}
+
+func (m *MockMemory) ReadByte(address uint16) uint8 {
+	return m.data[address]
+}
+
+func (m *MockMemory) WriteByte(address uint16, value uint8) {
+	m.data[address] = value
+}
 
 // TestNewDMAController tests DMA controller creation
 func TestNewDMAController(t *testing.T) {
@@ -165,10 +182,8 @@ func TestReset(t *testing.T) {
 
 // TestSingleByteTransfer tests transferring a single byte
 func TestSingleByteTransfer(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	// Set up test data in source memory
@@ -192,10 +207,8 @@ func TestSingleByteTransfer(t *testing.T) {
 
 // TestMultipleByteTransfer tests transferring multiple bytes in one update
 func TestMultipleByteTransfer(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	// Set up test data in source memory
@@ -224,10 +237,8 @@ func TestMultipleByteTransfer(t *testing.T) {
 
 // TestCompleteTransfer tests a complete 160-byte DMA transfer
 func TestCompleteTransfer(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	// Set up test data in source memory (160 bytes)
@@ -256,10 +267,8 @@ func TestCompleteTransfer(t *testing.T) {
 
 // TestPartialCycleUpdate tests updating with fewer cycles than needed
 func TestPartialCycleUpdate(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	// Start DMA transfer
@@ -276,10 +285,8 @@ func TestPartialCycleUpdate(t *testing.T) {
 
 // TestTransferFromDifferentSources tests DMA from various source addresses
 func TestTransferFromDifferentSources(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	testCases := []struct {
@@ -322,10 +329,8 @@ func TestTransferFromDifferentSources(t *testing.T) {
 
 // TestConcurrentUpdates tests multiple small updates that add up to a complete transfer
 func TestConcurrentUpdates(t *testing.T) {
-	// Create MMU with dummy cartridge and interrupt controller
-	dummyMBC := &cartridge.MBC0{}
-	interruptController := interrupt.NewInterruptController()
-	mmu := memory.NewMMU(dummyMBC, interruptController)
+	// Create mock memory for testing
+	mmu := NewMockMemory()
 	dma := NewDMAController()
 	
 	// Set up test data
