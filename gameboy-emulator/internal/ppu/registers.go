@@ -257,3 +257,37 @@ func (ppu *PPU) SetOBP1(value uint8) {
 func (ppu *PPU) GetOBP1() uint8 {
 	return ppu.OBP1
 }
+
+// =============================================================================
+// Background-Specific Register Methods
+// =============================================================================
+
+// IsBackgroundEnabled returns true if background is enabled (LCDC bit 0)
+func (ppu *PPU) IsBackgroundEnabled() bool {
+	return (ppu.LCDC & (1 << LCDCBGPriority)) != 0
+}
+
+// GetScrollX returns the background scroll X coordinate
+func (ppu *PPU) GetScrollX() uint8 {
+	return ppu.GetSCX()
+}
+
+// GetScrollY returns the background scroll Y coordinate  
+func (ppu *PPU) GetScrollY() uint8 {
+	return ppu.GetSCY()
+}
+
+// IsBackgroundTileMap1 returns true if background uses tile map 1 (LCDC bit 3)
+func (ppu *PPU) IsBackgroundTileMap1() bool {
+	return (ppu.LCDC & (1 << LCDCBGTileMap)) != 0
+}
+
+// IsBackgroundTileData1 returns true if background uses tile data method 1 (LCDC bit 4)
+func (ppu *PPU) IsBackgroundTileData1() bool {
+	return (ppu.LCDC & (1 << LCDCBGWindowTileData)) != 0
+}
+
+// GetBackgroundPalette returns the background palette for color conversion
+func (ppu *PPU) GetBackgroundPalette() [4]uint8 {
+	return DecodePalette(ppu.GetBGP())
+}

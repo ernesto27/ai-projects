@@ -85,6 +85,9 @@ type PPU struct {
 	
 	// VRAM access interface (will be connected to MMU)
 	vramInterface VRAMInterface
+	
+	// Background rendering system
+	backgroundRenderer *BackgroundRenderer
 }
 
 // VRAMInterface defines the interface for accessing video memory
@@ -127,12 +130,17 @@ func NewPPU() *PPU {
 	// Set STAT register mode bits to match initial mode
 	ppu.updateSTATMode()
 	
+	// Background renderer will be initialized when VRAM interface is set
+	
 	return ppu
 }
 
 // SetVRAMInterface connects the PPU to a VRAM access interface (typically MMU)
 func (ppu *PPU) SetVRAMInterface(vramInterface VRAMInterface) {
 	ppu.vramInterface = vramInterface
+	
+	// Initialize background renderer now that we have VRAM access
+	ppu.backgroundRenderer = NewBackgroundRenderer(ppu, vramInterface)
 }
 
 // Reset resets the PPU to initial Game Boy state
@@ -217,8 +225,12 @@ func (ppu *PPU) Update(cycles uint8) bool {
 			
 		case ModeDrawing:
 			if ppu.Cycles >= OAMScanCycles+DrawingCycles {
+				// Render current scanline background
+				if ppu.backgroundRenderer != nil {
+					ppu.backgroundRenderer.RenderBackgroundScanline(ppu.LY)
+				}
+				
 				ppu.setMode(ModeHBlank)
-				// TODO: Render current scanline here
 				// Check for STAT interrupt on mode change
 				if ppu.ShouldTriggerSTATInterrupt() {
 					interruptRequested = true
@@ -310,4 +322,9 @@ func (ppu *PPU) SetPixel(x, y int, color uint8) {
 		color = ColorBlack // Clamp to valid color range
 	}
 	ppu.Framebuffer[y][x] = color
+}
+
+// GetBackgroundRenderer returns the background renderer for external access
+func (ppu *PPU) GetBackgroundRenderer() *BackgroundRenderer {
+	return ppu.backgroundRenderer
 }
