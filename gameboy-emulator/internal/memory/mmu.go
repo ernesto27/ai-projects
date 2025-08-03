@@ -105,6 +105,45 @@ type MemoryInterface interface {
 	WriteWord(address uint16, value uint16)
 }
 
+// PPUInterface defines the contract for PPU register access
+// This avoids circular imports between MMU and PPU packages
+type PPUInterface interface {
+	// LCD Control Register (0xFF40)
+	SetLCDC(value uint8)
+	GetLCDC() uint8
+	
+	// LCD Status Register (0xFF41)
+	SetSTAT(value uint8)
+	GetSTAT() uint8
+	
+	// LY Register (0xFF44) - Read Only
+	GetLY() uint8
+	
+	// LYC Register (0xFF45)
+	SetLYC(value uint8)
+	GetLYC() uint8
+	
+	// Scroll Registers (0xFF42-0xFF43)
+	SetSCY(value uint8)
+	GetSCY() uint8
+	SetSCX(value uint8)
+	GetSCX() uint8
+	
+	// Window Registers (0xFF4A-0xFF4B)
+	SetWY(value uint8)
+	GetWY() uint8
+	SetWX(value uint8)
+	GetWX() uint8
+	
+	// Palette Registers (0xFF47-0xFF49)
+	SetBGP(value uint8)
+	GetBGP() uint8
+	SetOBP0(value uint8)
+	GetOBP0() uint8
+	SetOBP1(value uint8)
+	GetOBP1() uint8
+}
+
 // MMU represents the Memory Management Unit for the Game Boy
 // Manages access to the entire 64KB address space (0x0000-0xFFFF)
 // Routes ROM/RAM requests to cartridge MBC, handles internal memory regions
@@ -114,6 +153,7 @@ type MMU struct {
 	timer               *timer.Timer                // Timer system for DIV, TIMA, TMA, TAC registers
 	interruptController *interrupt.InterruptController // Interrupt system for IE, IF registers
 	dmaController       *dma.DMAController          // DMA controller for sprite data transfers
+	ppu                 PPUInterface                // PPU system for graphics register access
 }
 
 // NewMMU creates and initializes a new MMU instance with cartridge, timer, and interrupt integration
@@ -128,7 +168,14 @@ func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptControlle
 		timer:               timer.NewTimer(),           // Initialize timer system
 		interruptController: interruptController,        // Store interrupt controller reference
 		dmaController:       dma.NewDMAController(),     // Initialize DMA controller
+		ppu:                 nil,                        // PPU will be set separately to avoid circular imports
 	}
+}
+
+// SetPPU sets the PPU interface for graphics register access
+// This must be called after MMU creation to enable PPU register functionality
+func (mmu *MMU) SetPPU(ppu PPUInterface) {
+	mmu.ppu = ppu
 }
 
 // ReadByte reads a single byte from memory at the specified address
@@ -160,6 +207,34 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 	// Timer registers: Route to timer system (0xFF04-0xFF07)
 	if timer.IsTimerRegister(address) {
 		return mmu.timer.ReadRegister(address)
+	}
+	
+	// PPU registers: Route to PPU system (0xFF40-0xFF4B)
+	if mmu.ppu != nil {
+		switch address {
+		case LCDControlRegister:         // 0xFF40 - LCDC
+			return mmu.ppu.GetLCDC()
+		case LCDStatusRegister:          // 0xFF41 - STAT
+			return mmu.ppu.GetSTAT()
+		case ScrollYRegister:            // 0xFF42 - SCY
+			return mmu.ppu.GetSCY()
+		case ScrollXRegister:            // 0xFF43 - SCX
+			return mmu.ppu.GetSCX()
+		case LYRegister:                 // 0xFF44 - LY (read-only)
+			return mmu.ppu.GetLY()
+		case LYCompareRegister:          // 0xFF45 - LYC
+			return mmu.ppu.GetLYC()
+		case BackgroundPaletteRegister:  // 0xFF47 - BGP
+			return mmu.ppu.GetBGP()
+		case ObjectPalette0Register:     // 0xFF48 - OBP0
+			return mmu.ppu.GetOBP0()
+		case ObjectPalette1Register:     // 0xFF49 - OBP1
+			return mmu.ppu.GetOBP1()
+		case WindowYRegister:            // 0xFF4A - WY
+			return mmu.ppu.GetWY()
+		case WindowXRegister:            // 0xFF4B - WX
+			return mmu.ppu.GetWX()
+		}
 	}
 	
 	// DMA register: Always returns 0xFF (write-only register)
@@ -215,6 +290,44 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 	if timer.IsTimerRegister(address) {
 		mmu.timer.WriteRegister(address, value)
 		return
+	}
+	
+	// PPU registers: Route to PPU system (0xFF40-0xFF4B)
+	if mmu.ppu != nil {
+		switch address {
+		case LCDControlRegister:         // 0xFF40 - LCDC
+			mmu.ppu.SetLCDC(value)
+			return
+		case LCDStatusRegister:          // 0xFF41 - STAT
+			mmu.ppu.SetSTAT(value)
+			return
+		case ScrollYRegister:            // 0xFF42 - SCY
+			mmu.ppu.SetSCY(value)
+			return
+		case ScrollXRegister:            // 0xFF43 - SCX
+			mmu.ppu.SetSCX(value)
+			return
+		case LYRegister:                 // 0xFF44 - LY (read-only, ignore writes)
+			return
+		case LYCompareRegister:          // 0xFF45 - LYC
+			mmu.ppu.SetLYC(value)
+			return
+		case BackgroundPaletteRegister:  // 0xFF47 - BGP
+			mmu.ppu.SetBGP(value)
+			return
+		case ObjectPalette0Register:     // 0xFF48 - OBP0
+			mmu.ppu.SetOBP0(value)
+			return
+		case ObjectPalette1Register:     // 0xFF49 - OBP1
+			mmu.ppu.SetOBP1(value)
+			return
+		case WindowYRegister:            // 0xFF4A - WY
+			mmu.ppu.SetWY(value)
+			return
+		case WindowXRegister:            // 0xFF4B - WX
+			mmu.ppu.SetWX(value)
+			return
+		}
 	}
 	
 	// DMA register: Route to DMA controller (0xFF46)

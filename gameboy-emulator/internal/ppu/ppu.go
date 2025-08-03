@@ -124,6 +124,9 @@ func NewPPU() *PPU {
 		LCDEnabled: true, // LCD starts enabled (LCDC bit 7)
 	}
 	
+	// Set STAT register mode bits to match initial mode
+	ppu.updateSTATMode()
+	
 	return ppu
 }
 
@@ -206,25 +209,46 @@ func (ppu *PPU) Update(cycles uint8) bool {
 		case ModeOAMScan:
 			if ppu.Cycles >= OAMScanCycles {
 				ppu.setMode(ModeDrawing)
+				// Check for STAT interrupt on mode change
+				if ppu.ShouldTriggerSTATInterrupt() {
+					interruptRequested = true
+				}
 			}
 			
 		case ModeDrawing:
 			if ppu.Cycles >= OAMScanCycles+DrawingCycles {
 				ppu.setMode(ModeHBlank)
 				// TODO: Render current scanline here
+				// Check for STAT interrupt on mode change
+				if ppu.ShouldTriggerSTATInterrupt() {
+					interruptRequested = true
+				}
 			}
 			
 		case ModeHBlank:
 			if ppu.Cycles >= CyclesPerScanline {
 				ppu.nextScanline()
+				// Check for LYC=LY interrupt
+				if ppu.updateLYCFlag() {
+					interruptRequested = true
+				}
+				
 				if ppu.LY == ScreenHeight {
 					// Entering V-Blank
 					ppu.setMode(ModeVBlank)
 					ppu.FrameReady = true
-					interruptRequested = true // V-Blank interrupt
+					interruptRequested = true // V-Blank interrupt (always triggered)
+					// Also check for STAT V-Blank interrupt
+					if ppu.ShouldTriggerSTATInterrupt() {
+						interruptRequested = true
+					}
 				} else {
 					// Next visible scanline
 					ppu.setMode(ModeOAMScan)
+					// Check for STAT interrupt on mode change
+					if ppu.ShouldTriggerSTATInterrupt() {
+						interruptRequested = true
+					}
 				}
 			}
 		}
@@ -232,10 +256,19 @@ func (ppu *PPU) Update(cycles uint8) bool {
 		// V-Blank scanlines (144-153): V-Blank mode only
 		if ppu.Cycles >= CyclesPerScanline {
 			ppu.nextScanline()
+			// Check for LYC=LY interrupt during V-Blank
+			if ppu.updateLYCFlag() {
+				interruptRequested = true
+			}
+			
 			if ppu.LY == TotalScanlines {
 				// Frame complete, restart at scanline 0
 				ppu.LY = 0
 				ppu.setMode(ModeOAMScan)
+				// Check for STAT interrupt on mode change
+				if ppu.ShouldTriggerSTATInterrupt() {
+					interruptRequested = true
+				}
 			}
 		}
 	}
@@ -246,9 +279,7 @@ func (ppu *PPU) Update(cycles uint8) bool {
 // setMode changes the current PPU mode and updates STAT register
 func (ppu *PPU) setMode(newMode PPUMode) {
 	ppu.Mode = newMode
-	
-	// Update STAT register bits 0-1 with current mode
-	ppu.STAT = (ppu.STAT & 0xFC) | uint8(newMode)
+	ppu.updateSTATMode()
 }
 
 // nextScanline advances to the next scanline and resets cycle counter
@@ -256,7 +287,8 @@ func (ppu *PPU) nextScanline() {
 	ppu.Cycles = 0
 	ppu.LY++
 	
-	// TODO: Check LYC=LY interrupt condition
+	// Check LYC=LY interrupt condition
+	ppu.updateLYCFlag()
 }
 
 // GetPixel returns the color value (0-3) at the specified screen coordinates

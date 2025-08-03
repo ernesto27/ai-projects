@@ -12,7 +12,7 @@ func TestNewPPU(t *testing.T) {
 	
 	// Test initial register values
 	assert.Equal(t, uint8(0x91), ppu.LCDC, "LCDC should be initialized to 0x91")
-	assert.Equal(t, uint8(0x00), ppu.STAT, "STAT should be initialized to 0x00")
+	assert.Equal(t, uint8(0x02), ppu.STAT, "STAT should be initialized to 0x02 (OAMScan mode)")
 	assert.Equal(t, uint8(0x00), ppu.LY, "LY should start at 0")
 	assert.Equal(t, uint8(0x00), ppu.LYC, "LYC should start at 0")
 	assert.Equal(t, uint8(0xE4), ppu.BGP, "BGP should be initialized to 0xE4")
