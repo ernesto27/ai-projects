@@ -88,6 +88,9 @@ type PPU struct {
 	
 	// Background rendering system
 	backgroundRenderer *BackgroundRenderer
+	
+	// Sprite rendering system
+	spriteRenderer *SpriteRenderer
 }
 
 // VRAMInterface defines the interface for accessing video memory
@@ -141,6 +144,9 @@ func (ppu *PPU) SetVRAMInterface(vramInterface VRAMInterface) {
 	
 	// Initialize background renderer now that we have VRAM access
 	ppu.backgroundRenderer = NewBackgroundRenderer(ppu, vramInterface)
+	
+	// Initialize sprite renderer now that we have VRAM access
+	ppu.spriteRenderer = NewSpriteRenderer(ppu, vramInterface)
 }
 
 // Reset resets the PPU to initial Game Boy state
@@ -216,6 +222,11 @@ func (ppu *PPU) Update(cycles uint8) bool {
 		switch ppu.Mode {
 		case ModeOAMScan:
 			if ppu.Cycles >= OAMScanCycles {
+				// Scan OAM during OAM scan phase
+				if ppu.spriteRenderer != nil {
+					ppu.spriteRenderer.ScanOAM()
+				}
+				
 				ppu.setMode(ModeDrawing)
 				// Check for STAT interrupt on mode change
 				if ppu.ShouldTriggerSTATInterrupt() {
@@ -228,6 +239,11 @@ func (ppu *PPU) Update(cycles uint8) bool {
 				// Render current scanline background
 				if ppu.backgroundRenderer != nil {
 					ppu.backgroundRenderer.RenderBackgroundScanline(ppu.LY)
+				}
+				
+				// Render current scanline sprites (after background for proper layering)
+				if ppu.spriteRenderer != nil {
+					ppu.spriteRenderer.RenderSpriteScanline(ppu.LY)
 				}
 				
 				ppu.setMode(ModeHBlank)
@@ -328,3 +344,14 @@ func (ppu *PPU) SetPixel(x, y int, color uint8) {
 func (ppu *PPU) GetBackgroundRenderer() *BackgroundRenderer {
 	return ppu.backgroundRenderer
 }
+
+// GetSpriteRenderer returns the sprite renderer for external access
+func (ppu *PPU) GetSpriteRenderer() *SpriteRenderer {
+	return ppu.spriteRenderer
+}
+
+// GetSpritesEnabled returns true if sprites are enabled (LCDC bit 1)
+func (ppu *PPU) GetSpritesEnabled() bool {
+	return (ppu.LCDC & 0x02) != 0
+}
+
