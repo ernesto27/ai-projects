@@ -5,18 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Helper function to set up tile data in mock VRAM
-func (m *MockVRAMInterface) SetTileData(tileAddress uint16, tileData TileData) {
-	for i, b := range tileData {
-		m.WriteVRAM(tileAddress+uint16(i), b)
-	}
-}
-
-// Helper function to set tile map entry
-func (m *MockVRAMInterface) SetTileMapEntry(mapAddress uint16, tileIndex uint8) {
-	m.WriteVRAM(mapAddress, tileIndex)
-}
-
 // TestNewBackgroundRenderer tests background renderer creation
 func TestNewBackgroundRenderer(t *testing.T) {
 	ppu := NewPPU()

@@ -302,16 +302,20 @@ func (sr *SpriteRenderer) applySpritepalette(color uint8, paletteNum uint8) uint
 	}
 	
 	// Apply palette mapping (same as background palette system)
+	var result uint8
 	switch color {
 	case 0:
-		return (palette >> 0) & 0x03
+		result = (palette >> 0) & 0x03
 	case 1:
-		return (palette >> 2) & 0x03
+		result = (palette >> 2) & 0x03
 	case 2:
-		return (palette >> 4) & 0x03
+		result = (palette >> 4) & 0x03
 	case 3:
-		return (palette >> 6) & 0x03
+		result = (palette >> 6) & 0x03
 	default:
-		return ColorWhite
+		result = ColorWhite
 	}
+	
+	
+	return result
 }

@@ -246,14 +246,10 @@ func TestSpritePalettes(t *testing.T) {
 	vram := NewMockVRAMInterface()
 	ppu.SetVRAMInterface(vram)
 	
-	// Set up different sprite palettes
-	ppu.OBP0 = 0xE4 // Standard palette: 0→0, 1→1, 2→2, 3→3
-	ppu.OBP1 = 0x1B // Inverted palette: 0→3, 1→2, 2→1, 3→0
-	
 	// Create sprite tile with color 1 pixels
 	spriteTile := TileData{
-		0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, // All pixels color 1
-		0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+		0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, // All pixels color 1
+		0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
 	}
 	vram.SetTileData(0x8010, spriteTile) // Tile 1 address
 	
@@ -278,6 +274,10 @@ func TestSpritePalettes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clear framebuffer
 			ppu.Reset()
+			
+			// Set up different sprite palettes (after reset)
+			ppu.OBP0 = 0xE4 // Standard palette: 0→0, 1→1, 2→2, 3→3
+			ppu.OBP1 = 0x1B // Inverted palette: 0→3, 1→2, 2→1, 3→0
 			
 			// Set up sprite with palette selection
 			vram.SetSprite(0, 32, 32, 1, tt.paletteFlag)
@@ -337,6 +337,7 @@ func TestSprite8x16Mode(t *testing.T) {
 	
 	// Clear and render bottom half of sprite (rows 8-15)
 	ppu.Reset()
+	ppu.LCDC = 0x86 // Re-enable sprites + 8x16 mode after reset
 	scanline = uint8(24) // Bottom row of sprite
 	if ppu.spriteRenderer != nil {
 		ppu.spriteRenderer.ScanOAM()
@@ -364,32 +365,32 @@ func TestSpriteOffScreenClipping(t *testing.T) {
 	tests := []struct {
 		name          string
 		spriteX       uint8
-		expectedLeft  bool // Should left edge be visible?
-		expectedRight bool // Should right edge be visible?
+		expectedLeft  bool // Should left part of visible area show sprite?
+		expectedRight bool // Should right part of visible area show sprite?
 	}{
 		{
 			name:          "Sprite fully on screen",
-			spriteX:       32,  // ScreenX = 24
-			expectedLeft:  true,
-			expectedRight: true,
+			spriteX:       32,  // ScreenX = 24, spans 24-31
+			expectedLeft:  true,  // Should see sprite at X=24
+			expectedRight: true,  // Should see sprite at X=31
 		},
 		{
 			name:          "Sprite partially off left edge",
-			spriteX:       4,   // ScreenX = -4 (left half off-screen)
-			expectedLeft:  false,
-			expectedRight: true,
+			spriteX:       4,   // ScreenX = -4, spans -4 to 3, visible 0-3
+			expectedLeft:  true,  // Should see sprite at X=0 (visible part)
+			expectedRight: true,  // Should see sprite at X=3 (visible part)
 		},
 		{
 			name:          "Sprite partially off right edge", 
-			spriteX:       164, // ScreenX = 156 (right half off-screen)
-			expectedLeft:  true,
-			expectedRight: false,
+			spriteX:       164, // ScreenX = 156, spans 156-163, visible 156-159
+			expectedLeft:  true,  // Should see sprite at X=156 (visible part)
+			expectedRight: true,  // Should see sprite at X=159 (visible part)
 		},
 		{
 			name:          "Sprite completely off left",
-			spriteX:       0,   // ScreenX = -8 (completely off-screen)
-			expectedLeft:  false,
-			expectedRight: false,
+			spriteX:       0,   // ScreenX = -8, spans -8 to -1, not visible
+			expectedLeft:  false, // Should not see sprite anywhere
+			expectedRight: false, // Should not see sprite anywhere
 		},
 	}
 	
@@ -411,20 +412,36 @@ func TestSpriteOffScreenClipping(t *testing.T) {
 				ppu.spriteRenderer.RenderSpriteScanline(scanline)
 			}
 			
-			// Check left edge visibility
-			leftColor := ppu.GetPixel(0, 16) // Leftmost screen pixel
-			if tt.expectedLeft {
-				assert.NotEqual(t, uint8(ColorWhite), leftColor, "Left edge should be visible")
-			} else {
-				assert.Equal(t, uint8(ColorWhite), leftColor, "Left edge should be clipped")
+			// Calculate sprite screen position and visible bounds
+			spriteScreenX := int(tt.spriteX) - SpriteXOffset
+			spriteLeft := spriteScreenX
+			spriteRight := spriteScreenX + SpriteWidth - 1
+			
+			// Determine visible sprite bounds (clipped to screen)
+			visibleLeft := spriteLeft
+			if visibleLeft < 0 {
+				visibleLeft = 0
+			}
+			visibleRight := spriteRight
+			if visibleRight >= ScreenWidth {
+				visibleRight = ScreenWidth - 1
 			}
 			
-			// Check right edge visibility
-			rightColor := ppu.GetPixel(ScreenWidth-1, 16) // Rightmost screen pixel
-			if tt.expectedRight {
-				assert.NotEqual(t, uint8(ColorWhite), rightColor, "Right edge should be visible")
-			} else {
-				assert.Equal(t, uint8(ColorWhite), rightColor, "Right edge should be clipped")
+			// Check left edge of visible sprite area
+			if tt.expectedLeft && visibleLeft <= visibleRight {
+				leftColor := ppu.GetPixel(visibleLeft, 16)
+				assert.NotEqual(t, uint8(ColorWhite), leftColor, "Left edge should show sprite")
+			} else if !tt.expectedLeft {
+				// For completely off-screen sprites, check a representative position
+				testX := 10 // Arbitrary on-screen position
+				color := ppu.GetPixel(testX, 16)
+				assert.Equal(t, uint8(ColorWhite), color, "Should not show sprite anywhere")
+			}
+			
+			// Check right edge of visible sprite area  
+			if tt.expectedRight && visibleLeft <= visibleRight {
+				rightColor := ppu.GetPixel(visibleRight, 16)
+				assert.NotEqual(t, uint8(ColorWhite), rightColor, "Right edge should show sprite")
 			}
 		})
 	}

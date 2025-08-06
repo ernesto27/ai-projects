@@ -5,24 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Helper function to create a test sprite in OAM
-func (m *MockVRAMInterface) SetSprite(index int, y, x, tileID, flags uint8) {
-	baseAddr := index * 4
-	oamAddr := uint16(0xFE00 + baseAddr)
-	m.WriteOAM(oamAddr, y)
-	m.WriteOAM(oamAddr+1, x)
-	m.WriteOAM(oamAddr+2, tileID)
-	m.WriteOAM(oamAddr+3, flags)
-}
-
-// Helper function to set raw tile data in VRAM
-func (m *MockVRAMInterface) SetRawTileData(tileID uint8, tileData [16]uint8) {
-	baseAddr := uint16(0x8000 + uint16(tileID)*16)
-	for i, data := range tileData {
-		m.WriteVRAM(baseAddr+uint16(i), data)
-	}
-}
-
 func TestNewSprite(t *testing.T) {
 	tests := []struct {
 		name     string

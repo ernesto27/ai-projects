@@ -267,6 +267,36 @@ func (m *MockVRAMInterface) WriteOAM(address uint16, value uint8) {
 	}
 }
 
+// Helper function to set up tile data in mock VRAM
+func (m *MockVRAMInterface) SetTileData(tileAddress uint16, tileData TileData) {
+	for i, b := range tileData {
+		m.WriteVRAM(tileAddress+uint16(i), b)
+	}
+}
+
+// Helper function to create a test sprite in OAM
+func (m *MockVRAMInterface) SetSprite(index int, y, x, tileID, flags uint8) {
+	baseAddr := index * 4
+	oamAddr := uint16(0xFE00 + baseAddr)
+	m.WriteOAM(oamAddr, y)
+	m.WriteOAM(oamAddr+1, x)
+	m.WriteOAM(oamAddr+2, tileID)
+	m.WriteOAM(oamAddr+3, flags)
+}
+
+// Helper function to set tile map entry
+func (m *MockVRAMInterface) SetTileMapEntry(mapAddress uint16, tileIndex uint8) {
+	m.WriteVRAM(mapAddress, tileIndex)
+}
+
+// Helper function to set raw tile data in VRAM
+func (m *MockVRAMInterface) SetRawTileData(tileID uint8, tileData [16]uint8) {
+	baseAddr := uint16(0x8000 + uint16(tileID)*16)
+	for i, data := range tileData {
+		m.WriteVRAM(baseAddr+uint16(i), data)
+	}
+}
+
 // TestVRAMInterface tests VRAM interface integration
 func TestVRAMInterface(t *testing.T) {
 	ppu := NewPPU()
