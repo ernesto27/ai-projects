@@ -448,20 +448,23 @@ Complete Game Boy tile system with 8x8 pixel tiles, VRAM organization, and sprit
 - ✅ **Comprehensive Testing**: 87/87 tests passing (100% pass rate) with edge case coverage
 - ✅ **Debug Tools**: Tile analysis, visibility tracking, and renderer validation
 
-#### 🔄 **Phase 5.5: Sprite (OAM) System** - **UPCOMING**
-- [ ] Implement sprite structure and OAM data handling
-- [ ] Add sprite rendering with priority system
-- [ ] Support 8x8 and 8x16 sprite modes
-- [ ] Implement sprite flipping and palette selection
-- [ ] Handle sprite-per-scanline limits (10 sprites max)
+#### ✅ **Phase 5.5: Sprite (OAM) System** - **COMPLETED** 
+- [x] Implement sprite structure and OAM data handling
+- [x] Add sprite rendering with priority system  
+- [x] Support 8x8 and 8x16 sprite modes
+- [x] Implement sprite flipping and palette selection
+- [x] Handle sprite-per-scanline limits (10 sprites max)
+- [x] Complete sprite integration testing with comprehensive test suite
 
-#### 🔄 **Phase 5.6: Window System** - **UPCOMING**
-- [ ] Implement window rendering overlay
-- [ ] Add window position control (WX/WY registers)
-- [ ] Handle window priority over background
-- [ ] Support window enable/disable via LCDC
+#### ✅ **Phase 5.6: Window System** - **COMPLETED**
+- [x] Implement window rendering overlay with WindowRenderer struct
+- [x] Add window position control (WX/WY registers) with Game Boy-accurate positioning
+- [x] Handle window priority over background (Background → Window → Sprites)
+- [x] Support window enable/disable via LCDC with proper state management
+- [x] Window line counter behavior matching Game Boy specifications
+- [x] Comprehensive test coverage including edge cases and sprite interaction
 
-#### 🔄 **Phase 5.7: PPU-MMU Integration** - **UPCOMING**
+#### 🔄 **Phase 5.7: PPU-MMU Integration** - **CURRENT PRIORITY**
 - [ ] Register PPU registers in MMU I/O space (0xFF40-0xFF4B)
 - [ ] Route VRAM access (0x8000-0x9FFF) to PPU
 - [ ] Integrate with existing DMA system for sprite data
@@ -764,7 +767,11 @@ gameboy-emulator/
 
 **MAJOR MILESTONE ACHIEVED**: ✅ **PHASE 5.4: BACKGROUND RENDERING PIPELINE COMPLETE!** 🎉
 
-**Current Priority**: **Phase 5.5: Sprite (OAM) System** - Implement sprite rendering with OAM data handling, priority system, and support for 8x8/8x16 sprite modes
+**MAJOR MILESTONE ACHIEVED**: ✅ **PHASE 5.5: SPRITE (OAM) SYSTEM COMPLETE!** 🎉
+
+**MAJOR MILESTONE ACHIEVED**: ✅ **PHASE 5.6: WINDOW SYSTEM COMPLETE!** 🎉
+
+**Current Priority**: **Phase 5.7: PPU-MMU Integration** - Register PPU in MMU I/O space (0xFF40-0xFF4B) and route VRAM access through PPU system
 
 **Completed Foundation (Phase 1)**: 
 1. ✅ **Step 1.1 & 1.2 COMPLETED** - Cartridge foundation with MBC support implemented

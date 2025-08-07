@@ -48,8 +48,11 @@ const (
 // Handles LCD enable/disable and updates internal state
 func (ppu *PPU) SetLCDC(value uint8) {
 	oldLCDEnabled := ppu.LCDEnabled
+	oldWindowEnabled := ppu.IsWindowEnabled()
+	
 	ppu.LCDC = value
 	ppu.LCDEnabled = (value & (1 << LCDCLCDEnable)) != 0
+	newWindowEnabled := ppu.IsWindowEnabled()
 	
 	// When LCD is disabled, reset PPU state
 	if oldLCDEnabled && !ppu.LCDEnabled {
@@ -57,6 +60,11 @@ func (ppu *PPU) SetLCDC(value uint8) {
 		ppu.Cycles = 0
 		ppu.Mode = ModeHBlank
 		ppu.updateSTATMode()
+		
+		// Reset window state when LCD is disabled
+		if ppu.windowRenderer != nil {
+			ppu.windowRenderer.ResetWindowState()
+		}
 	}
 	
 	// When LCD is re-enabled, start in OAM scan mode
@@ -65,6 +73,11 @@ func (ppu *PPU) SetLCDC(value uint8) {
 		ppu.Cycles = 0
 		ppu.Mode = ModeOAMScan
 		ppu.updateSTATMode()
+	}
+	
+	// When window is disabled or enabled, reset window state
+	if oldWindowEnabled != newWindowEnabled && ppu.windowRenderer != nil {
+		ppu.windowRenderer.ResetWindowState()
 	}
 }
 
@@ -222,6 +235,16 @@ func (ppu *PPU) SetWX(value uint8) {
 // GetWX reads window X position register (0xFF4B)
 func (ppu *PPU) GetWX() uint8 {
 	return ppu.WX
+}
+
+// GetWindowTileMapSelect returns true if window uses tile map 1 (LCDC bit 6)
+func (ppu *PPU) GetWindowTileMapSelect() bool {
+	return (ppu.LCDC & (1 << LCDCWindowTileMap)) != 0
+}
+
+// GetBGWindowTileDataSelect returns true if BG & window use tile data method 1 (LCDC bit 4)
+func (ppu *PPU) GetBGWindowTileDataSelect() bool {
+	return (ppu.LCDC & (1 << LCDCBGWindowTileData)) != 0
 }
 
 // =============================================================================

@@ -91,6 +91,9 @@ type PPU struct {
 	
 	// Sprite rendering system
 	spriteRenderer *SpriteRenderer
+	
+	// Window rendering system
+	windowRenderer *WindowRenderer
 }
 
 // VRAMInterface defines the interface for accessing video memory
@@ -147,6 +150,9 @@ func (ppu *PPU) SetVRAMInterface(vramInterface VRAMInterface) {
 	
 	// Initialize sprite renderer now that we have VRAM access
 	ppu.spriteRenderer = NewSpriteRenderer(ppu, vramInterface)
+	
+	// Initialize window renderer now that we have VRAM access
+	ppu.windowRenderer = NewWindowRenderer(ppu, vramInterface)
 }
 
 // Reset resets the PPU to initial Game Boy state
@@ -176,6 +182,11 @@ func (ppu *PPU) Reset() {
 	ppu.Cycles = 0
 	ppu.FrameReady = false
 	ppu.LCDEnabled = true
+	
+	// Reset window renderer state
+	if ppu.windowRenderer != nil {
+		ppu.windowRenderer.ResetWindowState()
+	}
 }
 
 // IsFrameReady returns true if a complete frame has been rendered
@@ -241,7 +252,12 @@ func (ppu *PPU) Update(cycles uint8) bool {
 					ppu.backgroundRenderer.RenderBackgroundScanline(ppu.LY)
 				}
 				
-				// Render current scanline sprites (after background for proper layering)
+				// Render current scanline window (after background, before sprites)
+				if ppu.windowRenderer != nil {
+					ppu.windowRenderer.RenderWindowScanline(ppu.LY)
+				}
+				
+				// Render current scanline sprites (after background and window for proper layering)
 				if ppu.spriteRenderer != nil {
 					ppu.spriteRenderer.RenderSpriteScanline(ppu.LY)
 				}
@@ -348,6 +364,11 @@ func (ppu *PPU) GetBackgroundRenderer() *BackgroundRenderer {
 // GetSpriteRenderer returns the sprite renderer for external access
 func (ppu *PPU) GetSpriteRenderer() *SpriteRenderer {
 	return ppu.spriteRenderer
+}
+
+// GetWindowRenderer returns the window renderer for external access
+func (ppu *PPU) GetWindowRenderer() *WindowRenderer {
+	return ppu.windowRenderer
 }
 
 // GetSpritesEnabled returns true if sprites are enabled (LCDC bit 1)
