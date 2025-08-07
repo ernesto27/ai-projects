@@ -83,6 +83,10 @@ type PPU struct {
 	FrameReady   bool    // True when a complete frame has been rendered
 	LCDEnabled   bool    // LCD on/off state from LCDC bit 7
 	
+	// Video memory storage (PPU owns VRAM and OAM)
+	vram [0x2000]uint8 // 8KB VRAM (0x8000-0x9FFF)
+	oam  [0xA0]uint8   // 160 bytes OAM (0xFE00-0xFE9F)
+	
 	// VRAM access interface (will be connected to MMU)
 	vramInterface VRAMInterface
 	

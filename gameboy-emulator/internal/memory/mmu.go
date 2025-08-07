@@ -142,6 +142,18 @@ type PPUInterface interface {
 	GetOBP0() uint8
 	SetOBP1(value uint8)
 	GetOBP1() uint8
+	
+	// VRAM access methods (0x8000-0x9FFF)
+	ReadVRAM(address uint16) uint8
+	WriteVRAM(address uint16, value uint8)
+	
+	// OAM access methods (0xFE00-0xFE9F)
+	ReadOAM(address uint16) uint8
+	WriteOAM(address uint16, value uint8)
+	
+	// Memory access control based on PPU mode
+	CanAccessVRAM() bool  // Returns false during Drawing mode
+	CanAccessOAM() bool   // Returns false during Drawing/OAM Scan modes
 }
 
 // MMU represents the Memory Management Unit for the Game Boy
@@ -250,9 +262,38 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 		return mmu.interruptController.GetInterruptEnable()
 	}
 	
+	// VRAM access: Route to PPU with mode restrictions (0x8000-0x9FFF)
+	if address >= VRAMStart && address <= VRAMEnd {
+		if mmu.ppu != nil {
+			// Check if VRAM access is allowed based on PPU mode
+			if mmu.ppu.CanAccessVRAM() {
+				return mmu.ppu.ReadVRAM(address)
+			} else {
+				// Return 0xFF when VRAM access is blocked (during Drawing mode)
+				return 0xFF
+			}
+		}
+		// Fallback to internal memory if no PPU
+		return mmu.memory[address]
+	}
+	
+	// OAM access: Route to PPU with mode restrictions (0xFE00-0xFE9F)
+	if address >= OAMStart && address <= OAMEnd {
+		if mmu.ppu != nil {
+			// Check if OAM access is allowed based on PPU mode
+			if mmu.ppu.CanAccessOAM() {
+				return mmu.ppu.ReadOAM(address)
+			} else {
+				// Return 0xFF when OAM access is blocked (during Drawing/OAM Scan modes)
+				return 0xFF
+			}
+		}
+		// Fallback to internal memory if no PPU
+		return mmu.memory[address]
+	}
+	
 	// All other regions: Use internal memory
-	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
-	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
+	// WRAM (0xC000-0xDFFF), I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
 	return mmu.memory[address]
 }
 
@@ -346,9 +387,38 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 		return
 	}
 	
+	// VRAM access: Route to PPU with mode restrictions (0x8000-0x9FFF)
+	if address >= VRAMStart && address <= VRAMEnd {
+		if mmu.ppu != nil {
+			// Check if VRAM access is allowed based on PPU mode
+			if mmu.ppu.CanAccessVRAM() {
+				mmu.ppu.WriteVRAM(address, value)
+			}
+			// Ignore writes when VRAM access is blocked (during Drawing mode)
+			return
+		}
+		// Fallback to internal memory if no PPU
+		mmu.memory[address] = value
+		return
+	}
+	
+	// OAM access: Route to PPU with mode restrictions (0xFE00-0xFE9F)
+	if address >= OAMStart && address <= OAMEnd {
+		if mmu.ppu != nil {
+			// Check if OAM access is allowed based on PPU mode
+			if mmu.ppu.CanAccessOAM() {
+				mmu.ppu.WriteOAM(address, value)
+			}
+			// Ignore writes when OAM access is blocked (during Drawing/OAM Scan modes)
+			return
+		}
+		// Fallback to internal memory if no PPU
+		mmu.memory[address] = value
+		return
+	}
+	
 	// All other regions: Use internal memory
-	// VRAM (0x8000-0x9FFF), WRAM (0xC000-0xDFFF), OAM (0xFE00-0xFE9F),
-	// I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
+	// WRAM (0xC000-0xDFFF), I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
 	mmu.memory[address] = value
 }
 
@@ -413,6 +483,103 @@ func (mmu *MMU) getMemoryRegion(address uint16) string {
 	default:
 		return "Unknown"
 	}
+}
+
+// WriteByteForDMA writes a byte to memory for DMA transfers, bypassing PPU mode restrictions
+// DMA transfers have priority over CPU memory access restrictions
+// This method allows DMA to write to VRAM and OAM even when they are blocked for CPU access
+func (mmu *MMU) WriteByteForDMA(address uint16, value uint8) {
+	// ROM Bank 0 & 1: Route to cartridge for bank switching (0x0000-0x7FFF)
+	if address >= ROMBank0Start && address <= ROMBank1End {
+		mmu.cartridge.WriteByte(address, value)
+		return
+	}
+	
+	// External RAM: Route to cartridge (0xA000-0xBFFF)
+	if address >= ExternalRAMStart && address <= ExternalRAMEnd {
+		mmu.cartridge.WriteByte(address, value)
+		return
+	}
+	
+	// Echo RAM: Mirror write to WRAM (0xE000-0xFDFF mirrors 0xC000-0xDDFF)
+	if address >= EchoRAMStart && address <= EchoRAMEnd {
+		// Map echo RAM to corresponding WRAM address and write to both
+		mirrorAddress := WRAMStart + (address - EchoRAMStart)
+		mmu.memory[mirrorAddress] = value
+		mmu.memory[address] = value  // Also write to echo RAM area
+		return
+	}
+	
+	// Prohibited area: Ignore writes (0xFEA0-0xFEFF)
+	if address >= ProhibitedStart && address <= ProhibitedEnd {
+		return // Writes to prohibited area are ignored
+	}
+	
+	// PPU registers: Route to PPU system (0xFF40-0xFF4B)
+	if mmu.ppu != nil {
+		switch address {
+		case LCDControlRegister:         // 0xFF40 - LCDC
+			mmu.ppu.SetLCDC(value)
+			return
+		case LCDStatusRegister:          // 0xFF41 - STAT
+			mmu.ppu.SetSTAT(value)
+			return
+		case ScrollYRegister:            // 0xFF42 - SCY
+			mmu.ppu.SetSCY(value)
+			return
+		case ScrollXRegister:            // 0xFF43 - SCX
+			mmu.ppu.SetSCX(value)
+			return
+		case LYRegister:                 // 0xFF44 - LY (read-only, ignore writes)
+			return
+		case LYCompareRegister:          // 0xFF45 - LYC
+			mmu.ppu.SetLYC(value)
+			return
+		case BackgroundPaletteRegister:  // 0xFF47 - BGP
+			mmu.ppu.SetBGP(value)
+			return
+		case ObjectPalette0Register:     // 0xFF48 - OBP0
+			mmu.ppu.SetOBP0(value)
+			return
+		case ObjectPalette1Register:     // 0xFF49 - OBP1
+			mmu.ppu.SetOBP1(value)
+			return
+		case WindowYRegister:            // 0xFF4A - WY
+			mmu.ppu.SetWY(value)
+			return
+		case WindowXRegister:            // 0xFF4B - WX
+			mmu.ppu.SetWX(value)
+			return
+		}
+	}
+	
+	// VRAM access: Route to PPU WITHOUT mode restrictions for DMA (0x8000-0x9FFF)
+	if address >= VRAMStart && address <= VRAMEnd {
+		if mmu.ppu != nil {
+			// DMA bypasses PPU mode restrictions - always allow
+			mmu.ppu.WriteVRAM(address, value)
+			return
+		}
+		// Fallback to internal memory if no PPU
+		mmu.memory[address] = value
+		return
+	}
+	
+	// OAM access: Route to PPU WITHOUT mode restrictions for DMA (0xFE00-0xFE9F)
+	if address >= OAMStart && address <= OAMEnd {
+		if mmu.ppu != nil {
+			// DMA bypasses PPU mode restrictions - always allow
+			mmu.ppu.WriteOAM(address, value)
+			return
+		}
+		// Fallback to internal memory if no PPU
+		mmu.memory[address] = value
+		return
+	}
+	
+	// All other regions: Use internal memory
+	// WRAM (0xC000-0xDFFF), I/O Registers (0xFF00-0xFF7F), HRAM (0xFF80-0xFFFE)
+	mmu.memory[address] = value
 }
 
 // Timer integration methods for CPU

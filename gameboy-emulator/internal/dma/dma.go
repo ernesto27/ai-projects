@@ -15,6 +15,13 @@ type MemoryInterface interface {
 	WriteByte(address uint16, value uint8)
 }
 
+// DMAMemoryInterface extends MemoryInterface with DMA-specific methods
+// This allows DMA to bypass PPU mode restrictions when writing to VRAM/OAM
+type DMAMemoryInterface interface {
+	MemoryInterface
+	WriteByteForDMA(address uint16, value uint8)
+}
+
 // DMA register address in I/O memory space
 const (
 	DMARegister = 0xFF46 // DMA transfer register
@@ -94,7 +101,13 @@ func (dma *DMAController) Update(cycles uint8, mmu MemoryInterface) bool {
 		
 		// Read from source and write to OAM
 		value := mmu.ReadByte(sourceAddr)
-		mmu.WriteByte(oamAddr, value)
+		
+		// Use DMA-specific write if available to bypass PPU mode restrictions
+		if dmaMMU, ok := mmu.(DMAMemoryInterface); ok {
+			dmaMMU.WriteByteForDMA(oamAddr, value)
+		} else {
+			mmu.WriteByte(oamAddr, value)
+		}
 		
 		// Advance to next byte
 		dma.CurrentOAMOffset++

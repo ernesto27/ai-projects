@@ -314,3 +314,55 @@ func (ppu *PPU) IsBackgroundTileData1() bool {
 func (ppu *PPU) GetBackgroundPalette() [4]uint8 {
 	return DecodePalette(ppu.GetBGP())
 }
+
+// =============================================================================
+// VRAM and OAM Access Methods for MMU Integration
+// =============================================================================
+
+// ReadVRAM reads a byte from VRAM (0x8000-0x9FFF)
+// Address should be in the range 0x8000-0x9FFF
+func (ppu *PPU) ReadVRAM(address uint16) uint8 {
+	if address < 0x8000 || address > 0x9FFF {
+		return 0xFF // Return 0xFF for invalid addresses
+	}
+	return ppu.vram[address-0x8000]
+}
+
+// WriteVRAM writes a byte to VRAM (0x8000-0x9FFF)
+// Address should be in the range 0x8000-0x9FFF
+func (ppu *PPU) WriteVRAM(address uint16, value uint8) {
+	if address < 0x8000 || address > 0x9FFF {
+		return // Ignore writes to invalid addresses
+	}
+	ppu.vram[address-0x8000] = value
+}
+
+// ReadOAM reads a byte from OAM (0xFE00-0xFE9F)
+// Address should be in the range 0xFE00-0xFE9F
+func (ppu *PPU) ReadOAM(address uint16) uint8 {
+	if address < 0xFE00 || address > 0xFE9F {
+		return 0xFF // Return 0xFF for invalid addresses
+	}
+	return ppu.oam[address-0xFE00]
+}
+
+// WriteOAM writes a byte to OAM (0xFE00-0xFE9F)
+// Address should be in the range 0xFE00-0xFE9F
+func (ppu *PPU) WriteOAM(address uint16, value uint8) {
+	if address < 0xFE00 || address > 0xFE9F {
+		return // Ignore writes to invalid addresses
+	}
+	ppu.oam[address-0xFE00] = value
+}
+
+// CanAccessVRAM returns true if VRAM can be accessed by CPU
+// VRAM is inaccessible during Drawing mode (Mode 3)
+func (ppu *PPU) CanAccessVRAM() bool {
+	return ppu.Mode != ModeDrawing
+}
+
+// CanAccessOAM returns true if OAM can be accessed by CPU
+// OAM is inaccessible during Drawing mode (Mode 3) and OAM Scan mode (Mode 2)
+func (ppu *PPU) CanAccessOAM() bool {
+	return ppu.Mode != ModeDrawing && ppu.Mode != ModeOAMScan
+}
