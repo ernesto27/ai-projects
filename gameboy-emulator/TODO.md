@@ -1175,7 +1175,7 @@ gameboy-emulator/
   - ✅ **Testing ready**: All OR operations pass individual and dispatch tests
 
 #### ✅ **L Register Operations** - **COMPLETED**
-- **LD_L_n** (0x2E): Load immediate 8-bit value into register L
+- **LD_L_n** (0x2E): Load immediate 8-bit value into register Laccess methods, ensuring accurate memory routing and access control based on PPU modes. Implement DMA functionality to bypass PPU restrictions during transfers, and add extensive integration tests to validate behavior under various scenarios.
   - ✅ Implementation with proper cycle timing (8 cycles)
   - ✅ Comprehensive test coverage (edge cases, flag preservation, register preservation)
   - ✅ No flags affected (follows Game Boy specification)
