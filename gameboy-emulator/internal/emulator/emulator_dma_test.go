@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +38,8 @@ func TestDMAIntegrationWithEmulator(t *testing.T) {
 	require.NoError(t, err)
 	
 	cpuInstance := cpu.NewCPU()
-	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController)
+	joypadInstance := joypad.NewJoypad()
+	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
 	
 	emulator := &Emulator{
 		CPU:           cpuInstance,

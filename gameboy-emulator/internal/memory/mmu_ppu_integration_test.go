@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/ppu"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func TestPPUMMUIntegration(t *testing.T) {
 	// Create test components
 	dummyMBC := &cartridge.MBC0{}
 	interruptController := interrupt.NewInterruptController()
-	mmu := NewMMU(dummyMBC, interruptController)
+	mmu := NewMMU(dummyMBC, interruptController, joypad.NewJoypad())
 	ppuInstance := ppu.NewPPU()
 	
 	// Connect PPU to MMU
@@ -207,7 +208,7 @@ func TestPPUMMUIntegration(t *testing.T) {
 func TestPPUMMUWithoutPPU(t *testing.T) {
 	dummyMBC := &cartridge.MBC0{}
 	interruptController := interrupt.NewInterruptController()
-	mmu := NewMMU(dummyMBC, interruptController)
+	mmu := NewMMU(dummyMBC, interruptController, joypad.NewJoypad())
 	// Don't call SetPPU - test fallback behavior
 
 	t.Run("VRAM falls back to internal memory without PPU", func(t *testing.T) {

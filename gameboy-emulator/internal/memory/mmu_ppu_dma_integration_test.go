@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/ppu"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func TestDMAPPUIntegration(t *testing.T) {
 	// Create test components
 	dummyMBC := &cartridge.MBC0{}
 	interruptController := interrupt.NewInterruptController()
-	mmu := NewMMU(dummyMBC, interruptController)
+	mmu := NewMMU(dummyMBC, interruptController, joypad.NewJoypad())
 	ppuInstance := ppu.NewPPU()
 	
 	// Connect PPU to MMU
@@ -207,7 +208,7 @@ func TestDMAPPUIntegration(t *testing.T) {
 		// Test that DMA still works if MMU has no PPU (fallback behavior)
 		dummyMBC2 := &cartridge.MBC0{}
 		interruptController2 := interrupt.NewInterruptController()
-		mmuNoPPU := NewMMU(dummyMBC2, interruptController2)
+		mmuNoPPU := NewMMU(dummyMBC2, interruptController2, joypad.NewJoypad())
 		// Don't call SetPPU - test without PPU
 		
 		// Set up source data

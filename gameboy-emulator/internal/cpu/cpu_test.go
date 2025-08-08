@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func createTestMMU() *memory.MMU {
 	cart, _ := cartridge.NewCartridge(romData)
 	mbc, _ := cartridge.CreateMBC(cart)
 	ic := interrupt.NewInterruptController()
-	return memory.NewMMU(mbc, ic)
+	return memory.NewMMU(mbc, ic, joypad.NewJoypad())
 }
 
 // TestLD_D_n tests the LD D,n instruction

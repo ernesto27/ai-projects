@@ -6,6 +6,7 @@ import (
 	"gameboy-emulator/internal/memory"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 )
 
 // TestPPUMMUIntegration tests the complete PPU-MMU integration
@@ -23,7 +24,7 @@ func TestPPUMMUIntegration(t *testing.T) {
 	interruptController := interrupt.NewInterruptController()
 	
 	// Create MMU and PPU
-	mmu := memory.NewMMU(mbc, interruptController)
+	mmu := memory.NewMMU(mbc, interruptController, joypad.NewJoypad())
 	ppu := NewPPU()
 	
 	// Connect PPU to MMU
@@ -115,7 +116,7 @@ func TestLCDEnableDisableFlow(t *testing.T) {
 	interruptController := interrupt.NewInterruptController()
 	
 	// Create MMU and PPU
-	mmu := memory.NewMMU(mbc, interruptController)
+	mmu := memory.NewMMU(mbc, interruptController, joypad.NewJoypad())
 	ppu := NewPPU()
 	mmu.SetPPU(ppu)
 	
@@ -151,7 +152,7 @@ func TestSTATInterruptIntegration(t *testing.T) {
 	interruptController := interrupt.NewInterruptController()
 	
 	// Create MMU and PPU
-	mmu := memory.NewMMU(mbc, interruptController)
+	mmu := memory.NewMMU(mbc, interruptController, joypad.NewJoypad())
 	ppu := NewPPU()
 	mmu.SetPPU(ppu)
 	
@@ -195,7 +196,7 @@ func TestPaletteIntegration(t *testing.T) {
 	interruptController := interrupt.NewInterruptController()
 	
 	// Create MMU and PPU
-	mmu := memory.NewMMU(mbc, interruptController)
+	mmu := memory.NewMMU(mbc, interruptController, joypad.NewJoypad())
 	ppu := NewPPU()
 	mmu.SetPPU(ppu)
 	

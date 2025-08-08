@@ -5,6 +5,7 @@ import (
 	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/timer"
 	"gameboy-emulator/internal/dma"
+	"gameboy-emulator/internal/joypad"
 )
 
 // Game Boy Memory Map Constants
@@ -166,14 +167,16 @@ type MMU struct {
 	interruptController *interrupt.InterruptController // Interrupt system for IE, IF registers
 	dmaController       *dma.DMAController          // DMA controller for sprite data transfers
 	ppu                 PPUInterface                // PPU system for graphics register access
+	joypad              *joypad.Joypad              // Joypad system for input register access
 }
 
-// NewMMU creates and initializes a new MMU instance with cartridge, timer, and interrupt integration
+// NewMMU creates and initializes a new MMU instance with cartridge, timer, interrupt, and joypad integration
 // Parameters:
 //   - mbc: Memory Bank Controller from cartridge for ROM/RAM access
 //   - interruptController: Interrupt controller for IE/IF register access
+//   - joypadInstance: Joypad system for input register access
 // Returns a pointer to MMU with zeroed internal memory and all system references
-func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptController) *MMU {
+func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptController, joypadInstance *joypad.Joypad) *MMU {
 	return &MMU{
 		memory:              [0x10000]uint8{},           // Initialize all 65536 bytes to 0x00
 		cartridge:           mbc,                        // Store cartridge MBC reference
@@ -181,6 +184,7 @@ func NewMMU(mbc cartridge.MBC, interruptController *interrupt.InterruptControlle
 		interruptController: interruptController,        // Store interrupt controller reference
 		dmaController:       dma.NewDMAController(),     // Initialize DMA controller
 		ppu:                 nil,                        // PPU will be set separately to avoid circular imports
+		joypad:              joypadInstance,             // Store joypad reference
 	}
 }
 
@@ -214,6 +218,11 @@ func (mmu *MMU) ReadByte(address uint16) uint8 {
 	// Prohibited area: Return 0xFF (0xFEA0-0xFEFF)
 	if address >= ProhibitedStart && address <= ProhibitedEnd {
 		return 0xFF
+	}
+	
+	// Joypad register: Route to joypad system (0xFF00)
+	if joypad.IsJoypadRegister(address) && mmu.joypad != nil {
+		return mmu.joypad.ReadRegister(address)
 	}
 	
 	// Timer registers: Route to timer system (0xFF04-0xFF07)
@@ -325,6 +334,12 @@ func (mmu *MMU) WriteByte(address uint16, value uint8) {
 	// Prohibited area: Ignore writes (0xFEA0-0xFEFF)
 	if address >= ProhibitedStart && address <= ProhibitedEnd {
 		return // Writes to prohibited area are ignored
+	}
+	
+	// Joypad register: Route to joypad system (0xFF00)
+	if joypad.IsJoypadRegister(address) && mmu.joypad != nil {
+		mmu.joypad.WriteRegister(address, value)
+		return
 	}
 	
 	// Timer registers: Route to timer system (0xFF04-0xFF07)

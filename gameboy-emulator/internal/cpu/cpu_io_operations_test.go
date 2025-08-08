@@ -16,10 +16,10 @@ func TestLDH_n_A(t *testing.T) {
 	}{
 		{
 			name:     "Write A to joypad register",
-			a:        0x42,
+			a:        0x10, // P15=0, P14=1 -> select action buttons
 			offset:   0x00, // Joypad input register
 			wantAddr: 0xFF00,
-			wantData: 0x42,
+			wantData: 0xDF, // Expected: P15 selected, no buttons pressed = 11011111
 		},
 		{
 			name:     "Write A to timer divider",
@@ -82,8 +82,8 @@ func TestLDH_A_n(t *testing.T) {
 		{
 			name:     "Read from joypad register",
 			offset:   0x00, // Joypad input register
-			data:     0x0F, // All buttons pressed
-			wantA:    0x0F,
+			data:     0x20, // P15=1, P14=0 -> select directions
+			wantA:    0xEF, // No buttons pressed, directions selected = 11101111
 			wantAddr: 0xFF00,
 		},
 		{
@@ -122,12 +122,15 @@ func TestLDH_A_n(t *testing.T) {
 			mmu := createTestMMU()
 			cpu.A = 0xCC // Different initial value
 
-			// Special handling for timer registers - can't pre-store data to DIV
+			// Special handling for registers that don't store data directly
 			if tt.wantAddr == 0xFF04 {
 				// DIV register - starts at 0, can't write to it (resets to 0)
 				// Just test reading the initial value
+			} else if tt.wantAddr == 0xFF00 {
+				// Joypad register - write the select bits to set up the test
+				mmu.WriteByte(tt.wantAddr, tt.data)
 			} else {
-				// Pre-store the test data for non-timer registers
+				// Pre-store the test data for regular registers
 				mmu.WriteByte(tt.wantAddr, tt.data)
 			}
 
@@ -149,10 +152,10 @@ func TestLD_IO_C_A(t *testing.T) {
 	}{
 		{
 			name:     "Write A using C=0x00 (joypad)",
-			a:        0x30,
+			a:        0x10, // P15=0, P14=1 -> select action buttons
 			c:        0x00,
 			wantAddr: 0xFF00,
-			wantData: 0x30,
+			wantData: 0xDF, // Expected: P15 selected, no buttons pressed = 11011111
 		},
 		{
 			name:     "Write A using C=0x40 (LCD control)",
@@ -210,8 +213,8 @@ func TestLD_A_IO_C(t *testing.T) {
 		{
 			name:     "Read using C=0x00 (joypad)",
 			c:        0x00,
-			data:     0x0F,
-			wantA:    0x0F,
+			data:     0x20, // P15=1, P14=0 -> select directions
+			wantA:    0xEF, // No buttons pressed, directions selected = 11101111
 			wantAddr: 0xFF00,
 		},
 		{
@@ -244,12 +247,15 @@ func TestLD_A_IO_C(t *testing.T) {
 			cpu.A = 0xAA // Different initial value
 			cpu.C = tt.c
 
-			// Special handling for timer registers - can't pre-store data to DIV
+			// Special handling for registers that don't store data directly
 			if tt.wantAddr == 0xFF04 {
 				// DIV register - starts at 0, can't write to it (resets to 0)
 				// Just test reading the initial value
+			} else if tt.wantAddr == 0xFF00 {
+				// Joypad register - write the select bits to set up the test
+				mmu.WriteByte(tt.wantAddr, tt.data)
 			} else {
-				// Pre-store the test data for non-timer registers
+				// Pre-store the test data for regular registers
 				mmu.WriteByte(tt.wantAddr, tt.data)
 			}
 
@@ -385,10 +391,10 @@ func TestIOOperationSequence(t *testing.T) {
 	// Scenario: Game checking joypad input and updating LCD control
 
 	// 1. Read joypad input
-	mmu.WriteByte(0xFF00, 0x0F) // All buttons pressed
+	mmu.WriteByte(0xFF00, 0x20) // P15=1, P14=0 -> select directions
 	cpu.C = 0x00
 	cpu.LD_A_IO_C(mmu) // LD A,(C) - read joypad via C register
-	assert.Equal(t, uint8(0x0F), cpu.A, "Should read joypad input")
+	assert.Equal(t, uint8(0xEF), cpu.A, "Should read joypad input") // No buttons pressed, directions selected
 
 	// 2. Process input and set LCD control via immediate offset
 	cpu.A = 0x91           // LCD on, BG on, sprites on
@@ -437,11 +443,14 @@ func TestIOAddressCalculation(t *testing.T) {
 			cpu.A = 0xDD
 			cpu.LDH_n_A(mmu, tc.offset)
 
-			// Special handling for timer registers
+			// Special handling for special registers
 			var expectedData uint8 = 0xDD
 			if tc.expected == 0xFF04 {
 				// DIV register resets to 0 on any write (authentic Game Boy behavior)
 				expectedData = 0x00
+			} else if tc.expected == 0xFF00 {
+				// Joypad register - writing 0xDD sets P15=1, P14=0, reading back with no buttons pressed
+				expectedData = 0xDF // P15=1, P14=0, all buttons released (11011111)
 			}
 
 			// Verify data was written to correct address

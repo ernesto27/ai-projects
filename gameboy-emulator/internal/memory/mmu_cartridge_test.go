@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +23,7 @@ func TestMMUCartridgeIntegration(t *testing.T) {
 	require.NoError(t, err, "Should create MBC successfully")
 	
 	// Create MMU with cartridge integration
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	require.NotNil(t, mmu, "MMU should not be nil")
 	
 	// Test ROM reads are routed to cartridge
@@ -141,7 +142,7 @@ func TestMMUBankSwitching(t *testing.T) {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err, "Should create MBC successfully")
 	
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	// Initially should be bank 1
 	assert.Equal(t, uint8(0x10), mmu.ReadByte(0x4000), "Should start with bank 1")
@@ -166,7 +167,7 @@ func TestMMURAMOperations(t *testing.T) {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err, "Should create MBC successfully")
 	
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	// RAM should be disabled initially
 	assert.Equal(t, uint8(0xFF), mmu.ReadByte(0xA000), "RAM should be disabled initially")
@@ -201,7 +202,7 @@ func TestMMU16BitOperations(t *testing.T) {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err, "Should create MBC successfully")
 	
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	// Test 16-bit read from ROM
 	word := mmu.ReadWord(0x0100)
@@ -237,7 +238,7 @@ func TestMMUWithRealROMStructure(t *testing.T) {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err, "Should create MBC successfully")
 	
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	// Verify we can read the "program"
 	assert.Equal(t, uint8(0x00), mmu.ReadByte(0x0100), "Should read NOP instruction")
@@ -296,7 +297,7 @@ func BenchmarkMMUROMRead(b *testing.B) {
 	romData := createTestROM("BENCHMARK", cartridge.ROM_ONLY, 0x00, 0x00)
 	cart, _ := cartridge.NewCartridge(romData)
 	mbc, _ := cartridge.CreateMBC(cart)
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	b.ResetTimer()
 	
@@ -310,7 +311,7 @@ func BenchmarkMMUInternalRead(b *testing.B) {
 	romData := createTestROM("BENCHMARK", cartridge.ROM_ONLY, 0x00, 0x00)
 	cart, _ := cartridge.NewCartridge(romData)
 	mbc, _ := cartridge.CreateMBC(cart)
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	b.ResetTimer()
 	
@@ -328,7 +329,7 @@ func BenchmarkMMUBankSwitch(b *testing.B) {
 	
 	cart, _ := cartridge.NewCartridge(romData)
 	mbc, _ := cartridge.CreateMBC(cart)
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 	
 	b.ResetTimer()
 	

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 )
 
 // createDummyMBC creates a simple MBC for testing MMU functionality
@@ -33,7 +34,7 @@ func createDummyMBC() cartridge.MBC {
 func TestNewMMU(t *testing.T) {
 	// Test constructor creates valid MMU
 	mbc := createDummyMBC()
-	mmu := NewMMU(mbc, interrupt.NewInterruptController())
+	mmu := NewMMU(mbc, interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Verify MMU is not nil
 	if mmu == nil {
@@ -61,7 +62,7 @@ func TestNewMMU(t *testing.T) {
 }
 
 func TestReadByte(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test reading from initialized (zero) memory
 	tests := []struct {
@@ -111,7 +112,7 @@ func TestReadByte(t *testing.T) {
 }
 
 func TestWriteByte(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test writing to different internal memory regions (avoid ROM which goes to cartridge)
 	tests := []struct {
@@ -151,7 +152,7 @@ func TestWriteByte(t *testing.T) {
 }
 
 func TestReadWord(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test reading 16-bit words (little-endian) from internal memory regions
 	tests := []struct {
@@ -186,7 +187,7 @@ func TestReadWord(t *testing.T) {
 }
 
 func TestWriteWord(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test writing 16-bit words (little-endian) to internal memory regions
 	tests := []struct {
@@ -234,7 +235,7 @@ func TestWriteWord(t *testing.T) {
 }
 
 func TestWordReadWriteRoundTrip(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test round-trip: write word -> read word
 	testValues := []uint16{
@@ -265,7 +266,7 @@ func TestMMUImplementsInterface(t *testing.T) {
 	var _ MemoryInterface = (*MMU)(nil)
 
 	// Test actual interface usage
-	var mmu MemoryInterface = NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	var mmu MemoryInterface = NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test all interface methods work (use internal memory addresses)
 	mmu.WriteByte(0xC000, 0x42) // WRAM
@@ -402,7 +403,7 @@ func TestIORegisterConstants(t *testing.T) {
 }
 
 func TestIsValidAddress(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test valid addresses
 	validAddresses := []struct {
@@ -458,7 +459,7 @@ func TestIsValidAddress(t *testing.T) {
 }
 
 func TestGetMemoryRegion(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test all memory regions
 	regionTests := []struct {
@@ -511,7 +512,7 @@ func TestGetMemoryRegion(t *testing.T) {
 }
 
 func TestGetMemoryRegionForIORegisters(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test specific I/O registers return "I/O Registers"
 	ioRegisters := []struct {
@@ -537,7 +538,7 @@ func TestGetMemoryRegionForIORegisters(t *testing.T) {
 }
 
 func TestMemoryHelperMethods(t *testing.T) {
-	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController())
+	mmu := NewMMU(createDummyMBC(), interrupt.NewInterruptController(), joypad.NewJoypad())
 
 	// Test that helper methods work together
 	testCases := []struct {

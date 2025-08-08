@@ -88,7 +88,7 @@ func TestIOOpcodeDispatch(t *testing.T) {
 				mmu.WriteByte(0xFF00, 0x0F) // All buttons pressed
 			},
 			verifyCPU: func(t *testing.T, cpu *CPU) {
-				assert.Equal(t, uint8(0x0F), cpu.A, "A should contain 0x0F")
+				assert.Equal(t, uint8(0xCF), cpu.A, "A should contain 0xCF (both select lines active, no buttons pressed)")
 				assert.Equal(t, uint8(0x00), cpu.C, "C should be unchanged")
 			},
 			verifyMMU: func(t *testing.T, mmu *memory.MMU) {

@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +15,7 @@ func TestDMAIntegration(t *testing.T) {
 	// Create MMU with dummy cartridge
 	dummyMBC := &cartridge.MBC0{}
 	interruptController := interrupt.NewInterruptController()
-	mmu := NewMMU(dummyMBC, interruptController)
+	mmu := NewMMU(dummyMBC, interruptController, joypad.NewJoypad())
 
 	t.Run("DMA controller is initialized", func(t *testing.T) {
 		dmaController := mmu.GetDMAController()

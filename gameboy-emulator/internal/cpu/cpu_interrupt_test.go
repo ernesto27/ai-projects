@@ -5,6 +5,7 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/interrupt"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ import (
 func createCPUWithMMU(t *testing.T) (*CPU, memory.MemoryInterface) {
 	mbc := &cartridge.MBC0{}
 	cpu := NewCPU()
-	mmu := memory.NewMMU(mbc, cpu.InterruptController)
+	mmu := memory.NewMMU(mbc, cpu.InterruptController, joypad.NewJoypad())
 	return cpu, mmu
 }
 

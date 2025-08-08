@@ -6,6 +6,8 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/input"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 )
 
@@ -46,6 +48,10 @@ type Emulator struct {
 	Cartridge cartridge.MBC
 	Clock     *Clock
 
+	// Input system
+	InputManager *input.InputManager
+	Joypad       *joypad.Joypad
+
 	// Emulator state
 	State           EmulatorState
 	InstructionCount uint64
@@ -78,8 +84,12 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	// Create CPU first to get interrupt controller
 	cpu := cpu.NewCPU()
 
-	// Create MMU with MBC and interrupt controller
-	mmu := memory.NewMMU(mbc, cpu.InterruptController)
+	// Create input system components
+	joypadInstance := joypad.NewJoypad()
+	inputManager := input.NewInputManager(joypadInstance)
+
+	// Create MMU with MBC, interrupt controller, and joypad
+	mmu := memory.NewMMU(mbc, cpu.InterruptController, joypadInstance)
 
 	// Create clock
 	clock := NewClock()
@@ -90,6 +100,8 @@ func NewEmulator(romPath string) (*Emulator, error) {
 		MMU:             mmu,
 		Cartridge:       mbc,
 		Clock:           clock,
+		InputManager:    inputManager,
+		Joypad:          joypadInstance,
 		State:           StateStopped,
 		DebugMode:       false,
 		StepMode:        false,
@@ -234,6 +246,11 @@ func (e *Emulator) Reset() {
 	e.InstructionCount = 0
 	e.Clock.Reset()
 	e.initializeGameBoyState()
+	
+	// Reset input system
+	if e.InputManager != nil {
+		e.InputManager.Reset()
+	}
 }
 
 // GetState returns current emulator state
@@ -408,4 +425,57 @@ func (e *Emulator) readInstructionParameters(opcode uint8) []uint8 {
 	default:
 		return nil
 	}
+}
+
+// Input Management Methods
+
+// ProcessInputEvent processes a single input event through the input manager
+func (e *Emulator) ProcessInputEvent(event input.InputEvent) {
+	if e.InputManager != nil {
+		e.InputManager.ProcessInputEvent(event)
+	}
+}
+
+// ProcessInputEvents processes multiple input events
+func (e *Emulator) ProcessInputEvents(events []input.InputEvent) {
+	if e.InputManager != nil {
+		e.InputManager.ProcessInputEvents(events)
+	}
+}
+
+// UpdateInputFromProvider updates input state from a polling-based provider
+func (e *Emulator) UpdateInputFromProvider(provider input.InputStateProvider) {
+	if e.InputManager != nil {
+		e.InputManager.UpdateFromStateProvider(provider)
+	}
+}
+
+// SetKeyMapping sets a custom keyboard mapping
+func (e *Emulator) SetKeyMapping(mapping input.KeyMapping) {
+	if e.InputManager != nil {
+		e.InputManager.SetKeyMapping(mapping)
+	}
+}
+
+// GetKeyMapping returns the current keyboard mapping
+func (e *Emulator) GetKeyMapping() input.KeyMapping {
+	if e.InputManager != nil {
+		return e.InputManager.GetKeyMapping()
+	}
+	return input.DefaultKeyMapping()
+}
+
+// SetInputEnabled enables or disables input processing
+func (e *Emulator) SetInputEnabled(enabled bool) {
+	if e.InputManager != nil {
+		e.InputManager.SetEnabled(enabled)
+	}
+}
+
+// GetButtonStates returns the current state of all Game Boy buttons
+func (e *Emulator) GetButtonStates() map[string]bool {
+	if e.InputManager != nil {
+		return e.InputManager.GetButtonStates()
+	}
+	return make(map[string]bool)
 }

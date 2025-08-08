@@ -8,6 +8,8 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/input"
+	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 )
 
@@ -263,16 +265,20 @@ func createTestEmulator(t *testing.T) *Emulator {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err)
 
-	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController)
-	cpu := cpu.NewCPU()
+	cpuInstance := cpu.NewCPU()
+	joypadInstance := joypad.NewJoypad()
+	inputManager := input.NewInputManager(joypadInstance)
+	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
 
 	emulator := &Emulator{
-		CPU:         cpu,
-		MMU:         mmu,
-		Cartridge:   mbc,
-		State:       StateStopped,
-		Breakpoints: make(map[uint16]bool),
-		Clock:       NewClock(),
+		CPU:             cpuInstance,
+		MMU:             mmu,
+		Cartridge:       mbc,
+		InputManager:    inputManager,
+		Joypad:          joypadInstance,
+		State:           StateStopped,
+		Breakpoints:     make(map[uint16]bool),
+		Clock:           NewClock(),
 		RealTimeMode:    true,
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,
@@ -291,7 +297,7 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err)
 
-	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController)
+	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController, joypad.NewJoypad())
 	cpu := cpu.NewCPU()
 
 	emulator := &Emulator{
