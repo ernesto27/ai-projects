@@ -8,9 +8,11 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/display"
 	"gameboy-emulator/internal/input"
 	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
+	"gameboy-emulator/internal/ppu"
 )
 
 func TestNewEmulator(t *testing.T) {
@@ -266,6 +268,11 @@ func createTestEmulator(t *testing.T) *Emulator {
 	require.NoError(t, err)
 
 	cpuInstance := cpu.NewCPU()
+	
+	// Create PPU and display for complete emulator
+	ppuInstance := ppu.NewPPU()
+	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
+	
 	joypadInstance := joypad.NewJoypad()
 	inputManager := input.NewInputManager(joypadInstance)
 	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
@@ -273,6 +280,8 @@ func createTestEmulator(t *testing.T) *Emulator {
 	emulator := &Emulator{
 		CPU:             cpuInstance,
 		MMU:             mmu,
+		PPU:             ppuInstance,
+		Display:         displayInstance,
 		Cartridge:       mbc,
 		InputManager:    inputManager,
 		Joypad:          joypadInstance,
@@ -283,6 +292,27 @@ func createTestEmulator(t *testing.T) *Emulator {
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,
 	}
+
+	// Connect PPU to MMU for memory access
+	mmu.SetPPU(ppuInstance)
+	
+	// Connect VRAM interface - PPU uses itself as the VRAM interface
+	ppuInstance.SetVRAMInterface(ppuInstance)
+
+	// Initialize display with minimal configuration for tests
+	displayConfig := display.DisplayConfig{
+		ScaleFactor: 1,
+		ScalingMode: display.ScaleNearest,
+		Palette: display.ColorPalette{
+			White:     display.RGBColor{R: 155, G: 188, B: 15},
+			LightGray: display.RGBColor{R: 139, G: 172, B: 15},
+			DarkGray:  display.RGBColor{R: 48, G: 98, B: 48},
+			Black:     display.RGBColor{R: 15, G: 56, B: 15},
+		},
+		VSync:   false, // Disable VSync for tests
+		ShowFPS: false,
+	}
+	displayInstance.Initialize(displayConfig)
 
 	emulator.initializeGameBoyState()
 	return emulator
@@ -297,12 +327,20 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 	mbc, err := cartridge.CreateMBC(cart)
 	require.NoError(t, err)
 
-	mmu := memory.NewMMU(mbc, cpu.NewCPU().InterruptController, joypad.NewJoypad())
-	cpu := cpu.NewCPU()
+	cpuInstance := cpu.NewCPU()
+	
+	// Create PPU and display for complete emulator
+	ppuInstance := ppu.NewPPU()
+	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
+	
+	joypadInstance := joypad.NewJoypad()
+	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
 
 	emulator := &Emulator{
-		CPU:         cpu,
+		CPU:         cpuInstance,
 		MMU:         mmu,
+		PPU:         ppuInstance,
+		Display:     displayInstance,
 		Cartridge:   mbc,
 		State:       StateStopped,
 		Breakpoints: make(map[uint16]bool),
@@ -311,6 +349,27 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,
 	}
+
+	// Connect PPU to MMU for memory access
+	mmu.SetPPU(ppuInstance)
+	
+	// Connect VRAM interface - PPU uses itself as the VRAM interface
+	ppuInstance.SetVRAMInterface(ppuInstance)
+
+	// Initialize display with minimal configuration for tests
+	displayConfig := display.DisplayConfig{
+		ScaleFactor: 1,
+		ScalingMode: display.ScaleNearest,
+		Palette: display.ColorPalette{
+			White:     display.RGBColor{R: 155, G: 188, B: 15},
+			LightGray: display.RGBColor{R: 139, G: 172, B: 15},
+			DarkGray:  display.RGBColor{R: 48, G: 98, B: 48},
+			Black:     display.RGBColor{R: 15, G: 56, B: 15},
+		},
+		VSync:   false, // Disable VSync for tests
+		ShowFPS: false,
+	}
+	displayInstance.Initialize(displayConfig)
 
 	emulator.initializeGameBoyState()
 	return emulator

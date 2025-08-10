@@ -8,7 +8,7 @@ import (
 	"gameboy-emulator/internal/cpu"
 	"gameboy-emulator/internal/display"
 	"gameboy-emulator/internal/input"
-	// "gameboy-emulator/internal/interrupt" // TODO: Re-enable when PPU integration is fixed
+	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
 	"gameboy-emulator/internal/ppu"
@@ -127,9 +127,9 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	// Connect PPU to MMU for memory access
 	mmu.SetPPU(ppuInstance)
 	
-	// TODO: Connect VRAM interface - PPU needs VRAMInterface but MMU implements PPUInterface
-	// This is a design mismatch that needs to be resolved
-	// For now, PPU will run without VRAM access (basic mode)
+	// Connect VRAM interface - PPU uses itself as the VRAM interface
+	// This allows PPU renderers to access the PPU's own VRAM/OAM data
+	ppuInstance.SetVRAMInterface(ppuInstance)
 
 	// Initialize display with default configuration
 	displayConfig := display.DisplayConfig{
@@ -250,8 +250,7 @@ func (e *Emulator) Step() error {
 
 	// Update all hardware components with CPU cycles
 	// PPU: Update graphics rendering pipeline
-	// TODO: Fix PPU-MMU interface mismatch before enabling PPU updates
-	ppuInterruptRequested := false // e.PPU.Update(uint8(cycles))
+	ppuInterruptRequested := e.PPU.Update(uint8(cycles))
 	
 	// Handle PPU interrupts (V-Blank, LCD Status)
 	if ppuInterruptRequested {
@@ -260,14 +259,13 @@ func (e *Emulator) Step() error {
 	}
 	
 	// Check for frame completion and render to display
-	// TODO: Re-enable when PPU-MMU integration is fixed
 	// Frame completes when PPU enters V-Blank (scanline 144)
-	// if e.PPU.GetCurrentScanline() == 144 && e.PPU.GetCurrentMode() == ppu.ModeVBlank {
-	// 	// PPU completed a full frame, render it to display
-	// 	if err := e.Display.Present(&e.PPU.Framebuffer); err != nil {
-	// 		return fmt.Errorf("display present error: %v", err)
-	// 	}
-	// }
+	if e.PPU.GetCurrentScanline() == 144 && e.PPU.GetCurrentMode() == ppu.ModeVBlank {
+		// PPU completed a full frame, render it to display
+		if err := e.Display.Present(&e.PPU.Framebuffer); err != nil {
+			return fmt.Errorf("display present error: %v", err)
+		}
+	}
 	
 	// Update timing
 	e.Clock.AddCycles(cycles)
@@ -540,27 +538,27 @@ func (e *Emulator) GetButtonStates() map[string]bool {
 
 // handlePPUInterrupts processes PPU interrupt requests
 func (e *Emulator) handlePPUInterrupts() {
-	// TODO: Re-implement when PPU-MMU integration is fixed
-	// currentScanline := e.PPU.GetCurrentScanline()
-	// currentMode := e.PPU.GetCurrentMode()
+	currentScanline := e.PPU.GetCurrentScanline()
+	currentMode := e.PPU.GetCurrentMode()
 	
 	// V-Blank interrupt: Triggered when entering V-Blank (scanline 144)
-	// if currentScanline == 144 && currentMode == ppu.ModeVBlank {
-	// 	e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptVBlank)
-	// }
+	if currentScanline == 144 && currentMode == ppu.ModeVBlank {
+		e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptVBlank)
+	}
 	
 	// LCD Status interrupt: Triggered on various PPU events
-	// if e.shouldTriggerLCDStatInterrupt() {
-	// 	e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptLCDStat)
-	// }
+	if e.shouldTriggerLCDStatInterrupt() {
+		e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptLCDStat)
+	}
 }
 
 // shouldTriggerLCDStatInterrupt determines if LCD STAT interrupt should be triggered
 // This is a simplified implementation - the actual Game Boy PPU has complex STAT interrupt logic
 func (e *Emulator) shouldTriggerLCDStatInterrupt() bool {
-	// TODO: Re-implement when PPU-MMU integration is fixed
-	return false
-	// lyc := e.PPU.GetLYC()
-	// ly := e.PPU.GetCurrentScanline()
-	// return lyc == ly && lyc != 0 // Simple LYC=LY interrupt condition
+	// For now, only trigger STAT interrupt on LYC=LY condition
+	// In a full implementation, this would check various STAT interrupt enable bits
+	lyc := e.PPU.GetLYC()
+	ly := e.PPU.GetCurrentScanline()
+	
+	return lyc == ly && lyc != 0 // Simple LYC=LY interrupt condition
 }
