@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -70,6 +71,55 @@ func (a *AnthropicProvider) GetResponse(ctx context.Context, prompt string) (str
 	}
 
 	return message.Content[0].Text, nil
+}
+
+func (a *AnthropicProvider) GetStreamResponse(ctx context.Context, prompt string) (<-chan string, <-chan error) {
+	textChan := make(chan string, 10)
+	errChan := make(chan error, 1)
+
+	go func() {
+		defer close(textChan)
+		defer close(errChan)
+
+		model := parseModelName(a.Model)
+
+		stream := a.Client.Messages.NewStreaming(ctx, anthropic.MessageNewParams{
+			Model:     model,
+			MaxTokens: 1000,
+			Messages: []anthropic.MessageParam{
+				anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
+			},
+		})
+
+		message := anthropic.Message{}
+		for stream.Next() {
+			event := stream.Current()
+			err := message.Accumulate(event)
+			if err != nil {
+				errChan <- fmt.Errorf("accumulate error: %w", err)
+				return
+			}
+
+			switch eventVariant := event.AsAny().(type) {
+			case anthropic.ContentBlockDeltaEvent:
+				switch deltaVariant := eventVariant.Delta.AsAny().(type) {
+				case anthropic.TextDelta:
+					select {
+					case textChan <- deltaVariant.Text:
+					case <-ctx.Done():
+						errChan <- ctx.Err()
+						return
+					}
+				}
+			}
+		}
+
+		if stream.Err() != nil {
+			errChan <- fmt.Errorf("streaming error: %w", stream.Err())
+		}
+	}()
+
+	return textChan, errChan
 }
 
 func (a *AnthropicProvider) GetResolvedModel() string {

@@ -24,8 +24,8 @@ charmllm -p openai,anthropic -m gpt-4,claude-5 "Create a curl clone using python
 - [x] Create providers interface to support multiple LLM providers
 - [x] Implement command-line arguments using cobra lib 
 - [x] command to get response in stdout
-- [] get model from parameters,  set default model if not provided
-- [] option stream respone
+- [x] get model from parameters,  set default model if not provided
+- [x] option stream respone
 - [] add open AI provider
 - [] Save response to file
 - [] Pipe file input to the command

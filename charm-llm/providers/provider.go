@@ -4,6 +4,7 @@ import "context"
 
 type LLMProvider interface {
 	GetResponse(ctx context.Context, prompt string) (string, error)
+	GetStreamResponse(ctx context.Context, prompt string) (<-chan string, <-chan error)
 	GetName() string
 	SetModel(model string)
 	GetModel() string
