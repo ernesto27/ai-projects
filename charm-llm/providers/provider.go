@@ -7,6 +7,7 @@ type LLMProvider interface {
 	GetName() string
 	SetModel(model string)
 	GetModel() string
+	GetResolvedModel() string
 }
 
 type BaseProvider struct {

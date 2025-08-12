@@ -33,9 +33,8 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVarP(&provider, "provider", "p", "", "LLM provider (e.g., openai, anthropic)")
-	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Model name (e.g., gpt-4, claude-3)")
+	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Model name (e.g., claude-3-7, claude-4)")
 	rootCmd.MarkFlagRequired("provider")
-	rootCmd.MarkFlagRequired("model")
 }
 
 func clearScreen() {
@@ -60,9 +59,18 @@ func createProvider(providerName, model string) (providers.LLMProvider, error) {
 
 func handleRequest(provider, model, prompt string) {
 	clearScreen()
-	// Initial display
+	
+	// Create provider first to get resolved model name
+	llmProvider, err := createProvider(provider, model)
+	if err != nil {
+		errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error: %s", err.Error()))
+		fmt.Println(errorMsg)
+		return
+	}
+
+	// Initial display with resolved model name
 	title := tui.HeaderStyle.Render("✨ Charm LLM")
-	info := tui.InfoStyle.Render(fmt.Sprintf("Provider: %s • Model: %s", provider, model))
+	info := tui.InfoStyle.Render(fmt.Sprintf("Provider: %s • Model: %s", provider, llmProvider.GetResolvedModel()))
 	styledPrompt := tui.PromptStyle.Render(fmt.Sprintf("💬 %s", prompt))
 
 	// Show initial interface
@@ -71,14 +79,6 @@ func handleRequest(provider, model, prompt string) {
 	fmt.Println(info)
 	fmt.Println(styledPrompt)
 	fmt.Println()
-
-	// Create provider
-	llmProvider, err := createProvider(provider, model)
-	if err != nil {
-		errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error: %s", err.Error()))
-		fmt.Println(errorMsg)
-		return
-	}
 
 	// Show loading text
 	fmt.Println("🤔 Thinking...")
