@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"gameboy-emulator/internal/apu"
+	"gameboy-emulator/internal/audio"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
 	"gameboy-emulator/internal/display"
@@ -49,7 +51,9 @@ type Emulator struct {
 	CPU       *cpu.CPU
 	MMU       *memory.MMU
 	PPU       *ppu.PPU
+	APU       *apu.APU
 	Display   *display.Display
+	Audio     *audio.AudioOutput
 	Cartridge cartridge.MBC
 	Clock     *Clock
 
@@ -92,6 +96,13 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	// Create PPU for graphics processing
 	ppuInstance := ppu.NewPPU()
 
+	// Create APU for audio processing
+	apuInstance := apu.NewAPU()
+
+	// Create audio system with SDL2 output
+	audioImpl := audio.NewSDL2AudioOutput()
+	audioInstance := audio.NewAudioOutput(audioImpl)
+
 	// Create display system with console output
 	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
 
@@ -110,7 +121,9 @@ func NewEmulator(romPath string) (*Emulator, error) {
 		CPU:             cpu,
 		MMU:             mmu,
 		PPU:             ppuInstance,
+		APU:             apuInstance,
 		Display:         displayInstance,
+		Audio:           audioInstance,
 		Cartridge:       mbc,
 		Clock:           clock,
 		InputManager:    inputManager,
@@ -146,6 +159,17 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	}
 	if err := displayInstance.Initialize(displayConfig); err != nil {
 		return nil, fmt.Errorf("failed to initialize display: %v", err)
+	}
+
+	// Initialize audio with default configuration
+	audioConfig := audio.DefaultConfig()
+	if err := audioInstance.Initialize(audioConfig); err != nil {
+		return nil, fmt.Errorf("failed to initialize audio: %v", err)
+	}
+
+	// Start audio playback
+	if err := audioInstance.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start audio: %v", err)
 	}
 
 	// Set initial Game Boy state (post-boot)
@@ -258,6 +282,33 @@ func (e *Emulator) Step() error {
 		e.handlePPUInterrupts()
 	}
 	
+	// APU: Update audio processing and generate samples
+	e.APU.Update(uint8(cycles))
+	
+	// Get audio samples from APU and send to audio output
+	if audioSamples := e.APU.GetSamples(); audioSamples != nil {
+		// Convert float32 samples to int16 for SDL2
+		int16Samples := make([]int16, len(audioSamples)*2) // Stereo conversion
+		for i, sample := range audioSamples {
+			// Clamp sample to [-1.0, 1.0] and convert to int16
+			if sample > 1.0 {
+				sample = 1.0
+			} else if sample < -1.0 {
+				sample = -1.0
+			}
+			int16Sample := int16(sample * 32767)
+			int16Samples[i*2] = int16Sample   // Left channel
+			int16Samples[i*2+1] = int16Sample // Right channel (mono to stereo)
+		}
+		
+		// Send samples to audio output (non-blocking)
+		if err := e.Audio.PushSamples(int16Samples); err != nil && err != audio.ErrBufferOverflow {
+			// Log audio errors but don't stop emulation (except for critical errors)
+			// Only stop for non-overflow errors
+			return fmt.Errorf("audio output error: %v", err)
+		}
+	}
+	
 	// Check for frame completion and render to display
 	// Frame completes when PPU enters V-Blank (scanline 144)
 	if e.PPU.GetCurrentScanline() == 144 && e.PPU.GetCurrentMode() == ppu.ModeVBlank {
@@ -307,6 +358,29 @@ func (e *Emulator) Reset() {
 	if e.InputManager != nil {
 		e.InputManager.Reset()
 	}
+}
+
+// Cleanup releases all emulator resources
+func (e *Emulator) Cleanup() error {
+	// Stop and cleanup audio
+	if e.Audio != nil {
+		if err := e.Audio.Stop(); err != nil {
+			// Log error but continue cleanup
+		}
+		if err := e.Audio.Cleanup(); err != nil {
+			return fmt.Errorf("failed to cleanup audio: %v", err)
+		}
+	}
+	
+	// Cleanup display
+	if e.Display != nil {
+		if err := e.Display.Cleanup(); err != nil {
+			return fmt.Errorf("failed to cleanup display: %v", err)
+		}
+	}
+	
+	e.State = StateStopped
+	return nil
 }
 
 // GetState returns current emulator state

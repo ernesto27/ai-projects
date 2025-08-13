@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gameboy-emulator/internal/audio"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/emulator"
 )
@@ -17,6 +18,15 @@ const (
 	Version     = "0.1.0"
 	ProjectName = "Game Boy Emulator"
 )
+
+// AudioConfig holds audio configuration for the CLI
+type AudioConfig struct {
+	Enabled    bool
+	Volume     float32
+	SampleRate int
+	BufferSize int
+	Preset     string
+}
 
 func main() {
 	var (
@@ -29,6 +39,13 @@ func main() {
 		maxSpeed  = flag.Bool("max-speed", false, "Run at maximum speed (no timing delays)")
 		realTime  = flag.Bool("real-time", true, "Run at authentic Game Boy speed")
 		speedMult = flag.Float64("speed", 1.0, "Speed multiplier (1.0=normal, 2.0=double, 0.5=half)")
+		
+		// Audio options
+		audioEnabled    = flag.Bool("audio", true, "Enable audio output")
+		audioVolume     = flag.Float64("volume", 1.0, "Audio volume (0.0-1.0)")
+		audioSampleRate = flag.Int("sample-rate", 44100, "Audio sample rate (Hz)")
+		audioBufferSize = flag.Int("buffer-size", 1024, "Audio buffer size (samples)")
+		audioPreset     = flag.String("audio-preset", "default", "Audio preset (default, low_latency, high_quality, retro)")
 	)
 	flag.Parse()
 
@@ -95,20 +112,32 @@ func main() {
 	}
 
 	// Load and run the ROM
-	if err := runEmulator(*romPath, *debugMode, *stepMode, *maxSteps, *maxSpeed, *realTime, *speedMult); err != nil {
+	audioConfig := AudioConfig{
+		Enabled:    *audioEnabled,
+		Volume:     float32(*audioVolume),
+		SampleRate: *audioSampleRate,
+		BufferSize: *audioBufferSize,
+		Preset:     *audioPreset,
+	}
+	if err := runEmulator(*romPath, *debugMode, *stepMode, *maxSteps, *maxSpeed, *realTime, *speedMult, audioConfig); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 // runEmulator loads a ROM and starts the emulation
-func runEmulator(romFile string, debugMode, stepMode bool, maxSteps int, maxSpeed, realTime bool, speedMult float64) error {
+func runEmulator(romFile string, debugMode, stepMode bool, maxSteps int, maxSpeed, realTime bool, speedMult float64, audioConfig AudioConfig) error {
 	fmt.Printf("Loading ROM: %s\n", romFile)
 
 	// Create emulator
 	emu, err := emulator.NewEmulator(romFile)
 	if err != nil {
 		return fmt.Errorf("failed to create emulator: %v", err)
+	}
+
+	// Configure audio from command line options
+	if err := configureAudio(emu, audioConfig); err != nil {
+		return fmt.Errorf("failed to configure audio: %v", err)
 	}
 
 	// Show ROM information
@@ -515,4 +544,61 @@ func scanDirectory(dirPath string) {
 		typeName := (&cartridge.Cartridge{CartridgeType: cartType}).GetCartridgeTypeName()
 		fmt.Printf("  %s: %d\n", typeName, count)
 	}
+}
+
+// configureAudio applies audio configuration to the emulator
+func configureAudio(emu *emulator.Emulator, config AudioConfig) error {
+	// Get current audio configuration
+	currentConfig := emu.Audio.GetConfig()
+	
+	// Create new audio configuration based on command line options
+	newConfig := currentConfig
+	
+	// Apply preset first if specified
+	if config.Preset != "default" {
+		if presetConfig, exists := audio.GetPreset(config.Preset); exists {
+			newConfig = presetConfig
+			fmt.Printf("Audio: Applied preset '%s'\n", config.Preset)
+		} else {
+			fmt.Printf("Warning: Unknown audio preset '%s', using default\n", config.Preset)
+		}
+	}
+	
+	// Override with specific command line options
+	if config.SampleRate != 44100 { // Only override if different from default
+		newConfig.SampleRate = config.SampleRate
+	}
+	if config.BufferSize != 1024 { // Only override if different from default
+		newConfig.BufferSize = config.BufferSize
+	}
+	newConfig.Volume = config.Volume
+	newConfig.Enabled = config.Enabled
+	
+	// Validate configuration
+	if err := audio.ValidateConfig(newConfig); err != nil {
+		return fmt.Errorf("invalid audio configuration: %v", err)
+	}
+	
+	// Apply configuration
+	if err := emu.Audio.Initialize(newConfig); err != nil {
+		return fmt.Errorf("failed to initialize audio with new config: %v", err)
+	}
+	
+	// Enable/disable audio
+	emu.Audio.Enable(config.Enabled)
+	
+	// Set volume
+	if err := emu.Audio.SetVolume(config.Volume); err != nil {
+		return fmt.Errorf("failed to set audio volume: %v", err)
+	}
+	
+	// Print audio status
+	if config.Enabled {
+		fmt.Printf("Audio: Enabled - %d Hz, %d samples buffer, %.1f%% volume\n",
+			newConfig.SampleRate, newConfig.BufferSize, config.Volume*100)
+	} else {
+		fmt.Println("Audio: Disabled")
+	}
+	
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"gameboy-emulator/internal/ppu"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -74,6 +75,11 @@ func TestDMAIntegrationWithEmulator(t *testing.T) {
 		}
 
 		// Check that data has been transferred to OAM
+		// First ensure PPU is in a mode that allows OAM access
+		for emulator.PPU.GetCurrentMode() == ppu.ModeOAMScan || emulator.PPU.GetCurrentMode() == ppu.ModeDrawing {
+			emulator.PPU.Update(1) // Advance PPU until OAM is accessible
+		}
+		
 		for i, expectedValue := range testData {
 			oamValue := emulator.MMU.ReadByte(0xFE00 + uint16(i))
 			assert.Equal(t, expectedValue, oamValue,
