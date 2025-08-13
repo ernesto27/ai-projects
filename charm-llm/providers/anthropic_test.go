@@ -111,7 +111,8 @@ func TestAnthropicProvider_GetResolvedModel(t *testing.T) {
 
 func TestNewAnthropicProvider(t *testing.T) {
 	model := "claude-4"
-	provider := NewAnthropicProvider(model)
+	apiKey := "test-api-key"
+	provider := NewAnthropicProvider(model, apiKey)
 
 	assert.NotNil(t, provider)
 	assert.Equal(t, "anthropic", provider.GetName())

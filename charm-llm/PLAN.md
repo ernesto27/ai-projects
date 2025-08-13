@@ -26,7 +26,7 @@ charmllm -p openai,anthropic -m gpt-4,claude-5 "Create a curl clone using python
 - [x] command to get response in stdout
 - [x] get model from parameters,  set default model if not provided
 - [x] option stream respone
-- [] add open AI provider
+- [x] add open AI provider
 - [] Save response to file
 - [] Pipe file input to the command
 - [] Handle multiple providers in parallel

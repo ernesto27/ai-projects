@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"charm-llm/config"
 	"charm-llm/providers"
 	"charm-llm/tui"
 
@@ -33,8 +34,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&provider, "provider", "p", "", "LLM provider (e.g., openai, anthropic)")
-	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Model name (e.g., claude-3-7, claude-4)")
+	rootCmd.Flags().StringVarP(&provider, "provider", "p", "", "LLM provider (openai, anthropic)")
+	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Model name (e.g., claude-4, gpt-4o, gpt-4o-mini)")
 	rootCmd.Flags().BoolVarP(&stream, "stream", "s", false, "Enable streaming response")
 	rootCmd.MarkFlagRequired("provider")
 }
@@ -51,11 +52,26 @@ func clearScreen() {
 }
 
 func createProvider(providerName, model string) (providers.LLMProvider, error) {
+	cfg, err := config.Load()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load configuration: %v", err)
+	}
+
 	switch strings.ToLower(providerName) {
 	case "anthropic":
-		return providers.NewAnthropicProvider(model), nil
+		apiKey := cfg.GetAnthropicKey()
+		if apiKey == "" {
+			return nil, fmt.Errorf("Anthropic API key not found. Set it with: charm-llm config set-anthropic-key YOUR_KEY")
+		}
+		return providers.NewAnthropicProvider(model, apiKey), nil
+	case "openai":
+		apiKey := cfg.GetOpenAIKey()
+		if apiKey == "" {
+			return nil, fmt.Errorf("OpenAI API key not found. Set it with: charm-llm config set-openai-key YOUR_KEY")
+		}
+		return providers.NewOpenAIProvider(model, apiKey), nil
 	default:
-		return nil, fmt.Errorf("unsupported provider: %s", providerName)
+		return nil, fmt.Errorf("Provider '%s' is not supported. Available providers: anthropic, openai", providerName)
 	}
 }
 

@@ -3,7 +3,6 @@ package providers
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -38,9 +37,9 @@ func parseModelName(shortName string) anthropic.Model {
 	}
 }
 
-func NewAnthropicProvider(model string) *AnthropicProvider {
+func NewAnthropicProvider(model string, apiKey string) *AnthropicProvider {
 	client := anthropic.NewClient(
-		option.WithAPIKey(os.Getenv("ANTHROPIC_API_KEY")),
+		option.WithAPIKey(apiKey),
 	)
 
 	return &AnthropicProvider{
