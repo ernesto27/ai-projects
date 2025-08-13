@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -17,9 +20,10 @@ import (
 )
 
 var (
-	provider string
-	model    string
-	stream   bool
+	provider   string
+	model      string
+	stream     bool
+	saveToFile bool
 )
 
 var rootCmd = &cobra.Command{
@@ -29,7 +33,7 @@ var rootCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		prompt := args[0]
-		handleRequest(provider, model, prompt, stream)
+		handleRequest(provider, model, prompt, stream, saveToFile)
 	},
 }
 
@@ -37,7 +41,35 @@ func init() {
 	rootCmd.Flags().StringVarP(&provider, "provider", "p", "", "LLM provider (openai, anthropic)")
 	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Model name (e.g., claude-4, gpt-4o, gpt-4o-mini)")
 	rootCmd.Flags().BoolVarP(&stream, "stream", "s", false, "Enable streaming response")
+	rootCmd.Flags().BoolVarP(&saveToFile, "save-to-file", "f", false, "Save response to a random txt file")
 	rootCmd.MarkFlagRequired("provider")
+}
+
+func generateRandomFilename() string {
+	bytes := make([]byte, 8)
+	rand.Read(bytes)
+	return fmt.Sprintf("response_%s.txt", hex.EncodeToString(bytes))
+}
+
+func saveResponseToFile(content string) error {
+	filename := generateRandomFilename()
+	
+	// Get current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %v", err)
+	}
+	
+	filePath := filepath.Join(wd, filename)
+	
+	// Write content to file
+	err = os.WriteFile(filePath, []byte(content), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %v", err)
+	}
+	
+	fmt.Printf("💾 Response saved to: %s\n", filename)
+	return nil
 }
 
 func clearScreen() {
@@ -75,7 +107,7 @@ func createProvider(providerName, model string) (providers.LLMProvider, error) {
 	}
 }
 
-func handleRequest(provider, model, prompt string, stream bool) {
+func handleRequest(provider, model, prompt string, stream bool, saveToFile bool) {
 	clearScreen()
 
 	// Create provider first to get resolved model name
@@ -99,14 +131,14 @@ func handleRequest(provider, model, prompt string, stream bool) {
 	fmt.Println()
 
 	if stream {
-		handleStreamingResponse(llmProvider, prompt)
+		handleStreamingResponse(llmProvider, prompt, saveToFile)
 	} else {
 		// Handle regular response with spinner
-		handleNonStreamingResponse(llmProvider, prompt)
+		handleNonStreamingResponse(llmProvider, prompt, saveToFile)
 	}
 }
 
-func handleStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
+func handleStreamingResponse(llmProvider providers.LLMProvider, prompt string, saveToFile bool) {
 	ctx := context.Background()
 
 	fmt.Println("🤖 Response:")
@@ -139,6 +171,15 @@ func handleStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
 						}
 					}
 				}
+				
+				// Save to file if requested
+				if saveToFile {
+					if err := saveResponseToFile(fullResponse.String()); err != nil {
+						errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error saving to file: %s", err.Error()))
+						fmt.Println(errorMsg)
+					}
+				}
+				
 				fmt.Println()
 				return
 			}
@@ -158,7 +199,7 @@ func handleStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
 	}
 }
 
-func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
+func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string, saveToFile bool) {
 	var response string
 
 	err := tui.ShowSpinnerWhile("Thinking...", func(ctx context.Context) error {
@@ -182,6 +223,14 @@ func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string
 		// Fallback to plain styling if glamour fails
 		styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
 		fmt.Println(styledResponse)
+		
+		// Save to file if requested
+		if saveToFile {
+			if err := saveResponseToFile(response); err != nil {
+				errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error saving to file: %s", err.Error()))
+				fmt.Println(errorMsg)
+			}
+		}
 		return
 	}
 
@@ -190,6 +239,14 @@ func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string
 		// Fallback to plain styling if rendering fails
 		styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
 		fmt.Println(styledResponse)
+		
+		// Save to file if requested
+		if saveToFile {
+			if err := saveResponseToFile(response); err != nil {
+				errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error saving to file: %s", err.Error()))
+				fmt.Println(errorMsg)
+			}
+		}
 		return
 	}
 
@@ -197,6 +254,14 @@ func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string
 	fmt.Println("🤖 Response:")
 	fmt.Println()
 	fmt.Print(out)
+	
+	// Save to file if requested
+	if saveToFile {
+		if err := saveResponseToFile(response); err != nil {
+			errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error saving to file: %s", err.Error()))
+			fmt.Println(errorMsg)
+		}
+	}
 }
 
 func Execute() {
