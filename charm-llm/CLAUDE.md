@@ -89,3 +89,4 @@ Uses Charmbracelet libraries for rich terminal output:
 - `gpt-4` → GPT-4
 - `gpt-4-turbo` → GPT-4 Turbo
 - `gpt-3` → GPT-3.5 Turbo
+- do not test cli app using go build, i test myself

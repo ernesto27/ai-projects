@@ -77,7 +77,7 @@ func createProvider(providerName, model string) (providers.LLMProvider, error) {
 
 func handleRequest(provider, model, prompt string, stream bool) {
 	clearScreen()
-	
+
 	// Create provider first to get resolved model name
 	llmProvider, err := createProvider(provider, model)
 	if err != nil {
@@ -98,96 +98,105 @@ func handleRequest(provider, model, prompt string, stream bool) {
 	fmt.Println(styledPrompt)
 	fmt.Println()
 
-	// Show loading text
-	fmt.Println("🤔 Thinking...")
-
-	ctx := context.Background()
-	
 	if stream {
-		// Handle streaming response
-		fmt.Println("🤖 Response:")
-		fmt.Println()
-		
-		textChan, errChan := llmProvider.GetStreamResponse(ctx, prompt)
-		
-		var fullResponse strings.Builder
-		
-		for {
-			select {
-			case chunk, ok := <-textChan:
-				if !ok {
-					// Streaming finished, render final markdown
-					finalText := fullResponse.String()
-					if finalText != "" {
-						r, err := glamour.NewTermRenderer(
-							glamour.WithAutoStyle(),
-							glamour.WithWordWrap(tui.GetTerminalWidth()-6),
-						)
-						if err == nil {
-							if out, err := r.Render(finalText); err == nil {
-								// Clear the line and move cursor to beginning of response
-								fmt.Print("\r\033[K")
-								// Move cursor up to beginning of response
-								lines := strings.Count(fullResponse.String(), "\n") + 1
-								if lines > 1 {
-									fmt.Printf("\033[%dA", lines)
-								}
-								fmt.Print(out)
+		handleStreamingResponse(llmProvider, prompt)
+	} else {
+		// Handle regular response with spinner
+		handleNonStreamingResponse(llmProvider, prompt)
+	}
+}
+
+func handleStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
+	ctx := context.Background()
+
+	fmt.Println("🤖 Response:")
+	fmt.Println()
+
+	textChan, errChan := llmProvider.GetStreamResponse(ctx, prompt)
+	var fullResponse strings.Builder
+
+	for {
+		select {
+		case chunk, ok := <-textChan:
+			if !ok {
+				// Streaming finished, render final markdown
+				finalText := fullResponse.String()
+				if finalText != "" {
+					r, err := glamour.NewTermRenderer(
+						glamour.WithAutoStyle(),
+						glamour.WithWordWrap(tui.GetTerminalWidth()-6),
+					)
+					if err == nil {
+						if out, err := r.Render(finalText); err == nil {
+							// Clear the line and move cursor to beginning of response
+							fmt.Print("\r\033[K")
+							// Move cursor up to beginning of response
+							lines := strings.Count(fullResponse.String(), "\n") + 1
+							if lines > 1 {
+								fmt.Printf("\033[%dA", lines)
 							}
+							fmt.Print(out)
 						}
 					}
-					fmt.Println()
-					return
 				}
-				fullResponse.WriteString(chunk)
-				fmt.Print(chunk)
-			case err := <-errChan:
-				if err != nil {
-					errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error getting streaming response: %s", err.Error()))
-					fmt.Println(errorMsg)
-					return
-				}
-			case <-ctx.Done():
-				errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Request cancelled: %s", ctx.Err().Error()))
+				fmt.Println()
+				return
+			}
+			fullResponse.WriteString(chunk)
+			fmt.Print(chunk)
+		case err := <-errChan:
+			if err != nil {
+				errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error getting streaming response: %s", err.Error()))
 				fmt.Println(errorMsg)
 				return
 			}
-		}
-	} else {
-		// Handle regular response
-		response, err := llmProvider.GetResponse(ctx, prompt)
-
-		if err != nil {
-			errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error getting response: %s", err.Error()))
+		case <-ctx.Done():
+			errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Request cancelled: %s", ctx.Err().Error()))
 			fmt.Println(errorMsg)
 			return
 		}
-
-		// Render markdown response
-		r, err := glamour.NewTermRenderer(
-			glamour.WithAutoStyle(),
-			glamour.WithWordWrap(tui.GetTerminalWidth()-6),
-		)
-		if err != nil {
-			// Fallback to plain styling if glamour fails
-			styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
-			fmt.Println(styledResponse)
-			return
-		}
-
-		out, err := r.Render(response)
-		if err != nil {
-			// Fallback to plain styling if rendering fails
-			styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
-			fmt.Println(styledResponse)
-			return
-		}
-
-		// Display the beautifully rendered markdown
-		fmt.Println("🤖 Response:")
-		fmt.Println()
-		fmt.Print(out)
 	}
+}
+
+func handleNonStreamingResponse(llmProvider providers.LLMProvider, prompt string) {
+	var response string
+
+	err := tui.ShowSpinnerWhile("Thinking...", func(ctx context.Context) error {
+		resp, err := llmProvider.GetResponse(ctx, prompt)
+		response = resp
+		return err
+	})
+
+	if err != nil {
+		errorMsg := tui.ErrorStyle.Render(fmt.Sprintf("❌ Error getting response: %s", err.Error()))
+		fmt.Println(errorMsg)
+		return
+	}
+
+	// Render markdown response
+	r, err := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(tui.GetTerminalWidth()-6),
+	)
+	if err != nil {
+		// Fallback to plain styling if glamour fails
+		styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
+		fmt.Println(styledResponse)
+		return
+	}
+
+	out, err := r.Render(response)
+	if err != nil {
+		// Fallback to plain styling if rendering fails
+		styledResponse := tui.ResponseStyle.Render(fmt.Sprintf("🤖 %s", response))
+		fmt.Println(styledResponse)
+		return
+	}
+
+	// Display the beautifully rendered markdown
+	fmt.Println("🤖 Response:")
+	fmt.Println()
+	fmt.Print(out)
 }
 
 func Execute() {
