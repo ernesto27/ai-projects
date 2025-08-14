@@ -2,6 +2,8 @@ package providers
 
 import "context"
 
+const MAX_TOKENS = 4000
+
 type LLMProvider interface {
 	GetResponse(ctx context.Context, prompt string) (string, error)
 	GetStreamResponse(ctx context.Context, prompt string) (<-chan string, <-chan error)

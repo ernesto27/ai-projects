@@ -60,9 +60,9 @@ func createChatParams(model openai.ChatModel, prompt string) openai.ChatCompleti
 	}
 
 	if usesMaxCompletionTokens(model) {
-		params.MaxCompletionTokens = openai.Int(1000)
+		params.MaxCompletionTokens = openai.Int(MAX_TOKENS)
 	} else {
-		params.MaxTokens = openai.Int(1000)
+		params.MaxTokens = openai.Int(MAX_TOKENS)
 	}
 
 	return params

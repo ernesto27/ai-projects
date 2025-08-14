@@ -56,7 +56,7 @@ func (a *AnthropicProvider) GetResponse(ctx context.Context, prompt string) (str
 
 	message, err := a.Client.Messages.New(ctx, anthropic.MessageNewParams{
 		Model:     model,
-		MaxTokens: 1000,
+		MaxTokens: MAX_TOKENS,
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
 		},
@@ -84,7 +84,7 @@ func (a *AnthropicProvider) GetStreamResponse(ctx context.Context, prompt string
 
 		stream := a.Client.Messages.NewStreaming(ctx, anthropic.MessageNewParams{
 			Model:     model,
-			MaxTokens: 1000,
+			MaxTokens: MAX_TOKENS,
 			Messages: []anthropic.MessageParam{
 				anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
 			},
