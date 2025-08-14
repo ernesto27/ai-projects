@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"gameboy-emulator/internal/apu"
+	"gameboy-emulator/internal/audio"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/display"
 	"gameboy-emulator/internal/input"
+	"gameboy-emulator/internal/interrupt"
 	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
+	"gameboy-emulator/internal/ppu"
 )
 
 // EmulatorState represents the current state of the emulator
@@ -45,6 +50,10 @@ type Emulator struct {
 	// Core components
 	CPU       *cpu.CPU
 	MMU       *memory.MMU
+	PPU       *ppu.PPU
+	APU       *apu.APU
+	Display   *display.Display
+	Audio     *audio.AudioOutput
 	Cartridge cartridge.MBC
 	Clock     *Clock
 
@@ -84,6 +93,19 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	// Create CPU first to get interrupt controller
 	cpu := cpu.NewCPU()
 
+	// Create PPU for graphics processing
+	ppuInstance := ppu.NewPPU()
+
+	// Create APU for audio processing
+	apuInstance := apu.NewAPU()
+
+	// Create audio system with SDL2 output
+	audioImpl := audio.NewSDL2AudioOutput()
+	audioInstance := audio.NewAudioOutput(audioImpl)
+
+	// Create display system with console output
+	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
+
 	// Create input system components
 	joypadInstance := joypad.NewJoypad()
 	inputManager := input.NewInputManager(joypadInstance)
@@ -98,6 +120,10 @@ func NewEmulator(romPath string) (*Emulator, error) {
 	emulator := &Emulator{
 		CPU:             cpu,
 		MMU:             mmu,
+		PPU:             ppuInstance,
+		APU:             apuInstance,
+		Display:         displayInstance,
+		Audio:           audioInstance,
 		Cartridge:       mbc,
 		Clock:           clock,
 		InputManager:    inputManager,
@@ -109,6 +135,41 @@ func NewEmulator(romPath string) (*Emulator, error) {
 		RealTimeMode:    true,
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,
+	}
+
+	// Connect PPU to MMU for memory access
+	mmu.SetPPU(ppuInstance)
+	
+	// Connect VRAM interface - PPU uses itself as the VRAM interface
+	// This allows PPU renderers to access the PPU's own VRAM/OAM data
+	ppuInstance.SetVRAMInterface(ppuInstance)
+
+	// Initialize display with default configuration
+	displayConfig := display.DisplayConfig{
+		ScaleFactor: 1,
+		ScalingMode: display.ScaleNearest,
+		Palette: display.ColorPalette{
+			White:     display.RGBColor{R: 155, G: 188, B: 15},  // Game Boy green (lightest)
+			LightGray: display.RGBColor{R: 139, G: 172, B: 15},  // Light green
+			DarkGray:  display.RGBColor{R: 48, G: 98, B: 48},    // Dark green
+			Black:     display.RGBColor{R: 15, G: 56, B: 15},    // Game Boy green (darkest)
+		},
+		VSync:   true,
+		ShowFPS: false,
+	}
+	if err := displayInstance.Initialize(displayConfig); err != nil {
+		return nil, fmt.Errorf("failed to initialize display: %v", err)
+	}
+
+	// Initialize audio with default configuration
+	audioConfig := audio.DefaultConfig()
+	if err := audioInstance.Initialize(audioConfig); err != nil {
+		return nil, fmt.Errorf("failed to initialize audio: %v", err)
+	}
+
+	// Start audio playback
+	if err := audioInstance.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start audio: %v", err)
 	}
 
 	// Set initial Game Boy state (post-boot)
@@ -211,6 +272,52 @@ func (e *Emulator) Step() error {
 		return err
 	}
 
+	// Update all hardware components with CPU cycles
+	// PPU: Update graphics rendering pipeline
+	ppuInterruptRequested := e.PPU.Update(uint8(cycles))
+	
+	// Handle PPU interrupts (V-Blank, LCD Status)
+	if ppuInterruptRequested {
+		// PPU determines which specific interrupt to trigger based on its internal state
+		e.handlePPUInterrupts()
+	}
+	
+	// APU: Update audio processing and generate samples
+	e.APU.Update(uint8(cycles))
+	
+	// Get audio samples from APU and send to audio output
+	if audioSamples := e.APU.GetSamples(); audioSamples != nil {
+		// Convert float32 samples to int16 for SDL2
+		int16Samples := make([]int16, len(audioSamples)*2) // Stereo conversion
+		for i, sample := range audioSamples {
+			// Clamp sample to [-1.0, 1.0] and convert to int16
+			if sample > 1.0 {
+				sample = 1.0
+			} else if sample < -1.0 {
+				sample = -1.0
+			}
+			int16Sample := int16(sample * 32767)
+			int16Samples[i*2] = int16Sample   // Left channel
+			int16Samples[i*2+1] = int16Sample // Right channel (mono to stereo)
+		}
+		
+		// Send samples to audio output (non-blocking)
+		if err := e.Audio.PushSamples(int16Samples); err != nil && err != audio.ErrBufferOverflow {
+			// Log audio errors but don't stop emulation (except for critical errors)
+			// Only stop for non-overflow errors
+			return fmt.Errorf("audio output error: %v", err)
+		}
+	}
+	
+	// Check for frame completion and render to display
+	// Frame completes when PPU enters V-Blank (scanline 144)
+	if e.PPU.GetCurrentScanline() == 144 && e.PPU.GetCurrentMode() == ppu.ModeVBlank {
+		// PPU completed a full frame, render it to display
+		if err := e.Display.Present(&e.PPU.Framebuffer); err != nil {
+			return fmt.Errorf("display present error: %v", err)
+		}
+	}
+	
 	// Update timing
 	e.Clock.AddCycles(cycles)
 	e.InstructionCount++
@@ -251,6 +358,29 @@ func (e *Emulator) Reset() {
 	if e.InputManager != nil {
 		e.InputManager.Reset()
 	}
+}
+
+// Cleanup releases all emulator resources
+func (e *Emulator) Cleanup() error {
+	// Stop and cleanup audio
+	if e.Audio != nil {
+		if err := e.Audio.Stop(); err != nil {
+			// Log error but continue cleanup
+		}
+		if err := e.Audio.Cleanup(); err != nil {
+			return fmt.Errorf("failed to cleanup audio: %v", err)
+		}
+	}
+	
+	// Cleanup display
+	if e.Display != nil {
+		if err := e.Display.Cleanup(); err != nil {
+			return fmt.Errorf("failed to cleanup display: %v", err)
+		}
+	}
+	
+	e.State = StateStopped
+	return nil
 }
 
 // GetState returns current emulator state
@@ -478,4 +608,31 @@ func (e *Emulator) GetButtonStates() map[string]bool {
 		return e.InputManager.GetButtonStates()
 	}
 	return make(map[string]bool)
+}
+
+// handlePPUInterrupts processes PPU interrupt requests
+func (e *Emulator) handlePPUInterrupts() {
+	currentScanline := e.PPU.GetCurrentScanline()
+	currentMode := e.PPU.GetCurrentMode()
+	
+	// V-Blank interrupt: Triggered when entering V-Blank (scanline 144)
+	if currentScanline == 144 && currentMode == ppu.ModeVBlank {
+		e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptVBlank)
+	}
+	
+	// LCD Status interrupt: Triggered on various PPU events
+	if e.shouldTriggerLCDStatInterrupt() {
+		e.CPU.InterruptController.RequestInterrupt(interrupt.InterruptLCDStat)
+	}
+}
+
+// shouldTriggerLCDStatInterrupt determines if LCD STAT interrupt should be triggered
+// This is a simplified implementation - the actual Game Boy PPU has complex STAT interrupt logic
+func (e *Emulator) shouldTriggerLCDStatInterrupt() bool {
+	// For now, only trigger STAT interrupt on LYC=LY condition
+	// In a full implementation, this would check various STAT interrupt enable bits
+	lyc := e.PPU.GetLYC()
+	ly := e.PPU.GetCurrentScanline()
+	
+	return lyc == ly && lyc != 0 // Simple LYC=LY interrupt condition
 }

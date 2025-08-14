@@ -5,9 +5,11 @@ import (
 
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
+	"gameboy-emulator/internal/display"
 	"gameboy-emulator/internal/input"
 	"gameboy-emulator/internal/joypad"
 	"gameboy-emulator/internal/memory"
+	"gameboy-emulator/internal/ppu"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -275,6 +277,12 @@ func createEmulatorFromMBC(mbc cartridge.MBC) (*Emulator, error) {
 	// Create CPU first to get interrupt controller
 	cpuInstance := cpu.NewCPU()
 
+	// Create PPU for graphics processing
+	ppuInstance := ppu.NewPPU()
+
+	// Create display system with console output
+	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
+
 	// Create input system components
 	joypadInstance := joypad.NewJoypad()
 	inputManager := input.NewInputManager(joypadInstance)
@@ -289,6 +297,8 @@ func createEmulatorFromMBC(mbc cartridge.MBC) (*Emulator, error) {
 	emulator := &Emulator{
 		CPU:             cpuInstance,
 		MMU:             mmu,
+		PPU:             ppuInstance,
+		Display:         displayInstance,
 		Cartridge:       mbc,
 		Clock:           clock,
 		InputManager:    inputManager,
@@ -300,6 +310,29 @@ func createEmulatorFromMBC(mbc cartridge.MBC) (*Emulator, error) {
 		RealTimeMode:    true,
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,
+	}
+
+	// Connect PPU to MMU for memory access
+	mmu.SetPPU(ppuInstance)
+	
+	// Connect VRAM interface - PPU uses itself as the VRAM interface
+	ppuInstance.SetVRAMInterface(ppuInstance)
+
+	// Initialize display with default configuration
+	displayConfig := display.DisplayConfig{
+		ScaleFactor: 1,
+		ScalingMode: display.ScaleNearest,
+		Palette: display.ColorPalette{
+			White:     display.RGBColor{R: 155, G: 188, B: 15},
+			LightGray: display.RGBColor{R: 139, G: 172, B: 15},
+			DarkGray:  display.RGBColor{R: 48, G: 98, B: 48},
+			Black:     display.RGBColor{R: 15, G: 56, B: 15},
+		},
+		VSync:   true,
+		ShowFPS: false,
+	}
+	if err := displayInstance.Initialize(displayConfig); err != nil {
+		return nil, err
 	}
 
 	// Set initial Game Boy state (post-boot)
