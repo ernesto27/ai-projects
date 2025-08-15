@@ -34,6 +34,11 @@ go run . -p anthropic -m claude-4 -s "Explain this code"
 # OpenAI usage
 go run . -p openai -m gpt-4o "Write a function to sort an array"
 
+# Compare responses from all available providers
+go run . -c "Create a curl clone using python"
+go run . -c -m "anthropic:claude-4,openai:gpt-4o" "Compare with specific models"
+go run . -c -m "anthropic:claude-3-5" "Specify model for some providers"
+
 # Configuration management
 go run . config set-anthropic-key YOUR_API_KEY
 go run . config set-openai-key YOUR_API_KEY
@@ -46,7 +51,7 @@ go run . config show
 
 - **main.go**: Entry point that delegates to cmd package
 - **cmd/**: Cobra CLI commands and main application logic
-  - `root.go`: Main command with provider/model selection and request handling
+  - `root.go`: Main command with provider/model selection, request handling, and parallel comparison
   - `config.go`: API key management subcommands
 - **providers/**: LLM provider implementations
   - `provider.go`: Interface definition and base provider
@@ -66,12 +71,30 @@ The app uses a provider interface pattern where each LLM service implements:
 
 API keys are stored securely in `~/.config/charm-llm/config.json` with 0600 permissions. The app supports both file-based config and environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY).
 
+### Compare Mode
+
+The `-c` flag enables parallel comparison of responses from all configured providers:
+- Executes requests to all available providers simultaneously using goroutines
+- Displays responses in a beautifully formatted comparison view
+- Shows individual response times and total execution time
+- Handles partial failures gracefully (shows successful responses even if some providers fail)
+- Supports provider-specific model selection with `provider:model` syntax
+- Only non-streaming mode (streaming disabled for clean comparison output)
+- Can save combined responses to markdown file with `-f` flag
+
+### Provider-Specific Models
+In compare mode, use the `provider:model` syntax to specify different models for each provider:
+- `-m "anthropic:claude-4,openai:gpt-4o"` - specific models for both providers
+- `-m "anthropic:claude-3-5"` - specific model for anthropic, default for openai
+- No `-m` flag - uses default models for all providers
+
 ### UI/UX
 
 Uses Charmbracelet libraries for rich terminal output:
 - Glamour for markdown rendering of responses
 - Lipgloss for styled terminal output
 - Custom styling in tui/styles.go
+- Color-coded provider sections in compare mode
 
 ## Model Shortcuts
 

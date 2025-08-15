@@ -16,7 +16,7 @@ type OpenAIProvider struct {
 
 func parseOpenAIModelName(shortName string) openai.ChatModel {
 	if shortName == "" {
-		return openai.ChatModelGPT4o
+		return openai.ChatModelGPT4
 	}
 
 	shortName = strings.ToLower(strings.TrimSpace(shortName))

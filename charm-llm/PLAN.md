@@ -32,5 +32,7 @@ charmllm -p openai,anthropic -m gpt-4,claude-5 "Create a curl clone using python
 - [] Gemini provider
 - [] copy response to clipboard
 - [] show loading
+- [] GPT5 response when code is empty
 - [] Pipe file input to the command
 - [] Handle multiple providers in parallel
+- [] add pararm for max tokens
