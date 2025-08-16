@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gameboy-emulator/internal/apu"
+	"gameboy-emulator/internal/audio"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
 	"gameboy-emulator/internal/display"
@@ -14,6 +16,7 @@ import (
 	"gameboy-emulator/internal/memory"
 	"gameboy-emulator/internal/ppu"
 )
+
 
 func TestNewEmulator(t *testing.T) {
 	emulator := createTestEmulator(t)
@@ -273,6 +276,13 @@ func createTestEmulator(t *testing.T) *Emulator {
 	ppuInstance := ppu.NewPPU()
 	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
 	
+	// Create APU for audio processing
+	apuInstance := apu.NewAPU()
+	
+	// Create audio system with mock output for tests
+	audioImpl := &MockAudioImpl{}
+	audioInstance := audio.NewAudioOutput(audioImpl)
+	
 	joypadInstance := joypad.NewJoypad()
 	inputManager := input.NewInputManager(joypadInstance)
 	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
@@ -281,7 +291,9 @@ func createTestEmulator(t *testing.T) *Emulator {
 		CPU:             cpuInstance,
 		MMU:             mmu,
 		PPU:             ppuInstance,
+		APU:             apuInstance,
 		Display:         displayInstance,
+		Audio:           audioInstance,
 		Cartridge:       mbc,
 		InputManager:    inputManager,
 		Joypad:          joypadInstance,
@@ -333,18 +345,27 @@ func createTestEmulatorWithROM(t *testing.T, romData []byte) *Emulator {
 	ppuInstance := ppu.NewPPU()
 	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
 	
+	// Create APU for audio processing
+	apuInstance := apu.NewAPU()
+	
+	// Create audio system with mock output for tests
+	audioImpl := &MockAudioImpl{}
+	audioInstance := audio.NewAudioOutput(audioImpl)
+	
 	joypadInstance := joypad.NewJoypad()
 	mmu := memory.NewMMU(mbc, cpuInstance.InterruptController, joypadInstance)
 
 	emulator := &Emulator{
-		CPU:         cpuInstance,
-		MMU:         mmu,
-		PPU:         ppuInstance,
-		Display:     displayInstance,
-		Cartridge:   mbc,
-		State:       StateStopped,
-		Breakpoints: make(map[uint16]bool),
-		Clock:       NewClock(),
+		CPU:             cpuInstance,
+		MMU:             mmu,
+		PPU:             ppuInstance,
+		APU:             apuInstance,
+		Display:         displayInstance,
+		Audio:           audioInstance,
+		Cartridge:       mbc,
+		State:           StateStopped,
+		Breakpoints:     make(map[uint16]bool),
+		Clock:           NewClock(),
 		RealTimeMode:    true,
 		MaxSpeedMode:    false,
 		SpeedMultiplier: 1.0,

@@ -2,7 +2,6 @@ package audio
 
 import (
 	"fmt"
-	"sync"
 	"unsafe"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -10,21 +9,16 @@ import (
 
 // SDL2AudioOutput implements AudioOutputInterface using SDL2 audio
 type SDL2AudioOutput struct {
-	deviceID   sdl.AudioDeviceID
-	spec       *sdl.AudioSpec
-	config     AudioConfig
-	playing    bool
-	buffer     []int16
-	bufferMux  sync.Mutex
-	sampleChan chan []int16
+	deviceID    sdl.AudioDeviceID
+	spec        *sdl.AudioSpec
+	config      AudioConfig
+	playing     bool
 	initialized bool
 }
 
 // NewSDL2AudioOutput creates a new SDL2 audio output implementation
 func NewSDL2AudioOutput() *SDL2AudioOutput {
-	return &SDL2AudioOutput{
-		sampleChan: make(chan []int16, 10), // Buffered channel for samples
-	}
+	return &SDL2AudioOutput{}
 }
 
 // Initialize sets up SDL2 audio with the given configuration
@@ -44,7 +38,7 @@ func (s *SDL2AudioOutput) Initialize(config AudioConfig) error {
 		Format:   sdl.AUDIO_S16LSB, // 16-bit signed little-endian
 		Channels: Channels,         // Stereo
 		Samples:  uint16(config.BufferSize),
-		Callback: sdl.AudioCallback(s.audioCallback),
+		Callback: nil, // Use queue-based audio instead of callback
 	}
 
 	// Open audio device
@@ -57,7 +51,6 @@ func (s *SDL2AudioOutput) Initialize(config AudioConfig) error {
 	s.deviceID = deviceID
 	s.spec = spec
 	s.config = config
-	s.buffer = make([]int16, config.BufferSize*Channels)
 	s.initialized = true
 
 	return nil
@@ -108,14 +101,15 @@ func (s *SDL2AudioOutput) PushSamples(samples []int16) error {
 	copy(volumeScaledSamples, samples)
 	ApplyVolume(volumeScaledSamples, s.config.Volume)
 
-	// Send samples to the audio callback via channel
-	select {
-	case s.sampleChan <- volumeScaledSamples:
-		return nil
-	default:
-		// Channel is full, drop samples to prevent blocking
-		return ErrBufferOverflow
+	// Convert to bytes for SDL2
+	sampleBytes := (*[1 << 30]byte)(unsafe.Pointer(&volumeScaledSamples[0]))[:len(volumeScaledSamples)*2:len(volumeScaledSamples)*2]
+	
+	// Queue audio data to SDL2
+	if err := sdl.QueueAudio(s.deviceID, sampleBytes); err != nil {
+		return fmt.Errorf("failed to queue audio: %v", err)
 	}
+
+	return nil
 }
 
 // SetVolume adjusts the master volume
@@ -144,8 +138,24 @@ func (s *SDL2AudioOutput) IsPlaying() bool {
 
 // GetBufferLevel returns the current buffer fill level (0.0-1.0)
 func (s *SDL2AudioOutput) GetBufferLevel() float32 {
-	// Return the channel buffer level as a percentage
-	return float32(len(s.sampleChan)) / 10.0 // Channel capacity is 10
+	if !s.initialized {
+		return 0.0
+	}
+	
+	// Get queued audio size from SDL2
+	queuedSize := sdl.GetQueuedAudioSize(s.deviceID)
+	maxBufferSize := uint32(s.config.BufferSize * Channels * 2) // 2 bytes per sample
+	
+	if maxBufferSize == 0 {
+		return 0.0
+	}
+	
+	level := float32(queuedSize) / float32(maxBufferSize)
+	if level > 1.0 {
+		level = 1.0
+	}
+	
+	return level
 }
 
 // Cleanup releases SDL2 audio resources
@@ -165,59 +175,7 @@ func (s *SDL2AudioOutput) Cleanup() error {
 	// Quit SDL2 audio subsystem
 	sdl.Quit()
 
-	// Close channel
-	close(s.sampleChan)
-
 	s.initialized = false
 	return nil
 }
 
-// audioCallback is called by SDL2 when it needs more audio data
-// This function runs in a separate thread created by SDL2
-func (s *SDL2AudioOutput) audioCallback(userdata unsafe.Pointer, stream *uint8, length int32) {
-	// Calculate number of samples needed
-	samplesNeeded := int(length) / 2 // 2 bytes per int16 sample
-
-	// Lock buffer access
-	s.bufferMux.Lock()
-	defer s.bufferMux.Unlock()
-
-	// Clear the buffer first
-	for i := 0; i < samplesNeeded && i < len(s.buffer); i++ {
-		s.buffer[i] = 0
-	}
-
-	// Try to get samples from the channel
-	select {
-	case samples := <-s.sampleChan:
-		// Copy samples to buffer, handling different lengths
-		copyLen := samplesNeeded
-		if len(samples) < copyLen {
-			copyLen = len(samples)
-		}
-		if copyLen > len(s.buffer) {
-			copyLen = len(s.buffer)
-		}
-
-		copy(s.buffer[:copyLen], samples[:copyLen])
-
-	default:
-		// No samples available, buffer remains silent (zeros)
-	}
-
-	// Copy buffer to SDL2 audio stream
-	// Convert from []int16 to []uint8 for SDL2
-	bufferBytes := (*[2]uint8)(unsafe.Pointer(&s.buffer[0]))
-	streamSlice := (*[1 << 30]uint8)(unsafe.Pointer(stream))[:length:length]
-
-	copyBytes := int(length)
-	if len(s.buffer)*2 < copyBytes {
-		copyBytes = len(s.buffer) * 2
-	}
-
-	for i := 0; i < copyBytes && i < len(s.buffer)*2; i++ {
-		if i < len(streamSlice) {
-			streamSlice[i] = bufferBytes[i]
-		}
-	}
-}

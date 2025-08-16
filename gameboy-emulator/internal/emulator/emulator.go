@@ -288,7 +288,7 @@ func (e *Emulator) Step() error {
 	// Get audio samples from APU and send to audio output
 	if audioSamples := e.APU.GetSamples(); audioSamples != nil {
 		// Convert float32 samples to int16 for SDL2
-		int16Samples := make([]int16, len(audioSamples)*2) // Stereo conversion
+		int16Samples := make([]int16, len(audioSamples))
 		for i, sample := range audioSamples {
 			// Clamp sample to [-1.0, 1.0] and convert to int16
 			if sample > 1.0 {
@@ -296,16 +296,15 @@ func (e *Emulator) Step() error {
 			} else if sample < -1.0 {
 				sample = -1.0
 			}
-			int16Sample := int16(sample * 32767)
-			int16Samples[i*2] = int16Sample   // Left channel
-			int16Samples[i*2+1] = int16Sample // Right channel (mono to stereo)
+			int16Samples[i] = int16(sample * 32767)
 		}
 		
-		// Send samples to audio output (non-blocking)
-		if err := e.Audio.PushSamples(int16Samples); err != nil && err != audio.ErrBufferOverflow {
-			// Log audio errors but don't stop emulation (except for critical errors)
-			// Only stop for non-overflow errors
-			return fmt.Errorf("audio output error: %v", err)
+		// Send samples to audio output
+		if err := e.Audio.PushSamples(int16Samples); err != nil {
+			// Log audio errors but don't stop emulation for buffer overflow
+			if err != audio.ErrBufferOverflow {
+				return fmt.Errorf("audio output error: %v", err)
+			}
 		}
 	}
 	

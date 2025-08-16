@@ -3,6 +3,8 @@ package emulator
 import (
 	"testing"
 
+	"gameboy-emulator/internal/apu"
+	"gameboy-emulator/internal/audio"
 	"gameboy-emulator/internal/cartridge"
 	"gameboy-emulator/internal/cpu"
 	"gameboy-emulator/internal/display"
@@ -13,6 +15,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// MockAudioImpl implements AudioOutputInterface for testing
+type MockAudioImpl struct{}
+
+func (m *MockAudioImpl) Initialize(config audio.AudioConfig) error { return nil }
+func (m *MockAudioImpl) Start() error                              { return nil }
+func (m *MockAudioImpl) Stop() error                               { return nil }
+func (m *MockAudioImpl) PushSamples(samples []int16) error         { return nil }
+func (m *MockAudioImpl) SetVolume(volume float32) error            { return nil }
+func (m *MockAudioImpl) GetConfig() audio.AudioConfig              { return audio.DefaultConfig() }
+func (m *MockAudioImpl) IsPlaying() bool                           { return false }
+func (m *MockAudioImpl) GetBufferLevel() float32                   { return 0.0 }
+func (m *MockAudioImpl) Cleanup() error                            { return nil }
 
 // TestJoypadIntegrationWithEmulator tests complete joypad integration with the emulator
 func TestJoypadIntegrationWithEmulator(t *testing.T) {
@@ -280,6 +295,13 @@ func createEmulatorFromMBC(mbc cartridge.MBC) (*Emulator, error) {
 	// Create PPU for graphics processing
 	ppuInstance := ppu.NewPPU()
 
+	// Create APU for audio processing
+	apuInstance := apu.NewAPU()
+
+	// Create audio system with mock output for tests
+	audioImpl := &MockAudioImpl{}
+	audioInstance := audio.NewAudioOutput(audioImpl)
+
 	// Create display system with console output
 	displayInstance := display.NewDisplay(display.NewConsoleDisplay())
 
@@ -298,7 +320,9 @@ func createEmulatorFromMBC(mbc cartridge.MBC) (*Emulator, error) {
 		CPU:             cpuInstance,
 		MMU:             mmu,
 		PPU:             ppuInstance,
+		APU:             apuInstance,
 		Display:         displayInstance,
+		Audio:           audioInstance,
 		Cartridge:       mbc,
 		Clock:           clock,
 		InputManager:    inputManager,
