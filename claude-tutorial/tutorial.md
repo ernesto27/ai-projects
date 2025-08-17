@@ -108,7 +108,70 @@ Frontend - React - Listado de posts,  detalle
 Docker compose   
 
 
-- Feature claude API
+
+
+
+# Explicacion, analisis del proyecto.
+Uno de los usos mas efectivos de Claude Code es el analisis,  explicacion de un proyecto, esto puede ser utili en alguno de estos casos.
+
+- Cuando nos incorporamos a un proyecto nuevo que ya tiene un tiempo considerable de desarrollo.
+- Para entender un feature.
+- Para revision de un pull request.
+
+Para esto podriamos usar un promp como el siguiente:
+
+```bash
+Haz un analisis del proyecto, codigo, estructura, dependencias, integraciones, etc.
+Genera un diagrama de flujo base y tambien en formato mermaid,  guarda el contenido en un archivo llamado RESEARCH.md
+```
+
+TODO MOSTRAR EJEMPLO GENERADO
+
+
+# Implementar feature, tarea
+
+A la hora de implementar una tarea, lo recomendable es ser lo mas especifico posible en el prompt,
+esto es importante ya que de otra manera Cluade Code va a inferir, suponer y puede darse que el resultado este lejos de lo que se espera, 
+como toda herramienta si se utiliza de manera incorrecta puede generar mas trabajo que beneficio.
+
+Tomemos como ejemplo que tenemos una API backend en el cual queremos agregar una conexion a una base de datos Mysql
+
+Ejemplo de un mal prompt:
+
+```bash
+Agrega una base de datos mysql a la API.
+```
+
+Si bien esto puede dar un resultado funcional, lo que va a suceder es que claude code va a tomar desiciones que tal vez no sean las esperadas,
+como utlizar una librearia que no queremos,  hacer algo mas complejo de lonecesario , etc.
+
+Un mejor prompt seria:
+
+```bash
+Quiero agregar a la api existente una conexion a la base de datos mysql.
+
+- Agregar servicio mysql en docker compose, utiliza la version 8.
+- Utiliza la libreria "goose" para las migraciones de la base de datos.
+- Utiliza la libreria GORM para la conexion a la base de datos.
+- Crea una tabla llamada "posts" en un archivo de migracion con los siguientes campos: id, title, content
+- Todos los archivo asociados a la base de datos deben estar en una carpeta llamada "db" 
+```
+
+Al detallar en especifo las versiones, librerias,  rutas se puede generar un resultado mas acorde a lo que se espera, 
+asi que siempre es recomendable tomarse unos minutos para pensar el detalle del prompt.
+
+# Revisar cambios.
+
+A medida que Claude code va generando cambios en el proyecto,  nos da la posibilidad de configurar el "auto-accept" ya sea seleccionando esa opcion cuando Claude code quiera editar un archivo o ejecutando el comando o presiando dos veces shift-tab 1 vez.
+
+
+
+
+
+
+
+
+
 
 
 - Agregar mysql8 a docker compose 
