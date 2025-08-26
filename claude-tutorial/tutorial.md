@@ -2,22 +2,24 @@
 
 ## Tabla de contenidos
 
-- Intriduccion, de copilot a claude code 
-- Historia,  definicion de claude
-- Otras herramientas similares
-- Instalacion,  setup.
-- Repositorio para seguir tutorai,  descarga
-- Init claude command 
-- Explain project prompt
-- Add a feature  
-- Fix a bug
-- Use @ to change specific files 
-- Tools description
-- Copy image from clipboard
-- Use commands 
-- Use subagents.
-- Use MCP - playwright
-- use memory
+- [Introducción, definicion](#introducción-definicion)
+- [Instalacion](#instalacion)
+- [Repositorio para seguir el tutorial](#repositorio-para-seguir-el-tutorial)
+- [Init claude command](#init-claude-command)
+- [Explicacion, analisis del proyecto](#explicacion-analisis-del-proyecto)
+- [Implementar feature, tarea](#implementar-feature-tarea)
+- [Revisar cambios](#revisar-cambios)
+- [Use de @ para archivos](#use-de--para-archivos)
+- [Fix BUG](#fix-bug)
+- [Modo plan](#modo-plan)
+- [Modo Thinking](#modo-thinking) - **No implementado aún**
+- [Claude Code Tools](#claude-code-tools)
+- [Agregar imagenes al contexto](#agregar-imagenes-al-contexto)
+- [Uso de comandos](#uso-de-comandos)
+- [Retomar conversacion](#retomar-conversacion)
+- [Uso de sub-agentes](#uso-de-sub-agentes)
+- **Use MCP - playwright** - **No implementado aún**
+- **Use memory** - **No implementado aún**
 
 ## Introducción, definicion
 
@@ -174,6 +176,28 @@ Generalmente cuando tenemos un bug y acceso al texto de este en particular, copi
 Aca puede sumar comentar que fue lo que intentamos previamente hacer para solucionar el bug, agregar archivos,  contexto, etc.
 
 
+# Modo plan
+Claude tiene un model plan, el cual se puede habilitar presionando shift+tab 2 veces.
+
+![Plan](./plan.png)
+
+Este modo es util para tareas medianas/complejas, ya que permite que Claude pueda planificar los pasos a seguir de una manera estructurada, iterando y validando cada paso.
+
+Por ejemplo.
+
+```bash
+Integrate our existing Golang API with AWS services: S3 for file uploads and SQS for async task processing
+```
+
+Ejemplo de resultado:
+
+![Plan result](./plan2.png)
+
+Despues de esto podemos aceptar el plan o seguir ajustando el plan.
+
+
+# Modo Thinking
+
 
 # Claude Code Tools
 
@@ -202,3 +226,164 @@ En el caso de Claude Code, algunas de las tools disponible al momento son:
 - **WebFetch**: Recuperar y analizar contenido web
 - **WebSearch**: Buscar en la web información actual
 
+
+
+# Agregar imagenes al contexto.
+
+Para agregar imagenes a la conversacion, se debe copiar el path de la imagen ( 
+ejemplo ubuntu,  click derecho sobre la imagen y seleccionar "copiar") y  posteriormente pegar con  ctrl+shift+v en la terminal.
+
+Esto nos puede servir tanto para analizar diagramas, diseños, errores, etc.
+
+![Image from clipboard](./image-command.png)
+
+
+# Uso de comandos
+
+Algo que puede suceder es que en algun momento nos encontremos repitiendo una y otra vez el mismo prompt o tarea,  ya sea para explicar un proyecto,  actualizar , revision, etc.
+Para evitar esto podemos crear archivos en formato Markdown en la carpeta `.claude/commands` 
+
+Por ejemplo veamos un comando para hacer un review de seguridad.
+
+securty-audit.md
+```markdown
+Perform a security audit on this code. Look for:
+- SQL injection vulnerabilities
+- XSS risks
+- Authentication/authorization issues
+- Sensitive data exposure
+- Input validation problems
+```
+
+Otro ejemplo de comando para actualizar el archivo README.md con los ultimos cambios.
+
+update-readme.md
+```markdown
+Actualiza README.md con los cambios recientes:
+
+- Analiza archivos modificados y detecta: nuevas features, dependencias, configuraciones, estructura
+- Actualiza secciones afectadas: Features, Installation, Usage, Configuration, API docs
+- Añade/actualiza Changelog con formato: ### Added/Changed/Fixed/Removed
+- Mantén formato y idioma existente, no elimines contenido válido
+- Lista los cambios propuestos antes de aplicarlos
+```
+
+Estos comando se utiliza desde claude code de la siguiente manera:
+
+```bash
+/security-audit
+```
+
+
+```bash
+/update-readme
+```
+
+
+# Retomar conversacion.
+
+Si necesitamos retomar una conversacion previa,  debido a que no terminamos una tarea que no terminamos o presionamos ctrl+c por error,  podemos utilizar el comando:
+
+```bash
+/resume
+```
+
+esto nos va a mostar un listado con las ultimas conversaciones,  seleccionamos la que queremos retomar y podemos proseguir.
+
+![Resume](./resume.png)
+
+
+# Uso de sub-agentes
+Claude nos permiter poder crear sub-agentes, para realizar diversas tareas,  esto puede resultar algo similar a lo que vimos anteriormente con los comandos, pero hacer de esta manera tiene algunas diferencias:
+
+- El agente tiene su propia ventana de contexto, o sea no comparte el contexto con Claude como pasa con los comandos. 
+- Tiene su propio promp de sistem
+- Se pueden habilitar o deshabilitar diferentes tools.
+
+Para crear un sub-agente,  se utiliza el comando:
+
+```bash
+/agent
+```
+Create new aget
+
+![Sub-agent](./agent1.png)
+
+Aca podemos generar un agente especificamente para el proyecto desde el que estemos ejecutando Claude o a nivel general del sistema.
+
+En la opcion siguiente seleccionamos la opcion.
+
+1. Generate with Claude (recommended)
+
+En la siguiente seccion tenemos que definir el rol del agente.
+
+![Sub-agent description](./agent2.png)
+
+En este caso vamos a crear un agente para que genere un code-review del codigo.
+
+Ejemplo
+
+```markdown
+You are a senior Golang specialist performing a comprehensive code review. Analyze this Go code with focus on:
+
+GOLANG BEST PRACTICES:
+- Idiomatic Go patterns and conventions
+- Effective use of goroutines and channels
+- Proper error handling (not just if err != nil)
+- Context usage and cancellation
+- Defer statements placement and usage
+
+PERFORMANCE & MEMORY:
+- Memory allocations and potential leaks
+- Goroutine leaks
+- Efficient use of slices vs arrays
+- String concatenation optimization
+- Sync.Pool usage where appropriate
+- Benchmark-worthy code sections
+
+CONCURRENCY SAFETY:
+- Race conditions
+- Proper mutex usage (sync.Mutex vs sync.RWMutex)
+- Channel deadlocks
+- WaitGroup patterns
+- Atomic operations where needed
+
+CODE STRUCTURE:
+- Interface design and composition
+- Package organization and naming
+- Exported vs unexported identifiers
+- Embedded types usage
+- Method receivers (pointer vs value)
+
+TESTING & RELIABILITY:
+- Table-driven test completeness
+- Benchmark tests for critical paths
+- Race detector compatibility
+- Mock interfaces design
+- Test coverage gaps
+
+SECURITY:
+- SQL injection in database/sql usage
+- Command injection in os/exec
+- Path traversal vulnerabilities
+- Proper crypto package usage
+- Sensitive data in logs
+
+Provide specific line-by-line feedback with severity levels (Critical/Major/Minor) and code examples for improvements. Focus on Go-specific issues that linters might miss.
+``` 
+
+Podemos seleccionar las tools que queremos habilitar, en este caso vamos a dejar todo habilitado como viene por defecto.
+
+![Sub-agent tools](./agent4.png)
+
+Si vemos el contenido de nuestro proyecto,  podemos observar que Claude genero un nuevo archivo en la carpeta `.claude/agents` con el nombre golang-code-reviewer.
+
+Podemos invocar el agente de la siguiente manera:
+
+```bash
+use golang-code-reviewer
+```
+
+Resultado 
+
+![Sub-agent result](./agent-result.png)
