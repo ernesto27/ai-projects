@@ -198,6 +198,21 @@ Despues de esto podemos aceptar el plan o seguir ajustando el plan.
 
 # Modo Thinking
 
+En ciertas ocasiones sucede que Claude no puede resolver o encontrar la solucion a un tarea,  debido a su complejidad, para esto podemos activiar desde el prompt el modo thinking,  esto se hace de la siguiente manera:
+
+Por ejemplo usando este prompt:
+
+```bash
+In Go, my app sometimes hangs, sometimes crashes with concurrent map read and map write, and sometimes gives wrong results under high concurrency. Why does this happen and how can I
+  debug it?",  please think
+```
+
+Resultado:
+![Thinking result](./think1.png)
+
+Esto nos puede llegar a dar un mejor resultado,  aunque tengan en cuenta que en este modo,  se hace un uso mayor de tokens y en consecuencia es mas costoso.
+
+
 
 # Claude Code Tools
 
