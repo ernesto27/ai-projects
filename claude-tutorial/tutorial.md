@@ -21,7 +21,7 @@
 - **Usar memoria** - **No implementado aún**
 - Estilo de agente - **No implementado aún**
 
-## Introducción, definición
+# Introducción, definición
 
 Claude Code desde hace unos meses se convirtió en mi herramienta favorita de IA para tareas relacionadas con la tecnología, como previo usuario de GitHub Copilot y eventual de Cursor noté estas. Si bien Copilot funciona excelente y todavía lo utilizo en algunas ocasiones, noté diferencias en particular que me llevaron a utilizar más Claude Code:
 
@@ -42,7 +42,7 @@ En los últimos meses otras empresas como Google y OpenAI sacaron herramientas s
 
 - **Agnóstico e independiente de editores**: aunque en caso de requerirlo Claude Code se puede integrar con editores como VS Code, Cursor.
 
-## Instalación
+# Instalación
 
 ### Requerimientos
 
@@ -68,7 +68,7 @@ Los ejemplos de este tutorial están realizados con el modelo Pro.
 
 
 
-## Init claude command
+# Init claude command
 
 Lo primero que se debe hacer es ejecutar el comando claude dentro del repositorio o del proyecto que deseen utilizar.
 
@@ -118,7 +118,7 @@ Resultado generado:
 
 
 
-## Implementar feature, tarea
+# Implementar feature, tarea
 
 A la hora de implementar una tarea, lo recomendable es ser lo más específico posible en el prompt, esto es importante ya que de otra manera Claude Code va a inferir, suponer y puede darse que el resultado esté lejos de lo que se espera, como toda herramienta si se utiliza de manera incorrecta puede generar más trabajo que beneficio.
 
