@@ -23,24 +23,27 @@
 
 # Introducción, definición
 
-Claude Code desde hace unos meses se convirtió en mi herramienta favorita de IA para tareas relacionadas con la tecnología, como previo usuario de GitHub Copilot y eventual de Cursor noté estas. Si bien Copilot funciona excelente y todavía lo utilizo en algunas ocasiones, noté diferencias en particular que me llevaron a utilizar más Claude Code:
+Claude Code es un agente de IA que se ejecuta desde la terminal que permite entre otras cosas analizar proyectos, agregar funcionalidades, arreglar bugs, etc. Salió en preview en febrero de 2025 y en Mayo estuvo disponible para todos los usuarios.
 
-Claude Code es un agente de IA que se ejecuta desde la terminal que permite entre otras cosas investigar proyecto, agregar funcionalidades, arreglar bugs, etc. Salió en preview en febrero de 2025 y en Mayo estuvo disponible para todos los usuarios.
+Esta herramienta desde hace unos meses se convirtió en una de las favoritas y populares entre los desarrolladores.
 
-En los últimos meses otras empresas como Google y OpenAI sacaron herramientas similares:
+
+Lo cual llevo a que en los últimos meses otras empresas como Google y OpenAI sacaran herramientas similares:
 
 - [Gemini CLI](https://blog.google/technology/developers/introducing-gemini-cli-open-source-ai-agent/)
 - [OpenAI Codex CLI](https://help.openai.com/en/articles/11096431-openai-codex-cli-getting-started)
 
 ### Ventajas de Claude Code
 
-- **Ejecución en terminal**: en mi caso al utilizar constantemente la terminal se convierte en algo más natural
+- **Ejecución en terminal**: en el caso de las personas que utilizan la terminal, es un lugar mas natural que ejecutarlo desde un IDE.
 
 - **Separación de la interfaz de IA por fuera del editor**: algo que no me gusta mucho con respecto a la integración de IA en los editores es que se vuelve un poco complejo la UX al tener muchos paneles al mismo tiempo y se pierde foco en el editor de código.
 
 ![Claude tutorial overview](./image01.png)
 
 - **Agnóstico e independiente de editores**: aunque en caso de requerirlo Claude Code se puede integrar con editores como VS Code, Cursor.
+
+- **Tools**: Claude Code tiene una excelente implementacion de Tools, por ejemplo para buscar, editar archivos, ejecutar comandos de shell, buscar en la web, etc.
 
 # Instalación
 
