@@ -35,7 +35,7 @@ Over the past few months it has become one of the most popular tools among devel
 
 - **Separation of AI interface outside the editor**: One thing I don’t like about editors with AI (VS Code, Cursor) is that the UX gets cluttered with many panels and buttons and you can lose focus on the main editing area.
 
-![Claude tutorial overview](https://github.com/ernesto27/ai-projects/blob/master/claude-tutorial/image01.png)
+![Claude tutorial overview](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/image01.png)
 
 - **Editor-agnostic and independent**: Although if needed Claude Code can integrate with editors like VS Code or Cursor.
 
@@ -62,8 +62,6 @@ npm install -g @anthropic-ai/claude-code
 
 The examples in this tutorial use the Pro model.
 
-**Other requirements**:
-- Docker
 
 # Init Claude Command
 
