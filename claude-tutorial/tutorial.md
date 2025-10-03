@@ -17,9 +17,8 @@
 - [Uso de comandos](#uso-de-comandos)
 - [Retomar conversación](#retomar-conversación)
 - [Uso de sub-agentes](#uso-de-sub-agentes)
-- **Usar MCP - Playwright** - **No implementado aún**
-- **Usar memoria** - **No implementado aún**
-- Estilo de agente - **No implementado aún**
+- [Uso de MCP - Playwright](#uso-de-mcp---playwright)
+- [Estilo de agente](#estilo-de-agente)
 
 # Introducción, definición
 
@@ -437,6 +436,21 @@ Aquí vemos a Playwright en acción abriendo un navegador
 En caso de que no pueda loguearse por algún motivo, va a tomar un screenshot y lo va a guardar en la carpeta playwright-mcp:
 
 ![Playwright screenshot](./playwright2.png)
+
+
+# Estilo de agente
+
+Puedes cambiar el estilo en que Claude interactúa contigo.
+
+Ejecuta este comando:
+
+```bash
+/output-style
+```
+
+![Output style](./output-style.png)
+
+Recomiendo encarecidamente usar el estilo "Explicativo", con esta opción Claude explica por qué decidió hacer algo de cierta manera, ideal para aprender un nuevo lenguaje y arquitectura.
 
 
 
