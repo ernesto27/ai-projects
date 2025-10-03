@@ -38,7 +38,7 @@ Lo cual llevo a que en los últimos meses otras empresas como Google y OpenAI sa
 
 - **Separación de la interfaz de IA por fuera del editor**: algo que no me gusta mucho con respecto a la integración de IA en los editores es que se vuelve un poco complejo la UX al tener muchos paneles al mismo tiempo y se pierde foco en el editor de código.
 
-![Claude tutorial overview](./image01.png)
+![Claude tutorial overview](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/image01.png)
 
 - **Agnóstico e independiente de editores**: aunque en caso de requerirlo Claude Code se puede integrar con editores como VS Code, Cursor.
 
@@ -111,7 +111,7 @@ Genera un diagrama de flujo base y también en formato mermaid, guarda el conten
 
 Acá vemos a Claude Code en acción, generando un TODO list y utilizando diferentes tools para investigar el proyecto.
 
-![Claude tutorial overview](./explain.png)
+![Claude tutorial overview](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/explain.png)
 
 Resultado generado:
 
@@ -152,7 +152,7 @@ Al detallar en específico las versiones, librerías, rutas se puede generar un 
 
 A medida que Claude Code va generando cambios en el proyecto, nos da la posibilidad de configurar el "auto-accept" ya sea seleccionando esa opción cuando Claude Code necesite editar un archivo o ejecutando el comando o presionando dos veces shift+tab 1 vez.
 
-![Claude tutorial overview](./auto-accept.png)
+![Claude tutorial overview](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/auto-accept.png)
 
 Si bien esta opción puede ser útil en ciertas circunstancias, como por ejemplo veremos más adelante utilizando el agente en background, lo recomendable es ir revisando los cambios línea por línea, para asegurarnos de que todo esté correcto e ir ajustando, indicando a Claude que queremos cambiar, de manera similar a lo que haríamos en un code review.
 
@@ -163,13 +163,13 @@ Recordar que los LLM son no determinísticos, es decir que pueden generar difere
 
 Si bien Claude Code tiene la capacidad de entender el contexto del proyecto y buscar el archivo en que se debe aplicar un cambio, podemos ser más específicos y decirle a Claude cuál es el archivo específico que necesitamos editar, esto va a permitir que Claude sea más rápido y no malgastar tokens utilizando las tools.
 
-![File](./file.png)
+![File](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/file.png)
 
 
 # Fix BUG
 Generalmente cuando tenemos un bug y acceso al texto de este en particular, copiar el mensaje en Claude puede ser suficiente.
 
-![Fix Bug](./debug.png)
+![Fix Bug](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/debug.png)
 
 Aquí puede sumar comentar qué fue lo que intentamos previamente hacer para solucionar el bug, agregar archivos, contexto, etc.
 
@@ -177,7 +177,7 @@ Aquí puede sumar comentar qué fue lo que intentamos previamente hacer para sol
 # Modo plan
 Claude tiene un modo plan, el cual se puede habilitar presionando shift+tab 2 veces.
 
-![Plan](./plan.png)
+![Plan](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/plan.png)
 
 Este modo es útil para tareas medianas/complejas, ya que permite que Claude pueda planificar los pasos a seguir de una manera estructurada, iterando y validando cada paso.
 
@@ -189,7 +189,7 @@ Integrate our existing Golang API with AWS services: S3 for file uploads and SQS
 
 Ejemplo de resultado:
 
-![Plan result](./plan2.png)
+![Plan result](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/plan2.png)
 
 Después de esto podemos aceptar el plan o seguir ajustando el plan.
 
@@ -206,7 +206,7 @@ In Go, my app sometimes hangs, sometimes crashes with concurrent map read and ma
 ```
 
 Resultado:
-![Thinking result](./think1.png)
+![Thinking result](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/think1.png)
 
 Esto nos puede llegar a dar un mejor resultado, aunque tengan en cuenta que en este modo, se hace un uso mayor de tokens y en consecuencia es más costoso.
 
@@ -248,7 +248,7 @@ ejemplo Ubuntu, click derecho sobre la imagen y seleccionar "copiar") y posterio
 
 Esto nos puede servir tanto para analizar diagramas, diseños, errores, etc.
 
-![Image from clipboard](./image-command.png)
+![Image from clipboard](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/image-command.png)
 
 
 # Uso de comandos
@@ -303,7 +303,7 @@ Si necesitamos retomar una conversación previa, debido a que no terminamos una 
 
 esto nos va a mostrar un listado con las últimas conversaciones, seleccionamos la que queremos retomar y podemos proseguir.
 
-![Resume](./resume.png)
+![Resume](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/resume.png)
 
 
 # Uso de sub-agentes
@@ -320,7 +320,7 @@ Para crear un sub-agente,  se utiliza el comando:
 ```
 Create new agent
 
-![Sub-agent](./agent1.png)
+![Sub-agent](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/agent1.png)
 
 Aquí podemos generar un agente específicamente para el proyecto desde el que estemos ejecutando Claude o a nivel general del sistema.
 
@@ -330,7 +330,7 @@ En la opción siguiente seleccionamos la opción.
 
 En la siguiente sección tenemos que definir el rol del agente.
 
-![Sub-agent description](./agent2.png)
+![Sub-agent description](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/agent2.png)
 
 En este caso vamos a crear un agente para que genere un code-review del código.
 
@@ -387,7 +387,7 @@ Provide specific line-by-line feedback with severity levels (Critical/Major/Mino
 
 Podemos seleccionar las tools que queremos habilitar, en este caso vamos a dejar todo habilitado como viene por defecto.
 
-![Sub-agent tools](./agent4.png)
+![Sub-agent tools](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/agent4.png)
 
 Si vemos el contenido de nuestro proyecto, podemos observar que Claude generó un nuevo archivo en la carpeta `.claude/agents` con el nombre golang-code-reviewer.
 
@@ -399,7 +399,7 @@ use golang-code-reviewer
 
 Resultado 
 
-![Sub-agent result](./agent-result.png)
+![Sub-agent result](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/agent-result.png)
 
 
 # Uso de MCP - Playwright
@@ -419,7 +419,7 @@ Una vez instalado, podemos verificar que Playwright esté disponible ejecutando 
 /mcp 
 ```
 
-![MCP](./mcp.png)
+![MCP](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/mcp.png)
 
 Ejemplo de uso:
 
@@ -431,11 +431,11 @@ open this url using playwright http://localhost:8000/ and try to login using use
 
 Aquí vemos a Playwright en acción abriendo un navegador
 
-![Playwright](./playwright1.png)
+![Playwright](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/playwright1.png)
 
 En caso de que no pueda loguearse por algún motivo, va a tomar un screenshot y lo va a guardar en la carpeta playwright-mcp:
 
-![Playwright screenshot](./playwright2.png)
+![Playwright screenshot](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/playwright2.png)
 
 
 # Estilo de agente
@@ -448,7 +448,7 @@ Ejecuta este comando:
 /output-style
 ```
 
-![Output style](./output-style.png)
+![Output style](https://raw.githubusercontent.com/ernesto27/ai-projects/master/claude-tutorial/output-style.png)
 
 Recomiendo encarecidamente usar el estilo "Explicativo", con esta opción Claude explica por qué decidió hacer algo de cierta manera, ideal para aprender un nuevo lenguaje y arquitectura.
 
