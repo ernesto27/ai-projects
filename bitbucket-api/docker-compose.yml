@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  bitbucket-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bitbucket-api
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+          ignore:
+            - .git/
+            - frontend/
+        - action: sync
+          path: ./frontend
+          target: /root/frontend
