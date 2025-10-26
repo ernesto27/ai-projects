@@ -47,7 +47,10 @@ func main() {
 	mux.HandleFunc("/languages", handleGetLanguages)
 
 	// Start server
-	port := getEnv("PORT", "8080")
+	port := "8080"
+	if p := os.Getenv("PORT"); p != "" {
+		port = p
+	}
 	log.Printf("Starting server on port %s...", port)
 	log.Printf("Endpoints:")
 	log.Printf("  GET / - Dashboard")
@@ -64,12 +67,4 @@ func main() {
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
-}
-
-// getEnv gets an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }
