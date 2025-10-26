@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repository Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <h1 class="text-5xl font-bold text-white text-center mb-8 drop-shadow-lg">
+            Repository Analytics Dashboard
+        </h1>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Repositories</h3>
+                <div class="text-4xl font-bold text-indigo-400" id="totalRepos">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Commits</h3>
+                <div class="text-4xl font-bold text-purple-400" id="totalCommits">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Contributors</h3>
+                <div class="text-4xl font-bold text-pink-400" id="totalContributors">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Top Contributor</h3>
+                <div class="text-xl font-bold text-indigo-300" id="topContributor">-</div>
+            </div>
+        </div>
+
+        <!-- Workspace Users Selector -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="userSelector" class="block text-sm font-semibold text-gray-300 mb-2">
+                        Select Workspace Member
+                    </label>
+                    <select id="userSelector" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                        <option value="">Loading users...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="timePeriodSelector" class="block text-sm font-semibold text-gray-300 mb-2">
+                        Filter by Time Period
+                    </label>
+                    <select id="timePeriodSelector" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                        <option value="all">All Time</option>
+                        <option value="day">Last 24 Hours</option>
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- User Commits Section -->
+            <div id="userCommitsSection" class="mt-6 hidden">
+                <h3 class="text-xl font-bold text-indigo-400 mb-4">User Info</h3>
+                <div id="userCommitsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- User commits will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Commit Frequency Statistics -->
+            <div id="frequencySection" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-indigo-400 mb-4">Commit Frequency Statistics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Stats cards -->
+                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div class="text-sm text-gray-400 mb-1">Total Commits</div>
+                        <div class="text-3xl font-bold text-indigo-400" id="freqTotalCommits">0</div>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div class="text-sm text-gray-400 mb-1">Avg Per Day</div>
+                        <div class="text-3xl font-bold text-purple-400" id="freqAvgPerDay">0</div>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div class="text-sm text-gray-400 mb-1">Avg Per Week</div>
+                        <div class="text-3xl font-bold text-pink-400" id="freqAvgPerWeek">0</div>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div class="text-sm text-gray-400 mb-1">Date Range</div>
+                        <div class="text-sm font-semibold text-gray-200" id="freqDateRange">-</div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Repository Selector and Contributors -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-700">
+            <div class="mb-6">
+                <label for="repoSelector" class="block text-sm font-semibold text-gray-300 mb-2">
+                    Select Repository
+                </label>
+                <select id="repoSelector" class="w-full md:w-1/2 px-4 py-3 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                    <option value="">Loading repositories...</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Contributors List -->
+                <div>
+                    <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                        Contributors
+                    </h2>
+                    <ul class="space-y-3" id="contributorList">
+                        <!-- Contributors will be inserted here -->
+                    </ul>
+                </div>
+
+                <!-- Pie Chart -->
+                <div>
+                    <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                        Commit Distribution
+                    </h2>
+                    <canvas id="commitPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+            <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                Commits per Repository
+            </h2>
+            <canvas id="repoBarChart"></canvas>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
