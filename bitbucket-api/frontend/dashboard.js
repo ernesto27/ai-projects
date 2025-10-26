@@ -1,5 +1,6 @@
 let pieChart = null;
 let barChart = null;
+let languageChart = null;
 let allReposData = [];
 
 // Fetch real data from API
@@ -125,6 +126,27 @@ async function fetchUserCommitFrequency(accountId) {
     }
 }
 
+// Fetch language statistics for a repository
+async function fetchLanguageStats(repoSlug) {
+    try {
+        const url = `/languages?repo=${repoSlug}`;
+        console.log('Fetching from URL:', url);
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Parsed data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching language stats:', error);
+        return null;
+    }
+}
+
 // Merge commits and PRs data by repository
 function mergeRepoData(commits, pullRequests) {
     const repoMap = new Map();
@@ -134,19 +156,41 @@ function mergeRepoData(commits, pullRequests) {
         repoMap.set(repoCommit.repository, {
             repository: repoCommit.repository,
             commits: repoCommit.count,
-            pullRequests: 0
+            mergedPRs: 0,
+            openPRs: 0,
+            totalPRs: 0
         });
     });
 
-    // Add pull requests data
+    // Add pull requests data - separate by state
     pullRequests.forEach(repoPR => {
+        let mergedCount = 0;
+        let openCount = 0;
+
+        // Count PRs by state
+        if (repoPR.pull_requests && Array.isArray(repoPR.pull_requests)) {
+            repoPR.pull_requests.forEach(pr => {
+                if (pr.state === 'MERGED') {
+                    mergedCount++;
+                } else if (pr.state === 'OPEN') {
+                    openCount++;
+                }
+            });
+        }
+
+        const totalCount = repoPR.count || (mergedCount + openCount);
+
         if (repoMap.has(repoPR.repository)) {
-            repoMap.get(repoPR.repository).pullRequests = repoPR.count;
+            repoMap.get(repoPR.repository).mergedPRs = mergedCount;
+            repoMap.get(repoPR.repository).openPRs = openCount;
+            repoMap.get(repoPR.repository).totalPRs = totalCount;
         } else {
             repoMap.set(repoPR.repository, {
                 repository: repoPR.repository,
                 commits: 0,
-                pullRequests: repoPR.count
+                mergedPRs: mergedCount,
+                openPRs: openCount,
+                totalPRs: totalCount
             });
         }
     });
@@ -201,10 +245,17 @@ function renderUserData(commits, pullRequests, user) {
                             <span class="text-2xl font-bold text-indigo-400">${repoData.commits}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-400">Pull Requests:</span>
-                            <a href="${pullRequestsUrl}" target="_blank" rel="noopener noreferrer"
-                               class="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors cursor-pointer">
-                                ${repoData.pullRequests}
+                            <span class="text-sm text-gray-400">Merged PRs:</span>
+                            <a href="${pullRequestsUrl}&state=MERGED" target="_blank" rel="noopener noreferrer"
+                               class="text-2xl font-bold text-green-400 hover:text-green-300 transition-colors cursor-pointer">
+                                ${repoData.mergedPRs || repoData.totalPRs || 0}
+                            </a>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-400">Open PRs:</span>
+                            <a href="${pullRequestsUrl}&state=OPEN" target="_blank" rel="noopener noreferrer"
+                               class="text-2xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors cursor-pointer">
+                                ${repoData.openPRs || 0}
                             </a>
                         </div>
                     </div>
@@ -297,19 +348,31 @@ function populateRepoSelector(data) {
     });
 
     // Add change event listener
-    selector.addEventListener('change', (e) => {
+    selector.addEventListener('change', async (e) => {
         const selectedIndex = e.target.value;
         if (selectedIndex === '') {
             // Show all repositories data
             const stats = processData(allReposData);
             renderContributors(stats.contributors);
             renderPieChart(stats.contributors);
+            // Hide language section when "All Repositories" is selected
+            document.getElementById('languageSection').classList.add('hidden');
         } else {
             // Show selected repository data
             const selectedRepo = allReposData[parseInt(selectedIndex)];
             const repoStats = processRepoData(selectedRepo);
             renderContributors(repoStats.contributors);
             renderPieChart(repoStats.contributors);
+
+            // Fetch and display language statistics
+            const repoSlug = selectedRepo.repository.split('/')[1];
+            console.log('Selected repo:', selectedRepo.repository);
+            console.log('Repo slug:', repoSlug);
+            if (repoSlug) {
+                const languageData = await fetchLanguageStats(repoSlug);
+                console.log('Language data:', languageData);
+                renderLanguageChart(languageData);
+            }
         }
     });
 }
@@ -561,6 +624,84 @@ function renderBarChart(data) {
             }
         }
     });
+}
+
+function renderLanguageChart(languageData) {
+    const section = document.getElementById('languageSection');
+    const ctx = document.getElementById('languagePieChart');
+
+    if (!languageData || !languageData.languages || languageData.languages.length === 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+
+    if (languageChart) {
+        languageChart.destroy();
+    }
+
+    const colors = [
+        '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6',
+        '#ef4444', '#14b8a6', '#f97316', '#6366f1', '#a855f7'
+    ];
+
+    languageChart = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: languageData.languages.map(lang => lang.name),
+            datasets: [{
+                data: languageData.languages.map(lang => lang.percentage),
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        },
+                        color: '#d1d5db'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const percentage = context.parsed || 0;
+                            const lang = languageData.languages[context.dataIndex];
+                            return `${label}: ${percentage.toFixed(1)}% (${lang.file_count} files)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Update the language list
+    const languageList = document.getElementById('languageList');
+    languageList.innerHTML = languageData.languages.map((lang, index) => {
+        const color = colors[index % colors.length];
+        return `
+            <li class="flex items-center justify-between p-3 bg-gray-700 rounded-lg border border-gray-600">
+                <div class="flex items-center flex-1">
+                    <div class="w-4 h-4 rounded-full mr-3" style="background-color: ${color}"></div>
+                    <span class="font-semibold text-gray-100">${lang.name}</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-400">${lang.file_count} files</span>
+                    <span class="text-xl font-bold text-indigo-400">${lang.percentage.toFixed(1)}%</span>
+                </div>
+            </li>
+        `;
+    }).join('');
 }
 
 

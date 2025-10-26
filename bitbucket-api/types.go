@@ -128,3 +128,27 @@ type Config struct {
 	Token     string
 	Workspace string
 }
+
+// Language represents programming language usage in a repository
+type Language struct {
+	Name       string  `json:"name"`
+	Percentage float64 `json:"percentage"`
+	FileCount  int     `json:"file_count"`
+}
+
+// RepositoryLanguages represents languages used in a repository
+type RepositoryLanguages struct {
+	Repository string     `json:"repository"`
+	Languages  []Language `json:"languages"`
+}
+
+// FileTreeResponse represents the API response for repository file tree
+type FileTreeResponse struct {
+	Values []FileNode `json:"values"`
+}
+
+// FileNode represents a file or directory in the repository
+type FileNode struct {
+	Path string `json:"path"`
+	Type string `json:"type"` // "commit_file" or "commit_directory"
+}

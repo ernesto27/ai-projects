@@ -354,3 +354,64 @@ func handleGetUserCommitFrequency(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(frequency)
 }
+
+// handleGetLanguages handles GET /languages?workspace={workspace}&repo={repo}
+func handleGetLanguages(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	workspace := r.URL.Query().Get("workspace")
+	repo := r.URL.Query().Get("repo")
+
+	if workspace == "" {
+		workspace = config.Workspace
+	}
+
+	// If specific repo is requested
+	if repo != "" {
+		languages, err := getRepositoryLanguages(config.Email, config.Token, workspace, repo)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error getting languages for repository: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		repoLanguages := RepositoryLanguages{
+			Repository: fmt.Sprintf("%s/%s", workspace, repo),
+			Languages:  languages,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(repoLanguages)
+		return
+	}
+
+	// Get languages for all repositories in workspace
+	repos, err := getRepositories(config.Email, config.Token, workspace)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error getting repositories: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	allRepoLanguages := []RepositoryLanguages{}
+	for _, repo := range repos {
+		languages, err := getRepositoryLanguages(config.Email, config.Token, workspace, repo.Slug)
+		if err != nil {
+			log.Printf("Error getting languages for %s: %v", repo.Name, err)
+			continue
+		}
+
+		// Only include if languages were found
+		if len(languages) > 0 {
+			repoLanguages := RepositoryLanguages{
+				Repository: repo.FullName,
+				Languages:  languages,
+			}
+			allRepoLanguages = append(allRepoLanguages, repoLanguages)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(allRepoLanguages)
+}

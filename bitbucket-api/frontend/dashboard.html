@@ -90,9 +90,10 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-        <!-- Repository Selector and Contributors -->
-        <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-700">
+        <!-- Repository Selector -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8 mt-8 border border-gray-700">
             <div class="mb-6">
                 <label for="repoSelector" class="block text-sm font-semibold text-gray-300 mb-2">
                     Select Repository
@@ -102,23 +103,37 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Contributors List -->
-                <div>
-                    <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
-                        Contributors
-                    </h2>
-                    <ul class="space-y-3" id="contributorList">
-                        <!-- Contributors will be inserted here -->
-                    </ul>
-                </div>
+            <!-- Contributors List -->
+            <div>
+                <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                    Contributors
+                </h2>
+                <ul class="space-y-3" id="contributorList">
+                    <!-- Contributors will be inserted here -->
+                </ul>
+            </div>
+        </div>
 
-                <!-- Pie Chart -->
+        <!-- Charts Section - Two Columns -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Commit Distribution Chart -->
+            <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                    Commit Distribution
+                </h2>
+                <canvas id="commitPieChart"></canvas>
+            </div>
+
+            <!-- Language Statistics Chart -->
+            <div id="languageSection" class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hidden">
+                <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
+                    Language Statistics
+                </h2>
+                <canvas id="languagePieChart" class="mb-6"></canvas>
                 <div>
-                    <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
-                        Commit Distribution
-                    </h2>
-                    <canvas id="commitPieChart"></canvas>
+                    <ul class="space-y-2" id="languageList">
+                        <!-- Language items will be inserted here -->
+                    </ul>
                 </div>
             </div>
         </div>

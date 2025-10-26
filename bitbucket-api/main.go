@@ -44,6 +44,7 @@ func main() {
 	mux.HandleFunc("/user-commits", handleGetUserCommits)
 	mux.HandleFunc("/user-pullrequests", handleGetUserPullRequests)
 	mux.HandleFunc("/user-commit-frequency", handleGetUserCommitFrequency)
+	mux.HandleFunc("/languages", handleGetLanguages)
 
 	// Start server
 	port := getEnv("PORT", "8080")
@@ -58,6 +59,7 @@ func main() {
 	log.Printf("  GET /user-commits?workspace={workspace}&account_id={account_id}&start_date={YYYY-MM-DD}&end_date={YYYY-MM-DD} - Get commits by user with date filter")
 	log.Printf("  GET /user-pullrequests?workspace={workspace}&account_id={account_id} - Get merged pull requests by user account ID")
 	log.Printf("  GET /user-commit-frequency?workspace={workspace}&account_id={account_id} - Get commit frequency statistics for all history")
+	log.Printf("  GET /languages?workspace={workspace}&repo={repo} - Get language statistics for repositories")
 
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
