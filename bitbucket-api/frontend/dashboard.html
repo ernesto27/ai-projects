@@ -79,7 +79,7 @@
                     Select Repository
                 </label>
                 <select id="repoSelector" class="w-full md:w-1/2 px-4 py-3 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                    <option value="">Loading repositories...</option>
+                    <option value="">Select a repository...</option>
                 </select>
             </div>
 
@@ -101,7 +101,9 @@
                 <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
                     Commit Distribution
                 </h2>
-                <canvas id="commitPieChart"></canvas>
+                <div style="height: 300px;">
+                    <canvas id="commitPieChart"></canvas>
+                </div>
             </div>
 
             <!-- Language Statistics Chart -->
@@ -109,7 +111,9 @@
                 <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
                     Language Statistics
                 </h2>
-                <canvas id="languagePieChart" class="mb-6"></canvas>
+                <div style="height: 300px;" class="mb-6">
+                    <canvas id="languagePieChart"></canvas>
+                </div>
                 <div>
                     <ul class="space-y-2" id="languageList">
                         <!-- Language items will be inserted here -->

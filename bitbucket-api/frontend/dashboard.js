@@ -31,6 +31,21 @@ async function fetchWorkspaceUsers(workspace) {
     }
 }
 
+// Fetch repositories from API
+async function fetchRepositories() {
+    try {
+        const response = await fetch('/get-repositories');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching repositories:', error);
+        return [];
+    }
+}
+
 // Calculate date range based on time period
 function getDateRange(period) {
     const endDate = new Date();
@@ -554,14 +569,14 @@ function renderPieChart(contributors) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 15,
+                        padding: 10,
                         font: {
-                            size: 12
+                            size: 11
                         },
                         color: '#d1d5db'
                     }
@@ -617,14 +632,14 @@ function renderLanguageChart(languageData) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 15,
+                        padding: 10,
                         font: {
-                            size: 12
+                            size: 11
                         },
                         color: '#d1d5db'
                     }
@@ -669,21 +684,16 @@ async function initDashboard() {
     const users = await fetchWorkspaceUsers('eponce2710');
     populateUserSelector(users);
 
-    // Fetch repository data for selector (without commits to avoid loading all data)
-    const data = await fetchCommitsData();
-
-    if (data && data.length > 0) {
-        // Create a simplified repo list for the selector
-        const repoList = data.map(repo => ({ repository: repo.repository }));
-
+    // Fetch repositories
+    const repos = await fetchRepositories();
+    if (repos && repos.length > 0) {
+        // Convert to format expected by populateRepoSelector
+        const repoList = repos.map(repo => ({ repository: repo.full_name }));
         populateRepoSelector(repoList);
-
-        // Set initial state - no repository selected
-        document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">Select a repository to view data</li>';
-    } else {
-        document.getElementById('repoSelector').innerHTML = '<option value="">No repositories found</option>';
-        document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">No repositories available</li>';
     }
+
+    // Set initial state - no repository selected
+    document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">Select a repository to view data</li>';
 }
 
 // Load data when page loads
