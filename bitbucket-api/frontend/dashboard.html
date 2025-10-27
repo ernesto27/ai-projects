@@ -14,26 +14,6 @@
             Repository Analytics Dashboard
         </h1>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Repositories</h3>
-                <div class="text-4xl font-bold text-indigo-400" id="totalRepos">0</div>
-            </div>
-            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Commits</h3>
-                <div class="text-4xl font-bold text-purple-400" id="totalCommits">0</div>
-            </div>
-            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Contributors</h3>
-                <div class="text-4xl font-bold text-pink-400" id="totalContributors">0</div>
-            </div>
-            <div class="bg-gray-800 rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform border border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Top Contributor</h3>
-                <div class="text-xl font-bold text-indigo-300" id="topContributor">-</div>
-            </div>
-        </div>
-
         <!-- Workspace Users Selector -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-700">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -138,13 +118,7 @@
             </div>
         </div>
 
-        <!-- Bar Chart -->
-        <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-            <h2 class="text-2xl font-bold text-indigo-400 mb-6 border-b-2 border-indigo-500 pb-3">
-                Commits per Repository
-            </h2>
-            <canvas id="repoBarChart"></canvas>
-        </div>
+
     </div>
 
     <script src="dashboard.js"></script>

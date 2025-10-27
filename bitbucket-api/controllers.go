@@ -25,11 +25,7 @@ func handleGetCommits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
+	workspace := config.Workspace
 
 	// Get all repositories in the workspace
 	repos, err := getRepositories(config.Email, config.Token, workspace)
@@ -66,13 +62,9 @@ func handleGetCommit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
+	workspace := config.Workspace
 	repo := r.URL.Query().Get("repo")
 	hash := r.URL.Query().Get("hash")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
 
 	if repo == "" {
 		http.Error(w, "repo parameter is required", http.StatusBadRequest)
@@ -101,12 +93,8 @@ func handleGetPullRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
+	workspace := config.Workspace
 	repo := r.URL.Query().Get("repo")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
 
 	if repo == "" {
 		http.Error(w, "repo parameter is required", http.StatusBadRequest)
@@ -130,13 +118,9 @@ func handleGetPullRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
+	workspace := config.Workspace
 	repo := r.URL.Query().Get("repo")
 	idStr := r.URL.Query().Get("id")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
 
 	if repo == "" {
 		http.Error(w, "repo parameter is required", http.StatusBadRequest)
@@ -171,11 +155,7 @@ func handleGetRepositoryUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
+	workspace := config.Workspace
 
 	// Get workspace members (all users in the workspace)
 	workspaceUsers, err := getWorkspaceMembers(config.Email, config.Token, workspace)
@@ -355,6 +335,37 @@ func handleGetUserCommitFrequency(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(frequency)
 }
 
+// handleRepositoryCommit handles GET /repository-commit?workspace={workspace}&repo={repo}
+func handleRepositoryCommit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	workspace := config.Workspace
+	repo := r.URL.Query().Get("repo")
+
+	if repo == "" {
+		http.Error(w, "repo parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	commits, err := getCommits(config.Email, config.Token, workspace, repo)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error getting commits for repository: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	repoCommits := RepositoryCommits{
+		Repository: fmt.Sprintf("%s/%s", workspace, repo),
+		Commits:    commits,
+		Count:      len(commits),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(repoCommits)
+}
+
 // handleGetLanguages handles GET /languages?workspace={workspace}&repo={repo}
 func handleGetLanguages(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -362,12 +373,8 @@ func handleGetLanguages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace := r.URL.Query().Get("workspace")
+	workspace := config.Workspace
 	repo := r.URL.Query().Get("repo")
-
-	if workspace == "" {
-		workspace = config.Workspace
-	}
 
 	// If specific repo is requested
 	if repo != "" {

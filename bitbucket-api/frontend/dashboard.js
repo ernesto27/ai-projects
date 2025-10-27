@@ -1,7 +1,5 @@
 let pieChart = null;
-let barChart = null;
 let languageChart = null;
-let allReposData = [];
 
 // Fetch real data from API
 async function fetchCommitsData(workspace = 'eponce2710') {
@@ -143,6 +141,24 @@ async function fetchLanguageStats(repoSlug) {
         return data;
     } catch (error) {
         console.error('Error fetching language stats:', error);
+        return null;
+    }
+}
+
+// Fetch commits for a specific repository
+async function fetchRepositoryCommits(repoSlug, workspace = 'eponce2710') {
+    try {
+        const url = `/repository-commit?workspace=${workspace}&repo=${repoSlug}`;
+        console.log('Fetching repository commits from URL:', url);
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Repository commits data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching repository commits:', error);
         return null;
     }
 }
@@ -338,7 +354,7 @@ function populateUserSelector(users) {
 // Populate repository selector
 function populateRepoSelector(data) {
     const selector = document.getElementById('repoSelector');
-    selector.innerHTML = '<option value="">All Repositories</option>';
+    selector.innerHTML = '<option value="">Select a repository...</option>';
 
     data.forEach((repo, index) => {
         const option = document.createElement('option');
@@ -351,27 +367,37 @@ function populateRepoSelector(data) {
     selector.addEventListener('change', async (e) => {
         const selectedIndex = e.target.value;
         if (selectedIndex === '') {
-            // Show all repositories data
-            const stats = processData(allReposData);
-            renderContributors(stats.contributors);
-            renderPieChart(stats.contributors);
-            // Hide language section when "All Repositories" is selected
+            // Hide charts and language section when no repository selected
+            document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">Select a repository to view data</li>';
             document.getElementById('languageSection').classList.add('hidden');
+            // Clear charts
+            if (pieChart) {
+                pieChart.destroy();
+                pieChart = null;
+            }
         } else {
-            // Show selected repository data
-            const selectedRepo = allReposData[parseInt(selectedIndex)];
-            const repoStats = processRepoData(selectedRepo);
-            renderContributors(repoStats.contributors);
-            renderPieChart(repoStats.contributors);
-
-            // Fetch and display language statistics
+            // Fetch and display data for selected repository
+            const selectedRepo = data[parseInt(selectedIndex)];
             const repoSlug = selectedRepo.repository.split('/')[1];
-            console.log('Selected repo:', selectedRepo.repository);
-            console.log('Repo slug:', repoSlug);
+
             if (repoSlug) {
-                const languageData = await fetchLanguageStats(repoSlug);
-                console.log('Language data:', languageData);
-                renderLanguageChart(languageData);
+                // Fetch commits data for the specific repository
+                const repoCommitsData = await fetchRepositoryCommits(repoSlug);
+
+                if (repoCommitsData) {
+                    // Process and display commit data
+                    const repoStats = processRepoData(repoCommitsData);
+                    renderContributors(repoStats.contributors);
+                    renderPieChart(repoStats.contributors);
+
+                    // Fetch and display language statistics
+                    const languageData = await fetchLanguageStats(repoSlug);
+                    console.log('Language data:', languageData);
+                    renderLanguageChart(languageData);
+                } else {
+                    document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">Failed to load repository data</li>';
+                    document.getElementById('languageSection').classList.add('hidden');
+                }
             }
         }
     });
@@ -468,17 +494,6 @@ function processData(data) {
     };
 }
 
-function renderStats(stats) {
-    document.getElementById('totalRepos').textContent = stats.totalRepos;
-    document.getElementById('totalCommits').textContent = stats.totalCommits;
-    document.getElementById('totalContributors').textContent = stats.contributors.length;
-
-    if (stats.contributors.length > 0) {
-        const topName = stats.contributors[0].name || stats.contributors[0].email;
-        document.getElementById('topContributor').textContent = topName;
-    }
-}
-
 function renderContributors(contributors) {
     const list = document.getElementById('contributorList');
     const maxCommits = contributors[0]?.commits || 1;
@@ -567,64 +582,7 @@ function renderPieChart(contributors) {
     });
 }
 
-function renderBarChart(data) {
-    const ctx = document.getElementById('repoBarChart').getContext('2d');
 
-    if (barChart) {
-        barChart.destroy();
-    }
-
-    barChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(repo => repo.repository.split('/')[1] || repo.repository),
-            datasets: [{
-                label: 'Commits',
-                data: data.map(repo => repo.count),
-                backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                borderColor: 'rgba(99, 102, 241, 1)',
-                borderWidth: 2,
-                borderRadius: 8,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `Commits: ${context.parsed.y}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#d1d5db'
-                    },
-                    grid: {
-                        color: '#374151'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        color: '#d1d5db'
-                    },
-                    grid: {
-                        color: '#374151'
-                    }
-                }
-            }
-        }
-    });
-}
 
 function renderLanguageChart(languageData) {
     const section = document.getElementById('languageSection');
@@ -707,34 +665,24 @@ function renderLanguageChart(languageData) {
 
 // Initialize dashboard with real data
 async function initDashboard() {
-    // Show loading state
-    document.getElementById('totalRepos').textContent = '...';
-    document.getElementById('totalCommits').textContent = '...';
-    document.getElementById('totalContributors').textContent = '...';
-    document.getElementById('topContributor').textContent = 'Loading...';
-
     // Fetch workspace users
     const users = await fetchWorkspaceUsers('eponce2710');
     populateUserSelector(users);
 
-    // Fetch real data from API
+    // Fetch repository data for selector (without commits to avoid loading all data)
     const data = await fetchCommitsData();
 
     if (data && data.length > 0) {
-        allReposData = data;
+        // Create a simplified repo list for the selector
+        const repoList = data.map(repo => ({ repository: repo.repository }));
 
-        const stats = processData(data);
-        renderStats(stats);
-        populateRepoSelector(data);
-        renderContributors(stats.contributors);
-        renderPieChart(stats.contributors);
-        renderBarChart(data);
+        populateRepoSelector(repoList);
+
+        // Set initial state - no repository selected
+        document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">Select a repository to view data</li>';
     } else {
-        document.getElementById('totalRepos').textContent = '0';
-        document.getElementById('totalCommits').textContent = '0';
-        document.getElementById('totalContributors').textContent = '0';
-        document.getElementById('topContributor').textContent = 'No data';
-        document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">No data available</li>';
+        document.getElementById('repoSelector').innerHTML = '<option value="">No repositories found</option>';
+        document.getElementById('contributorList').innerHTML = '<li class="text-center text-gray-400 p-4">No repositories available</li>';
     }
 }
 
