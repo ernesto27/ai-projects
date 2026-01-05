@@ -334,3 +334,8 @@ def softmax_with_temperature(logits, temperature):
     return torch.softmax(scaled_logits, dim=0)
 
 print_sampled_tokens(probas)
+
+top_k = 3
+top_logits, top_pos = torch.topk(next_token_logits, top_k) 
+print("Top logits:", top_logits)
+print("Top positions:", top_pos)
