@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.uv-env/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.venvPath": "${workspaceFolder}",
+  "python.analysis.venv": ".uv-env"
+}
