@@ -367,22 +367,30 @@ def evaluate_model(model, train_loader, val_loader, device, eval_iter):
 
 
 import time 
+import os
 
 start_time = time.time() 
 torch.manual_seed(123)
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
 num_epochs = 5
 
-# train_losses, val_losses, train_accs, val_accs, examples_seen = train_classifier_simple(
-#     model, 
-#     train_loader, 
-#     val_loader,
-#     optimizer, 
-#     device,
-#     num_epochs=num_epochs,
-#     eval_freq=50,
-#     eval_iter=5
-# )
+checkpoint_path = "review_classifier.pth"
+
+if os.path.exists(checkpoint_path):
+    model_state_dict = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(model_state_dict)
+else:
+    train_losses, val_losses, train_accs, val_accs, examples_seen = train_classifier_simple(
+        model,
+        train_loader,
+        val_loader,
+        optimizer,
+        device,
+        num_epochs=num_epochs,
+        eval_freq=50,
+        eval_iter=5
+    )
+    torch.save(model.state_dict(), checkpoint_path)
 
 end_time = time.time()
 execution_time_minutes = (end_time - start_time) / 60
@@ -420,5 +428,13 @@ text_1 = (
 " selected to receive $1000 cash or a $2000 award."
 )
 print(classify_review(
-text_1, model, tokenizer, device, max_length=train_dataset.max_length
+    text_1, model, tokenizer, device, max_length=train_dataset.max_length
+))
+
+text_2 = (
+"Hey, just wanted to check if we're still on"
+" for dinner tonight? Let me know!"
+)
+print(classify_review(
+    text_2, model, tokenizer, device, max_length=train_dataset.max_length
 ))
