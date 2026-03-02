@@ -1,0 +1,10 @@
+[project]
+name = "second"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "tiktoken==0.7.0",
+    "torch>=2.10.0",
+]
